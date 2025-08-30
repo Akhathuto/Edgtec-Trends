@@ -22,7 +22,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   
   const handleUpgrade = () => {
-      upgradePlan();
+      // FIX: The upgradePlan function requires a plan argument ('starter' or 'pro'). This modal upgrades to 'pro'.
+      upgradePlan('pro');
       onClose();
   }
 

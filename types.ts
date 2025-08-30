@@ -7,13 +7,16 @@ export enum Tab {
   About = 'about',
   Profile = 'profile',
   Admin = 'admin',
+  Pricing = 'pricing',
+  Support = 'support',
+  Contact = 'contact',
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'starter' | 'pro';
   role: 'admin' | 'user';
 }
 
@@ -21,11 +24,20 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  signUp: (name: string, email: string, pass: string, plan: 'free' | 'pro') => Promise<void>;
+  signUp: (name: string, email: string, pass: string, plan: 'free' | 'starter' | 'pro') => Promise<void>;
   logout: () => void;
-  upgradePlan: () => void;
+  upgradePlan: (plan: 'starter' | 'pro') => void;
   getAllUsers: () => User[];
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
+}
+
+export interface Plan {
+  name: 'Free' | 'Starter' | 'Pro';
+  price: string;
+  pricePeriod: string;
+  description: string;
+  features: string[];
+  isFeatured?: boolean;
 }
 
 

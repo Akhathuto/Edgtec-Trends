@@ -5,11 +5,10 @@ import { LogOut, Star, User } from './Icons';
 import { Tab } from '../types';
 
 interface HeaderProps {
-  onUpgradeClick: () => void;
   setActiveTab: (tab: Tab) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onUpgradeClick, setActiveTab }) => {
+const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
   const { user, logout } = useAuth();
   return (
     <header className="py-4 px-4 sm:px-6">
@@ -21,13 +20,13 @@ const Header: React.FC<HeaderProps> = ({ onUpgradeClick, setActiveTab }) => {
         {user && (
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-300 hidden sm:block">Welcome, {user.name}</span>
-             {user.plan === 'free' && (
+             {user.plan !== 'pro' && (
               <button
-                onClick={onUpgradeClick}
+                onClick={() => setActiveTab(Tab.Pricing)}
                 className="flex items-center gap-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 font-semibold text-sm px-4 py-2 rounded-full transition-colors"
               >
                 <Star className="w-4 h-4" />
-                Upgrade to Pro
+                Upgrade Plan
               </button>
             )}
             <button

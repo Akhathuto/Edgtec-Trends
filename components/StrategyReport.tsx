@@ -1,14 +1,16 @@
-
 import React, { useState } from 'react';
 import { generateFullReport } from '../services/geminiService';
-import { FullReport } from '../types';
+import { FullReport, Tab } from '../types';
 import Spinner from './Spinner';
 import { Lightbulb, DollarSign, Users, Target, CheckCircle, TrendingUp, FileText, Star } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 
+interface StrategyReportProps {
+  setActiveTab: (tab: Tab) => void;
+}
 
-const StrategyReport: React.FC = () => {
-  const { user, upgradePlan } = useAuth();
+const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
+  const { user } = useAuth();
   const [topic, setTopic] = useState('');
   const [followers, setFollowers] = useState(10000);
   const [loading, setLoading] = useState(false);
@@ -78,17 +80,17 @@ const StrategyReport: React.FC = () => {
     return elements;
   };
 
-  if (user?.plan === 'free') {
+  if (user?.plan !== 'pro') {
     return (
         <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
             <Star className="w-12 h-12 text-yellow-400 mb-4" />
             <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
             <p className="text-gray-400 mb-6 max-w-md">Get a complete, AI-generated content strategy with in-depth trend analysis, content ideas, and monetization plans.</p>
             <button
-                onClick={upgradePlan}
+                onClick={() => setActiveTab(Tab.Pricing)}
                 className="flex items-center gap-2 bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
             >
-                Upgrade Now
+                View Plans
             </button>
         </div>
     )

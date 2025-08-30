@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { generateVideo, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
 
 const loadingMessages = [
     "Kicking off the render...",
@@ -24,8 +24,12 @@ const videoTemplates: { name: string; prompt: string; recommendedPlatform?: 'You
 
 const styleFilters = ['Cinematic', 'Vintage', 'Grayscale', 'Vibrant'];
 
-const VideoGenerator: React.FC = () => {
-    const { user, upgradePlan } = useAuth();
+interface VideoGeneratorProps {
+  setActiveTab: (tab: Tab) => void;
+}
+
+const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
+    const { user } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [basePrompt, setBasePrompt] = useState('');
     const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'YouTube Shorts'>('YouTube');
@@ -184,17 +188,17 @@ const VideoGenerator: React.FC = () => {
         setDuration(0);
     }
 
-    if (user?.plan === 'free') {
+    if (user?.plan !== 'pro') {
         return (
             <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro to Generate Videos</h2>
-                <p className="text-gray-400 mb-6 max-w-md">Unlock the AI Video Generator and other exclusive features by upgrading your account.</p>
+                <p className="text-gray-400 mb-6 max-w-md">The AI Video Generator is a Pro feature. Upgrade your account to start creating.</p>
                 <button
-                    onClick={upgradePlan}
+                    onClick={() => setActiveTab(Tab.Pricing)}
                     className="flex items-center gap-2 bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
                 >
-                    Upgrade Now
+                    View Plans
                 </button>
             </div>
         )
@@ -311,7 +315,7 @@ const VideoGenerator: React.FC = () => {
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 placeholder="e.g., 'My Awesome Vlog'"
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
                                 title="Type text here to add it as an overlay on the video."
                                 />
                             </div>
@@ -327,7 +331,7 @@ const VideoGenerator: React.FC = () => {
                                 value={duration || ''}
                                 onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
                                 placeholder="e.g., 15"
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
                                 title="Suggest a target length for the video in seconds."
                                 />
                             </div>

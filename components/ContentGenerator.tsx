@@ -55,9 +55,11 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
     }
   };
   
-  const scriptButtonClass = (isFree: boolean) => {
-      return isFree
-        ? 'bg-gray-800 text-gray-500 hover:bg-gray-700/80'
+  const isScriptLocked = user?.plan === 'free';
+
+  const scriptButtonClass = (isLocked: boolean) => {
+      return isLocked
+        ? 'bg-gray-800 text-gray-500 hover:bg-gray-700/80 cursor-pointer'
         : 'bg-gray-700 hover:bg-gray-600 text-white';
   };
 
@@ -157,10 +159,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
                  {!idea.detailed_script && !scriptData[index]?.loading && (
                     <button 
                         onClick={() => handleGenerateScript(idea, index)} 
-                        className={`w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors ${scriptButtonClass(user?.plan === 'free')}`}
-                        title={user?.plan === 'free' ? 'Upgrade to Pro to generate scripts' : 'Generate detailed script'}
+                        className={`w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors ${scriptButtonClass(isScriptLocked)}`}
+                        title={isScriptLocked ? 'Upgrade to Starter or Pro to generate scripts' : 'Generate detailed script'}
                     >
-                        {user?.plan === 'free' && <Lock className="w-3 h-3 mr-2"/>}
+                        {isScriptLocked && <Lock className="w-3 h-3 mr-2"/>}
                         <FileText className="w-4 h-4 mr-2"/> Generate Script
                     </button>
                  )}

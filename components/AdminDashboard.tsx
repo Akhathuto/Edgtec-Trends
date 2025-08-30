@@ -1,32 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User } from '../types';
-import { Sliders, User as UserIcon, Shield } from './Icons';
+import { Sliders, User as UserIcon } from './Icons';
+import { useToast } from '../contexts/ToastContext';
 
 const AdminDashboard: React.FC = () => {
     const { user, getAllUsers, updateUser } = useAuth();
+    const { showToast } = useToast();
     const [users, setUsers] = useState<User[]>([]);
 
     useEffect(() => {
         if (user?.role === 'admin') {
             setUsers(getAllUsers());
         }
-    }, [user, getAllUsers]);
+    }, [user?.role, getAllUsers]);
 
-    const handlePlanChange = (userId: string, newPlan: 'free' | 'pro') => {
-        updateUser(userId, { plan: newPlan });
-        setUsers(getAllUsers()); // Refresh user list
-    };
+    const handlePlanChange = useCallback((userId: string, newPlan: User['plan']) => {
+        try {
+            const userToUpdate = users.find(u => u.id === userId);
+            if (!userToUpdate) return;
+            
+            updateUser(userId, { plan: newPlan });
+            setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, plan: newPlan } : u));
+            showToast(`Updated ${userToUpdate.name}'s plan to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}.`);
+        } catch (e: any) {
+            console.error("Failed to update plan:", e.message);
+        }
+    }, [users, updateUser, showToast]);
 
-    const handleRoleChange = (userId: string, newRole: 'admin' | 'user') => {
-        // Prevent admin from demoting themselves
+    const handleRoleChange = useCallback((userId: string, newRole: 'admin' | 'user') => {
         if (user?.id === userId && newRole === 'user') {
             alert("You cannot remove your own admin role.");
+            const selectElement = document.getElementById(`role-${userId}`) as HTMLSelectElement;
+            if (selectElement) selectElement.value = 'admin';
             return;
         }
-        updateUser(userId, { role: newRole });
-        setUsers(getAllUsers()); // Refresh user list
-    };
+        try {
+            const userToUpdate = users.find(u => u.id === userId);
+            if (!userToUpdate) return;
+
+            updateUser(userId, { role: newRole });
+            setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, role: newRole } : u));
+            showToast(`Updated ${userToUpdate.name}'s role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}.`);
+        } catch (e: any) {
+             console.error("Failed to update role:", e.message);
+        }
+    }, [user?.id, users, updateUser, showToast]);
 
     if (user?.role !== 'admin') {
         return <p className="text-center text-red-400">Access Denied. This area is for admins only.</p>;
@@ -66,16 +85,19 @@ const AdminDashboard: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <select
+                                                id={`plan-${managedUser.id}`}
                                                 value={managedUser.plan}
-                                                onChange={(e) => handlePlanChange(managedUser.id, e.target.value as 'free' | 'pro')}
+                                                onChange={(e) => handlePlanChange(managedUser.id, e.target.value as User['plan'])}
                                                 className="w-full bg-gray-800 border border-gray-600 rounded-md py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple"
                                             >
                                                 <option value="free">Free</option>
+                                                <option value="starter">Starter</option>
                                                 <option value="pro">Pro</option>
                                             </select>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <select
+                                                id={`role-${managedUser.id}`}
                                                 value={managedUser.role}
                                                 onChange={(e) => handleRoleChange(managedUser.id, e.target.value as 'admin' | 'user')}
                                                 disabled={user?.id === managedUser.id}
@@ -96,4 +118,4 @@ const AdminDashboard: React.FC = () => {
     );
 };
 
-export default AdminDashboard;
+export default React.memo(AdminDashboard);

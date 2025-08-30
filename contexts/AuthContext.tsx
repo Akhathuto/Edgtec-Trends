@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { User, AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const signUp = async (name: string, email: string, pass: string, plan: 'free' | 'pro'): Promise<void> => {
+    const signUp = async (name: string, email: string, pass: string, plan: 'free' | 'starter' | 'pro'): Promise<void> => {
         // Mock sign-up
         const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
         if (storedUsers[email]) {
@@ -64,30 +64,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('edgtec-user-session');
     };
 
-    const upgradePlan = () => {
+    const upgradePlan = useCallback((plan: 'starter' | 'pro') => {
         if (user) {
-            const updatedUser = { ...user, plan: 'pro' as 'pro' };
+            const updatedUser = { ...user, plan: plan };
             setUser(updatedUser);
             localStorage.setItem('edgtec-user-session', JSON.stringify(updatedUser));
             
             // Also update the mock user database
             const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
             if(storedUsers[user.email]) {
-                storedUsers[user.email].plan = 'pro';
+                storedUsers[user.email].plan = plan;
                 localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
             }
         }
-    };
+    }, [user]);
 
-    const getAllUsers = (): User[] => {
+    const getAllUsers = useCallback((): User[] => {
         const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
         return Object.values(storedUsers).map((u: any) => {
             const { password, ...userWithoutPassword } = u;
             return userWithoutPassword as User;
         });
-    };
+    }, []);
 
-    const updateUser = (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => {
+    const updateUser = useCallback((userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => {
         const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
         const userEmail = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
 
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
             throw new Error("User not found for update.");
         }
-    };
+    }, [user]);
 
 
     return (

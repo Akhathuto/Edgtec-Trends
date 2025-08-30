@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic } from '../types';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -9,7 +9,7 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-export const getRealtimeTrends = async (userPlan: 'free' | 'pro'): Promise<{ channels: TrendingChannel[], topics: TrendingTopic[] }> => {
+export const getRealtimeTrends = async (userPlan: User['plan']): Promise<{ channels: TrendingChannel[], topics: TrendingTopic[] }> => {
     const trendLimit = userPlan === 'free' ? 5 : 50;
     try {
         const response = await ai.models.generateContent({
@@ -78,7 +78,7 @@ export const findTrends = async (topic: string): Promise<GenerateContentResponse
   }
 };
 
-export const generateContentIdeas = async (topic: string, platform: 'YouTube' | 'TikTok' | 'Both', userPlan: 'free' | 'pro'): Promise<ContentIdea[]> => {
+export const generateContentIdeas = async (topic: string, platform: 'YouTube' | 'TikTok' | 'Both', userPlan: User['plan']): Promise<ContentIdea[]> => {
     const ideaCount = userPlan === 'free' ? 1 : 3;
     try {
         const response = await ai.models.generateContent({

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { EdgTecLogo } from './Logo';
 import Spinner from './Spinner';
+import { User } from '../types';
 
 const Login: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [plan, setPlan] = useState<'free' | 'pro'>('free');
+    const [plan, setPlan] = useState<User['plan']>('free');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const { login, signUp } = useAuth();
@@ -89,10 +90,11 @@ const Login: React.FC = () => {
                                 <select
                                 id="plan"
                                 value={plan}
-                                onChange={(e) => setPlan(e.target.value as 'free' | 'pro')}
+                                onChange={(e) => setPlan(e.target.value as User['plan'])}
                                 className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
                                 >
-                                <option value="free">Freemium (Limited Features)</option>
+                                <option value="free">Freemium (Limited)</option>
+                                <option value="starter">Starter</option>
                                 <option value="pro">Pro (Full Access)</option>
                                 </select>
                             </div>
