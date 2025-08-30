@@ -3,6 +3,7 @@ export enum Tab {
   Ideas = 'ideas',
   Monetization = 'monetization',
   Report = 'report',
+  Prompt = 'prompt',
   Video = 'video',
   About = 'about',
   Profile = 'profile',
@@ -29,52 +30,12 @@ export interface AuthContextType {
   upgradePlan: (plan: 'starter' | 'pro') => void;
   getAllUsers: () => User[];
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
-}
-
-export interface Plan {
-  name: 'Free' | 'Starter' | 'Pro';
-  price: string;
-  pricePeriod: string;
-  description: string;
-  features: string[];
-  isFeatured?: boolean;
-}
-
-
-export interface Trend {
-  title: string;
-  description: string;
-  platform: 'YouTube' | 'TikTok';
+  updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email'>>) => Promise<void>;
 }
 
 export interface GroundingSource {
-    uri: string;
-    title: string;
-}
-
-export interface ContentIdea {
-    title: string;
-    hook: string;
-    script_outline: string[];
-    hashtags: string[];
-    virality_potential: {
-      score: string;
-      reasoning: string;
-    };
-    detailed_script?: string;
-}
-
-export interface MonetizationStrategy {
-    strategy: string;
-    description: string;
-    potential: string;
-    requirements: string;
-}
-
-export interface FullReport {
-  trendAnalysis: string;
-  contentIdeas: ContentIdea[];
-  monetizationStrategies: MonetizationStrategy[];
+  uri: string;
+  title: string;
 }
 
 export interface TrendingChannel {
@@ -90,4 +51,38 @@ export interface TrendingTopic {
   name: string;
   platform: 'YouTube' | 'TikTok';
   description: string;
+}
+
+export interface ContentIdea {
+  title: string;
+  hook: string;
+  script_outline: string[];
+  hashtags: string[];
+  virality_potential: {
+    score: string;
+    reasoning: string;
+  };
+  detailed_script?: string;
+}
+
+export interface MonetizationStrategy {
+  strategy: string;
+  description: string;
+  requirements: string;
+  potential: string;
+}
+
+export interface FullReport {
+    trendAnalysis: string;
+    contentIdeas: Omit<ContentIdea, 'virality_potential' | 'detailed_script'>[];
+    monetizationStrategies: MonetizationStrategy[];
+}
+
+export interface Plan {
+  name: 'Free' | 'Starter' | 'Pro';
+  price: string;
+  pricePeriod: string;
+  description: string;
+  features: string[];
+  isFeatured?: boolean;
 }

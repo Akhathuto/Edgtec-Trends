@@ -294,3 +294,22 @@ export const getTickerTrends = async (): Promise<string[]> => {
         return [];
     }
 };
+
+export const generateContentPrompt = async (topic: string, audience: string, style: string, elements: string): Promise<string> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `As a prompt engineering expert for AI video generators like Veo, create a detailed, single-paragraph prompt. The user wants to create a video about "${topic}".
+            
+            Their target audience is: "${audience}".
+            The desired style is: "${style}".
+            Key elements to include are: "${elements}".
+            
+            Combine these elements into a rich, descriptive prompt that will produce a high-quality video. Focus on visual details, camera movements, and atmosphere.`,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error generating prompt:", error);
+        throw new Error("Failed to generate prompt from Gemini API.");
+    }
+};

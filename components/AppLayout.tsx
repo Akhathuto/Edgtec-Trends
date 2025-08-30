@@ -12,9 +12,10 @@ import PricingPage from './PricingPage';
 import CheckoutModal from './CheckoutModal';
 import SupportPage from './SupportPage';
 import ContactPage from './ContactPage';
+import PromptGenerator from './PromptGenerator';
 import { Tab, User } from '../types';
 import Tabs from './Tabs';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail } from './Icons';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand } from './Icons';
 import TrendingTicker from './TrendingTicker';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -39,6 +40,8 @@ const AppLayout: React.FC = () => {
         return <MonetizationGuide />;
       case Tab.Report:
         return <StrategyReport setActiveTab={setActiveTab} />;
+      case Tab.Prompt:
+        return <PromptGenerator />;
       case Tab.Video:
         return <VideoGenerator setActiveTab={setActiveTab} />;
       case Tab.Pricing:
@@ -61,6 +64,7 @@ const AppLayout: React.FC = () => {
   const baseTabs = [
     { id: Tab.Trends, label: 'Trends', icon: <TrendingUp className="w-5 h-5 mr-2" />, title: "Discover current trends on YouTube and TikTok" },
     { id: Tab.Ideas, label: 'Ideas', icon: <Lightbulb className="w-5 h-5 mr-2" />, title: "Generate viral video ideas with AI" },
+    { id: Tab.Prompt, label: 'Prompt', icon: <Wand className="w-5 h-5 mr-2" />, title: "Generate optimized prompts for the AI Video Generator" },
     { id: Tab.Video, label: 'Video', icon: <Video className="w-5 h-5 mr-2" />, title: "Generate video content with AI" },
     { id: Tab.Monetization, label: 'Monetize', icon: <DollarSign className="w-5 h-5 mr-2" />, title: "Get personalized monetization strategies" },
     { id: Tab.Report, label: 'Report', icon: <FileText className="w-5 h-5 mr-2" />, title: "Generate a complete content strategy report" },

@@ -106,9 +106,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [user]);
 
+    // FIX: Implement and provide the missing `updateProfile` function required by AuthContextType.
+    const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email'>>): Promise<void> => {
+        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+        const userEmailKey = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
+
+        if (userEmailKey && storedUsers[userEmailKey]) {
+            const oldUserData = storedUsers[userEmailKey];
+            const updatedUserData = { ...oldUserData, ...updates };
+            
+            const newEmail = updates.email;
+            // If email is being updated, we need to change the key in our mock DB
+            if (newEmail && newEmail !== userEmailKey) {
+                if (storedUsers[newEmail]) {
+                    throw new Error("A user with this email already exists.");
+                }
+                delete storedUsers[userEmailKey];
+                storedUsers[newEmail] = updatedUserData;
+            } else {
+                storedUsers[userEmailKey] = updatedUserData;
+            }
+            
+            localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
+
+            // If the current user is updating their own profile, update session
+            if (user?.id === userId) {
+                 const updatedSessionUser = { ...user, ...updates };
+                 setUser(updatedSessionUser);
+                 localStorage.setItem('edgtec-user-session', JSON.stringify(updatedSessionUser));
+            }
+        } else {
+            throw new Error("User not found for profile update.");
+        }
+    }, [user]);
+
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser }}>
+        // FIX: Add `updateProfile` to the context value to match the AuthContextType interface.
+        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile }}>
             {children}
         </AuthContext.Provider>
     );

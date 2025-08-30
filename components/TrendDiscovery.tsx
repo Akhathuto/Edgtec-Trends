@@ -202,7 +202,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
                       ? 'text-gray-500 bg-gray-800/40 hover:bg-gray-700/50'
                       : 'text-purple-300 hover:text-purple-200 bg-gray-800/50 hover:bg-gray-700/70'
                     }`}
-                    title={user?.plan === 'free' ? 'Upgrade to Pro to view all trends' : `View all ${realtimeTrends.channels.length} trends`}
+                    title={user?.plan === 'free' ? 'Upgrade to Starter or Pro to view all trends' : `View all ${realtimeTrends.channels.length} trends`}
                   >
                     {user?.plan === 'free' && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400"/>}
                     View All ({realtimeTrends.channels.length})
@@ -225,7 +225,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
                         ? 'text-gray-500 bg-gray-800/40 hover:bg-gray-700/50'
                         : 'text-purple-300 hover:text-purple-200 bg-gray-800/50 hover:bg-gray-700/70'
                       }`}
-                      title={user?.plan === 'free' ? 'Upgrade to Pro to view all trends' : `View all ${realtimeTrends.topics.length} trends`}
+                      title={user?.plan === 'free' ? 'Upgrade to Starter or Pro to view all trends' : `View all ${realtimeTrends.topics.length} trends`}
                     >
                       {user?.plan === 'free' && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400"/>}
                       View All ({realtimeTrends.topics.length})

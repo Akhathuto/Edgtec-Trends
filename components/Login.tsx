@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { EdgTecLogo } from './Logo';
@@ -86,17 +87,12 @@ const Login: React.FC = () => {
 
                         {!isLoginView && (
                              <div>
-                                <label htmlFor="plan" className="sr-only">Choose a plan</label>
-                                <select
-                                id="plan"
-                                value={plan}
-                                onChange={(e) => setPlan(e.target.value as User['plan'])}
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
-                                >
-                                <option value="free">Freemium (Limited)</option>
-                                <option value="starter">Starter</option>
-                                <option value="pro">Pro (Full Access)</option>
-                                </select>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Choose a plan</label>
+                                <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-600">
+                                    <button type="button" onClick={() => setPlan('free')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'free' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Free</button>
+                                    <button type="button" onClick={() => setPlan('starter')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'starter' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Starter</button>
+                                    <button type="button" onClick={() => setPlan('pro')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'pro' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Pro</button>
+                                </div>
                             </div>
                         )}
 
