@@ -1,0 +1,185 @@
+import React, { useState } from 'react';
+import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
+import { ContentIdea } from '../types';
+import Spinner from './Spinner';
+import { Lightbulb, CheckCircle, Star, FileText, Lock } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+
+interface ContentGeneratorProps {
+  onUpgradeClick: () => void;
+}
+
+const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) => {
+  const { user } = useAuth();
+  const [topic, setTopic] = useState('');
+  const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('Both');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [ideas, setIdeas] = useState<ContentIdea[]>([]);
+  const [scriptData, setScriptData] = useState<{[key: number]: {loading: boolean, error: string | null}}>({});
+
+  const handleGenerate = async () => {
+    if (!topic.trim()) {
+      setError('Please enter a topic to generate ideas.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setIdeas([]);
+    setScriptData({});
+    try {
+      const result = await generateContentIdeas(topic, platform, user!.plan);
+      setIdeas(result);
+    } catch (e) {
+      setError('An error occurred while generating ideas. Please try again.');
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleGenerateScript = async (idea: ContentIdea, index: number) => {
+    if (user?.plan === 'free') {
+      onUpgradeClick();
+      return;
+    }
+
+    setScriptData(prev => ({ ...prev, [index]: { loading: true, error: null } }));
+    try {
+        const script = await generateVideoScript(idea);
+        setIdeas(prevIdeas => prevIdeas.map((item, i) => i === index ? { ...item, detailed_script: script } : item));
+        setScriptData(prev => ({ ...prev, [index]: { loading: false, error: null } }));
+    } catch (e) {
+        console.error(e);
+        setScriptData(prev => ({ ...prev, [index]: { loading: false, error: 'Failed to generate script.' } }));
+    }
+  };
+  
+  const scriptButtonClass = (isFree: boolean) => {
+      return isFree
+        ? 'bg-gray-800 text-gray-500 hover:bg-gray-700/80'
+        : 'bg-gray-700 hover:bg-gray-600 text-white';
+  };
+
+  return (
+    <div className="animate-slide-in-up">
+      <div className="bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl">
+        <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">Generate Viral Ideas</h2>
+        <p className="text-center text-gray-400 mb-6">Let AI brainstorm your next hit video. {user?.plan === 'free' && 'Freemium users get 1 idea.'}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label htmlFor="content-topic" className="sr-only">Video Topic</label>
+            <input
+              id="content-topic"
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Enter a video topic..."
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+              title="What kind of video do you want to make? e.g., 'unboxing tech gadgets'"
+            />
+          </div>
+          <div>
+            <label htmlFor="content-platform" className="sr-only">Platform</label>
+            <select
+              id="content-platform"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value as 'YouTube' | 'TikTok' | 'Both')}
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+              title="Choose the platform(s) you're targeting."
+            >
+              <option value="Both">Both YouTube & TikTok</option>
+              <option value="YouTube">YouTube</option>
+              <option value="TikTok">TikTok</option>
+            </select>
+          </div>
+        </div>
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Generate creative and viral video ideas with AI."
+        >
+          {loading ? <Spinner /> : <><Lightbulb className="w-5 h-5 mr-2" /> Generate Ideas</>}
+        </button>
+        {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+      </div>
+
+      {loading && (
+        <div className="text-center py-10">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-300">Brainstorming creative ideas...</p>
+        </div>
+      )}
+
+      {ideas.length > 0 && (
+        <div className={`mt-8 grid grid-cols-1 ${ideas.length > 1 ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 animate-fade-in`}>
+          {ideas.map((idea, index) => (
+            <div key={index} className="bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl flex flex-col">
+              <div className="flex-grow">
+                <h3 className="text-xl font-bold text-purple-300 mb-3">{idea.title}</h3>
+                <p className="text-gray-300 mb-4 italic">"{idea.hook}"</p>
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-200 mb-2">Script Outline:</h4>
+                  <ul className="space-y-1.5 text-gray-400">
+                      {idea.script_outline.map((step, i) => (
+                          <li key={i} className="flex items-start">
+                             <CheckCircle className="w-4 h-4 mr-2 mt-1 text-green-400 flex-shrink-0" />
+                             <span>{step}</span>
+                          </li>
+                      ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-200 mb-2">Hashtags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {idea.hashtags.map((tag, i) => (
+                      <span key={i} className="bg-gray-700 text-purple-300 text-xs font-medium px-2.5 py-1 rounded-full">#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {idea.virality_potential && (
+                 <div className="mt-4 pt-4 border-t border-gray-600">
+                    <h4 className="font-semibold text-gray-200 mb-2 flex items-center">
+                        <Star className="w-5 h-5 mr-2 text-yellow-400" />
+                        Virality Potential
+                    </h4>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="bg-yellow-500/20 text-yellow-300 font-bold text-sm px-3 py-1 rounded-full">{idea.virality_potential.score}</span>
+                        <p className="text-gray-400 text-sm">{idea.virality_potential.reasoning}</p>
+                    </div>
+                </div>
+              )}
+              
+              <div className="mt-4 pt-4 border-t border-gray-600">
+                 {!idea.detailed_script && !scriptData[index]?.loading && (
+                    <button 
+                        onClick={() => handleGenerateScript(idea, index)} 
+                        className={`w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors ${scriptButtonClass(user?.plan === 'free')}`}
+                        title={user?.plan === 'free' ? 'Upgrade to Pro to generate scripts' : 'Generate detailed script'}
+                    >
+                        {user?.plan === 'free' && <Lock className="w-3 h-3 mr-2"/>}
+                        <FileText className="w-4 h-4 mr-2"/> Generate Script
+                    </button>
+                 )}
+                 {scriptData[index]?.loading && <div className="flex justify-center"><Spinner /></div>}
+                 {scriptData[index]?.error && <p className="text-red-400 text-xs text-center">{scriptData[index]?.error}</p>}
+                 {idea.detailed_script && (
+                     <div>
+                         <h4 className="font-semibold text-gray-200 mb-2">Generated Script:</h4>
+                         <pre className="text-xs bg-gray-800/50 rounded-lg p-3 whitespace-pre-wrap font-sans text-gray-300 max-h-48 overflow-y-auto">{idea.detailed_script}</pre>
+                     </div>
+                 )}
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ContentGenerator;
