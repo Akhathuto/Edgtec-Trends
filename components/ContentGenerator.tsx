@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
 import { ContentIdea } from '../types';
@@ -11,7 +10,7 @@ interface ContentGeneratorProps {
 }
 
 const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) => {
-  const { user } = useAuth();
+  const { user, logActivity } = useAuth();
   const [topic, setTopic] = useState('');
   const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('Both');
   const [loading, setLoading] = useState(false);
@@ -31,6 +30,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
     try {
       const result = await generateContentIdeas(topic, platform, user!.plan);
       setIdeas(result);
+      logActivity(`generated ${result.length} content ideas for "${topic}"`, 'Lightbulb');
     } catch (e) {
       setError('An error occurred while generating ideas. Please try again.');
       console.error(e);

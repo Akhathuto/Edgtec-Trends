@@ -32,7 +32,7 @@ interface VideoGeneratorProps {
 }
 
 const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
-    const { user } = useAuth();
+    const { user, logActivity } = useAuth();
     const { showToast } = useToast();
     const [prompt, setPrompt] = useState('');
     const [basePrompt, setBasePrompt] = useState('');
@@ -163,6 +163,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
             const initialOp = await generateVideo(prompt, platform, imageParam);
             setOperation(initialOp);
             pollOperationStatus(initialOp);
+            logActivity(`started generating a video for prompt: "${prompt.substring(0, 30)}..."`, 'Video');
         } catch (e: any) {
             setError(e.message || 'An error occurred while starting video generation. Please try again.');
             setLoading(false);

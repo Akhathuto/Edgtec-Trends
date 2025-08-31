@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService';
 import { KeywordAnalysis, Tab } from '../types';
@@ -11,7 +12,7 @@ interface KeywordResearchProps {
 }
 
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => {
-    const { user } = useAuth();
+    const { user, logActivity } = useAuth();
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,7 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
         try {
             const result = await getKeywordAnalysis(keyword);
             setAnalysis(result);
+            logActivity(`analyzed keyword: "${keyword}"`, 'Search');
         } catch (e) {
             setError('An error occurred while analyzing the keyword. Please try again.');
             console.error(e);

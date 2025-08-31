@@ -30,6 +30,15 @@ export interface User {
   youtubeChannelUrl?: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  icon: string;
+  timestamp: string; // ISO string
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -40,6 +49,9 @@ export interface AuthContextType {
   getAllUsers: () => User[];
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
   updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>) => Promise<void>;
+  logActivity: (action: string, icon: string) => void;
+  getAllActivities: () => ActivityLog[];
+  deleteUser: (userId: string) => void;
 }
 
 export interface GroundingSource {

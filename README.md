@@ -25,10 +25,9 @@
 - **Analyze and Optimize:** Get live, AI-powered analytics for your YouTube channel and perform deep keyword research to optimize your content's reach.
 
 ## ✨ What's New in the Current Update
-- **Revamped Navigation:** Replaced the sidebar with a sleek, horizontal tab-based navigation system, including dropdowns for better organization.
-- **Admin Dashboard:** A new, secure dashboard for administrators to manage users, plans, and roles, and to monitor (simulated) site activity.
-- **Enhanced Keyword Insights:** The Keyword Research tool now features visual progress bars for 'Search Volume' and 'Competition' metrics, making data easier to understand at a glance.
-- **Improved Stability:** Implemented API call debouncing and smarter error handling to prevent rate-limiting issues and provide clearer feedback to users.
+- **Revamped Admin Dashboard:** The dashboard now features a tabbed interface with a new "Overview" section displaying key user stats and a real-time, persistent activity feed showing key user actions across the platform.
+- **Full User Management:** Administrators can now delete users directly from the "User Management" tab within the dashboard, with appropriate safety confirmations.
+- **Persistent Sidebar Navigation:** Replaced the top tabs with a more organized and persistent sidebar navigation for a better user experience.
 
 ## Key Features
 
@@ -40,8 +39,8 @@
 - **AI Video & Image Generation:** Create video content and edit images using simple text prompts.
 - **AI Chat Assistant "Nolo":** Brainstorm ideas and get creative advice from a dedicated AI chat assistant.
 - **Full Strategy Reports:** A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report.
-- **Admin Dashboard:** A secure panel for administrators to manage users and view platform activity.
-- **Modern UI:** A clean, intuitive, and responsive tab-based interface for seamless navigation.
+- **Advanced Admin Dashboard:** A secure panel for administrators to manage users (update plans, roles, and delete users), view platform statistics, and monitor a live feed of user activity.
+- **Modern UI:** A clean, intuitive, and responsive interface with persistent sidebar navigation.
 
 ## 🚀 Getting Started
 
@@ -93,6 +92,7 @@ This application is built with a modern frontend stack, leveraging the power of 
 - **AI Integration:** Google Gemini API (`@google/genai`)
 - **Styling:** Tailwind CSS for a utility-first design system.
 - **Language:** TypeScript for type safety and improved developer experience.
+- **Date Handling:** `date-fns` for lightweight and reliable date formatting.
 
 ## Powered by EDGTEC
 

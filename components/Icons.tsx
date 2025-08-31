@@ -363,3 +363,32 @@ export const Activity: React.FC<IconProps> = (props) => (
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </svg>
 );
+
+export const Sparkles: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M9.93 2.25 12 7.5l2.07-5.25" />
+        <path d="m3.5 9 4-1 4 1" />
+        <path d="M12.5 21.5 12 17l-.5 4.5" />
+        <path d="M20.5 10.5 17 11l-3.5-.5" />
+        <path d="M4 2.25 7.5 6l-3.5 1.5" />
+        <path d="M18.5 3 15 7.5l3.5-.5" />
+        <path d="M4.5 21 8 16H5l-.5 5" />
+        <path d="M19 21.75 16.5 16l3.5 1.25" />
+    </svg>
+);
+
+export const Volume2: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+  </svg>
+);
+
+export const VolumeX: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <line x1="23" y1="9" x2="17" y2="15" />
+    <line x1="17" y1="9" x2="23" y2="15" />
+  </svg>
+);

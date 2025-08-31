@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { User, AuthContextType } from '../types';
+import { User, AuthContextType, ActivityLog } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -22,6 +22,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setLoading(false);
         }, 500);
     }, []);
+
+    const logActivity = useCallback((action: string, icon: string) => {
+        if (!user) return; // Only log for signed-in users
+
+        const newActivity: ActivityLog = {
+            id: Date.now().toString(),
+            userId: user.id,
+            userName: user.name,
+            action,
+            icon,
+            timestamp: new Date().toISOString(),
+        };
+
+        const storedActivities = JSON.parse(localStorage.getItem('utrend-activity-log') || '[]');
+        const updatedActivities = [newActivity, ...storedActivities].slice(0, 50); // Keep last 50
+        localStorage.setItem('utrend-activity-log', JSON.stringify(updatedActivities));
+
+    }, [user]);
+
+    const getAllActivities = useCallback((): ActivityLog[] => {
+        return JSON.parse(localStorage.getItem('utrend-activity-log') || '[]');
+    }, []);
+
+     const deleteUser = useCallback((userId: string) => {
+        if (user?.id === userId) {
+            throw new Error("Admins cannot delete their own account.");
+        }
+
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
+        const userEmail = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
+
+        if (userEmail && storedUsers[userEmail]) {
+            const deletedUserName = storedUsers[userEmail].name;
+            delete storedUsers[userEmail];
+            localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
+            logActivity(`deleted user: ${deletedUserName}`, 'Trash2');
+        } else {
+            throw new Error("User not found for deletion.");
+        }
+    }, [user, logActivity]);
+
 
     const login = async (email: string, pass: string): Promise<void> => {
         // This is a mock login. In a real app, you'd call an API.
@@ -81,8 +122,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 storedUsers[user.email].plan = plan;
                 localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
             }
+            logActivity(`upgraded to the ${plan} plan`, 'Star');
         }
-    }, [user]);
+    }, [user, logActivity]);
 
     const getAllUsers = useCallback((): User[] => {
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
@@ -97,8 +139,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userEmail = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
 
         if (userEmail && storedUsers[userEmail]) {
-            storedUsers[userEmail] = { ...storedUsers[userEmail], ...updates };
+            const updatedUserRecord = { ...storedUsers[userEmail], ...updates };
+            storedUsers[userEmail] = updatedUserRecord;
             localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
+
+            const updatesString = Object.entries(updates).map(([key, value]) => `${key} to ${value}`).join(', ');
+            logActivity(`updated user ${updatedUserRecord.name} (${updatesString})`, 'Edit');
 
             // If the admin is updating their own details, update the session as well
             if (user?.id === userId) {
@@ -109,7 +155,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
             throw new Error("User not found for update.");
         }
-    }, [user]);
+    }, [user, logActivity]);
 
     const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>): Promise<void> => {
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
@@ -146,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile }}>
+        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile, logActivity, getAllActivities, deleteUser }}>
             {children}
         </AuthContext.Provider>
     );

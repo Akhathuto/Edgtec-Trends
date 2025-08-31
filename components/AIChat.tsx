@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Send, Star } from './Icons';
+import { Send, Star, Sparkles, Trash2, Volume2, VolumeX } from './Icons';
 import Spinner from './Spinner';
 
 interface AIChatProps {
@@ -14,40 +14,123 @@ interface ChatMessage {
   content: string;
 }
 
+const TypingIndicator = () => (
+    <div className="flex items-center gap-1.5">
+        <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse [animation-delay:-0.3s]"></span>
+        <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse [animation-delay:-0.15s]"></span>
+        <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse"></span>
+    </div>
+);
+
 const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
-  const { user } = useAuth();
+  const { user, logActivity } = useAuth();
   const [chat, setChat] = useState<Chat | null>(null);
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTtsEnabled, setIsTtsEnabled] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const conversationStarters = [
+    "Give me 3 viral video ideas about retro gaming",
+    "How can I improve my YouTube thumbnails?",
+    "Write a short, hooky script for a TikTok about AI",
+    "What are some trending audio clips right now?",
+  ];
+
+  const speak = useCallback((text: string) => {
+    if (!('speechSynthesis' in window)) {
+        setError("Sorry, your browser doesn't support Text-to-Speech.");
+        return;
+    }
+    // Cancel any ongoing speech before starting a new one
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  // FIX: Pass history during chat initialization instead of trying to set it later.
+  const initializeChat = useCallback((historyToRestore?: ChatMessage[]) => {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+      const chatInstance = ai.chats.create({
+        model: 'gemini-2.5-flash',
+        history: historyToRestore?.map((msg) => ({
+          role: msg.role,
+          parts: [{ text: msg.content }],
+        })),
+        config: {
+          systemInstruction: 'You are Nolo, a helpful, friendly, and creative assistant for content creators. Provide concise, actionable, and inspiring advice. Use markdown for formatting when appropriate.'
+        }
+      });
+      setChat(chatInstance);
+      return chatInstance;
+    } catch (e) {
+      console.error("Failed to initialize AI Chat:", e);
+      setError("Could not initialize the AI chat service. Please try refreshing the page.");
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedTtsPref = localStorage.getItem('utrend-tts-enabled');
+    if (savedTtsPref) {
+      setIsTtsEnabled(JSON.parse(savedTtsPref));
+    }
+    return () => {
+        // Stop any speech when the component unmounts
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('utrend-tts-enabled', JSON.stringify(isTtsEnabled));
+  }, [isTtsEnabled]);
+
+  // FIX: Load history from localStorage and initialize chat with it, ensuring UI and AI history are in sync.
   useEffect(() => {
     if (user?.plan === 'pro') {
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-        const chatInstance = ai.chats.create({
-          model: 'gemini-2.5-flash',
-          config: {
-            systemInstruction: 'You are Nolo, a helpful, friendly, and creative assistant for content creators. Provide concise, actionable, and inspiring advice. Use markdown for formatting when appropriate.'
+      const storedHistory = localStorage.getItem('utrend-chat-history');
+      let initialHistory: ChatMessage[] = [];
+      if (storedHistory) {
+        try {
+          initialHistory = JSON.parse(storedHistory);
+          if (!Array.isArray(initialHistory) || initialHistory.length === 0) {
+            throw new Error("Invalid history format");
           }
-        });
-        setChat(chatInstance);
-        setHistory([{ role: 'model', content: "Hello! I'm Nolo. How can I help you brainstorm your next viral video today?" }]);
-      } catch (e) {
-        console.error("Failed to initialize AI Chat:", e);
-        setError("Could not initialize the AI chat service. Please try refreshing the page.");
+        } catch (e) {
+          console.error('Failed to parse chat history from localStorage', e);
+          localStorage.removeItem('utrend-chat-history');
+          initialHistory = [{ role: 'model', content: "Hello! I'm Nolo. How can I help you brainstorm your next viral video today?" }];
+        }
+      } else {
+        initialHistory = [{ role: 'model', content: "Hello! I'm Nolo. How can I help you brainstorm your next viral video today?" }];
       }
+      
+      setHistory(initialHistory);
+      initializeChat(initialHistory);
     }
-  }, [user?.plan]);
+  }, [user?.plan, initializeChat]);
+
+  useEffect(() => {
+    if (history.length > 0) {
+      localStorage.setItem('utrend-chat-history', JSON.stringify(history));
+    } else {
+      localStorage.removeItem('utrend-chat-history');
+    }
+  }, [history]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [history]);
+  }, [history, loading]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -57,25 +140,29 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         textarea.style.height = `${scrollHeight}px`;
     }
   }, [input]);
+  
+  const sendMessage = useCallback(async (message: string) => {
+    if (!message.trim() || loading || !chat) return;
+    
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
 
-  const handleSendMessage = useCallback(async () => {
-    if (!input.trim() || loading || !chat) return;
-
-    const userMessage: ChatMessage = { role: 'user', content: input };
+    const userMessage: ChatMessage = { role: 'user', content: message };
     setHistory(prev => [...prev, userMessage]);
-    const currentInput = input;
-    setInput('');
     setLoading(true);
+    let fullResponse = '';
 
     try {
-      const stream = await chat.sendMessageStream({ message: currentInput });
-      let fullResponse = '';
+      logActivity(`sent a message to Nolo: "${message.substring(0, 30)}..."`, 'MessageSquare');
+      const stream = await chat.sendMessageStream({ message });
       setHistory(prev => [...prev, { role: 'model', content: '' }]);
 
       for await (const chunk of stream) {
         fullResponse += chunk.text;
         setHistory(prev => {
           const newHistory = [...prev];
+          // FIX: Corrected typo from `newhistory` to `newHistory`.
           const lastMessage = newHistory[newHistory.length - 1];
           if (lastMessage && lastMessage.role === 'model') {
             lastMessage.content = fullResponse;
@@ -88,22 +175,40 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
       setHistory(prev => [...prev, { role: 'model', content: "Sorry, I encountered an error. Please check your connection and try again." }]);
     } finally {
       setLoading(false);
+      if (isTtsEnabled && fullResponse) {
+        speak(fullResponse);
+      }
     }
-  }, [input, loading, chat]);
+  }, [loading, chat, isTtsEnabled, speak, logActivity]);
+
+  const handleFormSubmit = () => {
+    if (input.trim()) {
+        sendMessage(input);
+        setInput('');
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleFormSubmit();
     }
   };
+  
+  // FIX: Ensure clearing chat re-initializes both the UI and AI history.
+  const handleClearChat = useCallback(() => {
+    const freshHistory: ChatMessage[] = [{ role: 'model', content: "Hello again! Let's start fresh. What's on your mind?" }];
+    initializeChat(freshHistory);
+    setHistory(freshHistory);
+  }, [initializeChat]);
   
   const formatContent = (text: string) => {
     const formatted = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 p-2 rounded-md my-2"><code>$1</code></pre>')
+      .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 p-2 rounded-md my-2 text-sm"><code>$1</code></pre>')
       .replace(/`([^`]+)`/g, '<code class="bg-slate-700/50 px-1 py-0.5 rounded text-violet-300">$1</code>')
+      .replace(/(\n\s*[\*\-]\s)(.*)/g, (match, bullet, item) => `<br />• ${item}`)
       .replace(/\n/g, '<br />');
     return <div dangerouslySetInnerHTML={{ __html: formatted }} />;
   };
@@ -125,40 +230,73 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   }
 
   return (
-    <div className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl backdrop-blur-xl h-[75vh] flex flex-col animate-slide-in-up">
-      <header className="p-4 border-b border-slate-700/50 flex-shrink-0">
-          <h2 className="text-xl font-bold text-center">Nolo</h2>
+    <div className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl backdrop-blur-xl h-[80vh] flex flex-col animate-slide-in-up">
+      <header className="p-4 border-b border-slate-700/50 flex-shrink-0 flex justify-between items-center">
+          <div className="w-10">
+            <button onClick={() => setIsTtsEnabled(prev => !prev)} title={isTtsEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"} className="p-2 rounded-full hover:bg-slate-700/50 transition-colors">
+                {isTtsEnabled ? <Volume2 className="w-5 h-5 text-violet-400"/> : <VolumeX className="w-5 h-5 text-slate-400"/>}
+            </button>
+          </div>
+          <h2 className="text-xl font-bold text-center">Chat with Nolo</h2>
+          <div className="w-10 text-right">
+            <button onClick={handleClearChat} title="Clear conversation history" className="p-2 rounded-full hover:bg-slate-700/50 transition-colors">
+              <Trash2 className="w-5 h-5 text-slate-400"/>
+            </button>
+          </div>
       </header>
       
       {error && <div className="p-4 text-center text-red-400 bg-red-500/10">{error}</div>}
 
       <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
         {history.map((msg, index) => (
-          <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : 'items-end'}`}>
+          <div key={index} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'model' && (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0">
                 <Star className="w-5 h-5 text-yellow-300" />
               </div>
             )}
-            <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet rounded-br-none' : 'bg-slate-700 rounded-bl-none'}`}>
+            <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
                 {formatContent(msg.content)}
-                {loading && msg.role === 'model' && index === history.length - 1 && !msg.content && <span className="inline-block w-1.5 h-4 bg-white/50 ml-1 animate-pulse" />}
             </div>
+             {msg.role === 'model' && msg.content && (index !== history.length - 1 || !loading) && (
+                <button 
+                    onClick={() => speak(msg.content)} 
+                    className="p-2 rounded-full hover:bg-slate-700/50 transition-colors"
+                    title="Read message aloud"
+                >
+                    <Volume2 className="w-4 h-4 text-slate-400" />
+                </button>
+             )}
           </div>
         ))}
-         {loading && history[history.length - 1]?.role === 'user' && (
-             <div className="flex items-start gap-3 items-end">
+        {loading && (
+             <div className="flex items-end gap-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0">
                     <Star className="w-5 h-5 text-yellow-300" />
                 </div>
                 <div className="max-w-xl px-4 py-3 rounded-2xl bg-slate-700 rounded-bl-none">
-                     <Spinner size="sm"/>
+                     <TypingIndicator />
                 </div>
              </div>
          )}
       </div>
-
-      <div className="p-4 border-t border-slate-700/50 flex-shrink-0">
+      
+      <div className="p-4 border-t border-slate-700/50 flex-shrink-0 space-y-4">
+        {history.length <= 1 && (
+            <div className="animate-fade-in">
+                <h3 className="text-sm font-semibold text-center text-slate-400 mb-2 flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-violet-400" />
+                    Conversation Starters
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {conversationStarters.map((starter, i) => (
+                        <button key={i} onClick={() => sendMessage(starter)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
+                           {starter}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
         <div className="relative">
           <textarea
             ref={textareaRef}
@@ -172,7 +310,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             style={{ maxHeight: '120px' }}
           />
           <button
-            onClick={handleSendMessage}
+            onClick={handleFormSubmit}
             disabled={loading || !input.trim()}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             title="Send Message"
