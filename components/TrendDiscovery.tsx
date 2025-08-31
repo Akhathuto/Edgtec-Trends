@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { findTrends, getTrendingContent } from '../services/geminiService';
 import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator } from '../types';
-import { Search, Link as LinkIcon, Zap, Youtube, Film, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video } from './Icons';
+import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video } from './Icons';
 import Spinner from './Spinner';
 import { useAuth } from '../contexts/AuthContext';
 
