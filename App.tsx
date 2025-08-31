@@ -10,7 +10,7 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 flex justify-center items-center">
+      <div className="min-h-screen flex justify-center items-center">
         <Spinner size="lg" />
       </div>
     );

@@ -1,8 +1,18 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User } from '../types';
-import { Sliders, User as UserIcon } from './Icons';
+import { Sliders, User as UserIcon, Activity, Lightbulb, Star, Video, Search, MessageSquare } from './Icons';
 import { useToast } from '../contexts/ToastContext';
+
+const mockActivities = [
+    { user: 'Alice', action: 'generated 3 content ideas for "Retro Gaming"', time: '2m ago', icon: <Lightbulb className="w-4 h-4 text-violet-300"/> },
+    { user: 'Bob', action: 'upgraded to the Pro plan', time: '5m ago', icon: <Star className="w-4 h-4 text-yellow-300"/> },
+    { user: 'Charlie', action: 'generated a video about "Space Exploration"', time: '12m ago', icon: <Video className="w-4 h-4 text-red-300"/> },
+    { user: 'Alice', action: 'researched the keyword "AI Tools"', time: '25m ago', icon: <Search className="w-4 h-4 text-blue-300"/> },
+    { user: 'David', action: 'signed up for the Starter plan', time: '1h ago', icon: <UserIcon className="w-4 h-4 text-green-300"/> },
+    { user: 'Bob', action: 'chatted with Nolo', time: '2h ago', icon: <MessageSquare className="w-4 h-4 text-cyan-300"/> },
+];
 
 const AdminDashboard: React.FC = () => {
     const { user, getAllUsers, updateUser } = useAuth();
@@ -52,34 +62,34 @@ const AdminDashboard: React.FC = () => {
     }
 
     return (
-        <div className="animate-slide-in-up">
-            <div className="bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl">
+        <div className="animate-slide-in-up space-y-8">
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
                 <h2 className="text-2xl font-bold text-center mb-6 flex items-center justify-center gap-3">
-                    <Sliders className="w-6 h-6 text-purple-400" /> Admin Dashboard
+                    <Sliders className="w-6 h-6 text-violet-400" /> Admin Dashboard
                 </h2>
 
                 <section>
-                    <h3 className="text-xl font-bold text-purple-300 mb-4 border-b border-gray-700 pb-2">User Management</h3>
+                    <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2">User Management</h3>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-700">
-                            <thead className="bg-gray-800/50">
+                        <table className="min-w-full divide-y divide-slate-700">
+                            <thead className="bg-slate-900/30">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Plan</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">User</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Plan</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Role</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody className="divide-y divide-slate-700">
                                 {users.map((managedUser) => (
-                                    <tr key={managedUser.id}>
+                                    <tr key={managedUser.id} className="hover:bg-slate-800/40 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10 bg-gray-700 rounded-full flex items-center justify-center">
-                                                    <UserIcon className="h-6 w-6 text-gray-400"/>
+                                                <div className="flex-shrink-0 h-10 w-10 bg-slate-700 rounded-full flex items-center justify-center">
+                                                    <UserIcon className="h-6 w-6 text-slate-400"/>
                                                 </div>
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-white">{managedUser.name}</div>
-                                                    <div className="text-sm text-gray-400">{managedUser.email}</div>
+                                                    <div className="text-sm text-slate-400">{managedUser.email}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -88,7 +98,7 @@ const AdminDashboard: React.FC = () => {
                                                 id={`plan-${managedUser.id}`}
                                                 value={managedUser.plan}
                                                 onChange={(e) => handlePlanChange(managedUser.id, e.target.value as User['plan'])}
-                                                className="w-full bg-gray-800 border border-gray-600 rounded-md py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                                                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-light transition-colors"
                                             >
                                                 <option value="free">Free</option>
                                                 <option value="starter">Starter</option>
@@ -101,7 +111,7 @@ const AdminDashboard: React.FC = () => {
                                                 value={managedUser.role}
                                                 onChange={(e) => handleRoleChange(managedUser.id, e.target.value as 'admin' | 'user')}
                                                 disabled={user?.id === managedUser.id}
-                                                className="w-full bg-gray-800 border border-gray-600 rounded-md py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <option value="user">User</option>
                                                 <option value="admin">Admin</option>
@@ -114,6 +124,27 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </section>
             </div>
+            
+             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                 <section>
+                    <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2">
+                        <Activity className="w-5 h-5" /> Recent Activity (Simulated)
+                    </h3>
+                    <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                         {mockActivities.map((activity, index) => (
+                            <div key={index} className="flex items-center text-sm p-2.5 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mr-3 flex-shrink-0">
+                                    {activity.icon}
+                                </div>
+                                <p className="text-slate-300 flex-grow">
+                                    <span className="font-bold text-white">{activity.user}</span> {activity.action}.
+                                </p>
+                                <span className="text-xs text-slate-500 ml-auto flex-shrink-0 pl-2">{activity.time}</span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+             </div>
         </div>
     );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, Star, CheckCircle } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,33 +21,32 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   
   const handleUpgrade = () => {
-      // FIX: The upgradePlan function requires a plan argument ('starter' or 'pro'). This modal upgrades to 'pro'.
       upgradePlan('pro');
       onClose();
   }
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center animate-fade-in"
+      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center animate-fade-in backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-dark-card border border-gray-700 rounded-xl shadow-2xl w-full max-w-md flex flex-col m-4"
+        className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl w-full max-w-md flex flex-col m-4 animate-slide-in-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-          <h2 id="modal-title" className="text-xl font-bold text-gray-100 flex items-center gap-2">
-            <Star className="w-6 h-6 text-yellow-400"/> Upgrade to EdgTec Pro
+        <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
+          <h2 id="modal-title" className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <Star className="w-6 h-6 text-yellow-400"/> Upgrade to utrend Pro
             </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label="Close modal">
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Close modal">
             <X className="w-6 h-6" />
           </button>
         </header>
         <main className="p-6">
-          <p className="text-gray-300 mb-6">Unlock all features and supercharge your content creation with the Pro plan.</p>
+          <p className="text-slate-300 mb-6">Unlock all features and supercharge your content creation with the Pro plan.</p>
           <ul className="space-y-3 mb-8">
             {ProFeatures.map((feature, index) => (
                 <li key={index} className="flex items-center">
@@ -59,11 +57,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
           </ul>
           <button
             onClick={handleUpgrade}
-            className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
           >
               Upgrade Now
           </button>
-           <p className="text-xs text-center text-gray-500 mt-4">(This is a simulation. Clicking will upgrade your account.)</p>
+           <p className="text-xs text-center text-slate-500 mt-4">(This is a simulation. Clicking will upgrade your account.)</p>
         </main>
       </div>
     </div>

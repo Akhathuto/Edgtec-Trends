@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HelpCircle, ChevronDown } from './Icons';
 import { Tab } from '../types';
@@ -38,25 +39,25 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
 
   return (
     <div className="animate-slide-in-up max-w-4xl mx-auto">
-      <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl">
+      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl">
         <h2 className="text-3xl font-bold text-center mb-2 flex items-center justify-center gap-3">
-          <HelpCircle className="w-8 h-8 text-purple-400" />
+          <HelpCircle className="w-8 h-8 text-violet-400" />
           Support & FAQ
         </h2>
-        <p className="text-center text-gray-400 mb-8">Find answers to common questions below.</p>
+        <p className="text-center text-slate-400 mb-8">Find answers to common questions below.</p>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {faqs.map((faq, index) => (
-            <div key={index} className="border-b border-gray-700 last:border-b-0">
+            <div key={index} className="border-b border-slate-700/50 last:border-b-0">
               <button
                 onClick={() => toggleFaq(index)}
                 className="w-full flex justify-between items-center text-left py-4"
               >
-                <span className="font-semibold text-lg text-gray-100">{faq.question}</span>
-                <ChevronDown className={`w-6 h-6 text-purple-400 transition-transform duration-300 ${openFaq === index ? 'transform rotate-180' : ''}`} />
+                <span className="font-semibold text-lg text-slate-100">{faq.question}</span>
+                <ChevronDown className={`w-6 h-6 text-violet-400 transition-transform duration-300 ${openFaq === index ? 'transform rotate-180' : ''}`} />
               </button>
               {openFaq === index && (
-                <div className="pb-4 text-gray-300 animate-fade-in">
+                <div className="pb-4 text-slate-300 animate-fade-in">
                   <p>{faq.answer}</p>
                 </div>
               )}
@@ -64,12 +65,12 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
           ))}
         </div>
         
-        <div className="mt-12 text-center bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+        <div className="mt-12 text-center bg-slate-800/50 p-6 rounded-lg border border-slate-700">
             <h3 className="text-xl font-bold text-white mb-2">Still need help?</h3>
-            <p className="text-gray-400 mb-4">Our support team is here to assist you.</p>
+            <p className="text-slate-400 mb-4">Our support team is here to assist you.</p>
             <button
                 onClick={() => setActiveTab(Tab.Contact)}
-                className="bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity"
+                className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
             >
                 Contact Us
             </button>

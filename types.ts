@@ -5,6 +5,10 @@ export enum Tab {
   Report = 'report',
   Prompt = 'prompt',
   Video = 'video',
+  ImageEditor = 'image-editor',
+  Keywords = 'keywords',
+  Chat = 'chat',
+  Analytics = 'analytics',
   About = 'about',
   Profile = 'profile',
   Admin = 'admin',
@@ -19,6 +23,11 @@ export interface User {
   email: string;
   plan: 'free' | 'starter' | 'pro';
   role: 'admin' | 'user';
+  country?: string;
+  phone?: string;
+  company?: string;
+  followerCount?: number;
+  youtubeChannelUrl?: string;
 }
 
 export interface AuthContextType {
@@ -30,7 +39,7 @@ export interface AuthContextType {
   upgradePlan: (plan: 'starter' | 'pro') => void;
   getAllUsers: () => User[];
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
-  updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email'>>) => Promise<void>;
+  updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>) => Promise<void>;
 }
 
 export interface GroundingSource {
@@ -53,6 +62,31 @@ export interface TrendingTopic {
   description: string;
 }
 
+export interface TrendingVideo {
+  title: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  channelName: string;
+  viewCount: string;
+  publishedTime: string;
+}
+
+export interface TrendingCreator {
+  name: string;
+  channelUrl: string;
+  subscriberCount: string;
+  category: string;
+  reason: string;
+}
+
+export interface TrendingMusic {
+  trackTitle: string;
+  artistName: string;
+  videosUsingSound: string;
+  reason: string;
+}
+
+
 export interface ContentIdea {
   title: string;
   hook: string;
@@ -70,12 +104,35 @@ export interface MonetizationStrategy {
   description: string;
   requirements: string;
   potential: string;
+  action_steps: string[];
 }
 
 export interface FullReport {
     trendAnalysis: string;
     contentIdeas: Omit<ContentIdea, 'virality_potential' | 'detailed_script'>[];
     monetizationStrategies: MonetizationStrategy[];
+}
+
+export interface KeywordAnalysis {
+    keyword: string;
+    searchVolume: 'High' | 'Medium' | 'Low' | 'Very High' | 'Very Low';
+    competition: 'High' | 'Medium' | 'Low';
+    relatedKeywords: string[];
+    contentIdeas: string[];
+}
+
+export interface ChannelAnalyticsData {
+  channelName: string;
+  subscriberCount: string;
+  subscriberTrend: 'up' | 'down' | 'stable';
+  totalViews: string;
+  viewsTrend: 'up' | 'down' | 'stable';
+  aiSummary: string;
+  recentVideos: {
+    title: string;
+    videoUrl: string;
+    viewCount: string;
+  }[];
 }
 
 export interface Plan {

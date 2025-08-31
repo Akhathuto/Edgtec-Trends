@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { EdgTecLogo } from './Logo';
+import { UtrendLogo } from './Logo';
 import Spinner from './Spinner';
 import { User } from '../types';
 
@@ -33,15 +32,15 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 text-white flex flex-col justify-center items-center p-4">
+        <div className="min-h-screen text-white flex flex-col justify-center items-center p-4">
              <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                     <EdgTecLogo className="h-16 inline-block" />
-                     <h1 className="text-3xl font-bold mt-2">Welcome to EdgTec Trends</h1>
-                     <p className="text-gray-400">Your AI-powered content assistant.</p>
+                     <UtrendLogo className="h-16 inline-block" />
+                     <h1 className="text-3xl font-bold mt-2">Welcome to utrend</h1>
+                     <p className="text-slate-400">Your AI-powered content assistant.</p>
                 </div>
                 
-                <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl">
+                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl">
                     <h2 className="text-2xl font-bold text-center mb-6">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
                     {error && <p className="bg-red-500/20 text-red-300 text-center text-sm p-3 rounded-lg mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -55,7 +54,7 @@ const Login: React.FC = () => {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Full Name"
                                     required
-                                    className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
                                 />
                             </div>
                         )}
@@ -68,7 +67,7 @@ const Login: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email Address"
                                 required
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
                             />
                         </div>
                         <div>
@@ -81,17 +80,17 @@ const Login: React.FC = () => {
                                 placeholder="Password"
                                 required
                                 minLength={6}
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
                             />
                         </div>
 
                         {!isLoginView && (
                              <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Choose a plan</label>
-                                <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-600">
-                                    <button type="button" onClick={() => setPlan('free')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'free' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Free</button>
-                                    <button type="button" onClick={() => setPlan('starter')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'starter' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Starter</button>
-                                    <button type="button" onClick={() => setPlan('pro')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'pro' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>Pro</button>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">Choose a plan</label>
+                                <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+                                    <button type="button" onClick={() => setPlan('free')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'free' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Free</button>
+                                    <button type="button" onClick={() => setPlan('starter')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'starter' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Starter</button>
+                                    <button type="button" onClick={() => setPlan('pro')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'pro' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Pro</button>
                                 </div>
                             </div>
                         )}
@@ -99,14 +98,14 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
                         >
                             {loading ? <Spinner /> : (isLoginView ? 'Sign In' : 'Sign Up')}
                         </button>
                     </form>
-                    <p className="text-center text-sm text-gray-400 mt-6">
+                    <p className="text-center text-sm text-slate-400 mt-6">
                         {isLoginView ? "Don't have an account?" : "Already have an account?"}
-                        <button onClick={() => { setIsLoginView(!isLoginView); setError(null); }} className="font-semibold text-purple-400 hover:text-purple-300 ml-2">
+                        <button onClick={() => { setIsLoginView(!isLoginView); setError(null); }} className="font-semibold text-violet-400 hover:text-violet-300 ml-2">
                             {isLoginView ? 'Sign Up' : 'Sign In'}
                         </button>
                     </p>

@@ -11,13 +11,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Simulate checking for an existing session
         setTimeout(() => {
             try {
-                const storedUser = localStorage.getItem('edgtec-user-session');
+                const storedUser = localStorage.getItem('utrend-user-session');
                 if (storedUser) {
                     setUser(JSON.parse(storedUser));
                 }
             } catch (error) {
                 console.error("Failed to parse user session from localStorage", error);
-                localStorage.removeItem('edgtec-user-session');
+                localStorage.removeItem('utrend-user-session');
             }
             setLoading(false);
         }, 500);
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const login = async (email: string, pass: string): Promise<void> => {
         // This is a mock login. In a real app, you'd call an API.
-        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         if (storedUsers[email] && storedUsers[email].password === pass) {
             const loggedInUser: User = {
                 id: storedUsers[email].id,
@@ -33,9 +33,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 email: email,
                 plan: storedUsers[email].plan,
                 role: storedUsers[email].role || 'user',
+                country: storedUsers[email].country,
+                phone: storedUsers[email].phone,
+                company: storedUsers[email].company,
+                followerCount: storedUsers[email].followerCount,
+                youtubeChannelUrl: storedUsers[email].youtubeChannelUrl,
             };
             setUser(loggedInUser);
-            localStorage.setItem('edgtec-user-session', JSON.stringify(loggedInUser));
+            localStorage.setItem('utrend-user-session', JSON.stringify(loggedInUser));
         } else {
             throw new Error("Invalid email or password.");
         }
@@ -43,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const signUp = async (name: string, email: string, pass: string, plan: 'free' | 'starter' | 'pro'): Promise<void> => {
         // Mock sign-up
-        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         if (storedUsers[email]) {
             throw new Error("User with this email already exists.");
         }
@@ -54,33 +59,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newUser: User = { id: Date.now().toString(), name, email, plan, role };
         storedUsers[email] = { ...newUser, password: pass }; // Store password only in mock DB
 
-        localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
+        localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
         setUser(newUser);
-        localStorage.setItem('edgtec-user-session', JSON.stringify(newUser));
+        localStorage.setItem('utrend-user-session', JSON.stringify(newUser));
     };
     
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('edgtec-user-session');
+        localStorage.removeItem('utrend-user-session');
     };
 
     const upgradePlan = useCallback((plan: 'starter' | 'pro') => {
         if (user) {
             const updatedUser = { ...user, plan: plan };
             setUser(updatedUser);
-            localStorage.setItem('edgtec-user-session', JSON.stringify(updatedUser));
+            localStorage.setItem('utrend-user-session', JSON.stringify(updatedUser));
             
             // Also update the mock user database
-            const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+            const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
             if(storedUsers[user.email]) {
                 storedUsers[user.email].plan = plan;
-                localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
+                localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
             }
         }
     }, [user]);
 
     const getAllUsers = useCallback((): User[] => {
-        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         return Object.values(storedUsers).map((u: any) => {
             const { password, ...userWithoutPassword } = u;
             return userWithoutPassword as User;
@@ -88,27 +93,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     const updateUser = useCallback((userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => {
-        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         const userEmail = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
 
         if (userEmail && storedUsers[userEmail]) {
             storedUsers[userEmail] = { ...storedUsers[userEmail], ...updates };
-            localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
+            localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
 
             // If the admin is updating their own details, update the session as well
             if (user?.id === userId) {
                  const updatedSessionUser = { ...user, ...updates };
                  setUser(updatedSessionUser);
-                 localStorage.setItem('edgtec-user-session', JSON.stringify(updatedSessionUser));
+                 localStorage.setItem('utrend-user-session', JSON.stringify(updatedSessionUser));
             }
         } else {
             throw new Error("User not found for update.");
         }
     }, [user]);
 
-    // FIX: Implement and provide the missing `updateProfile` function required by AuthContextType.
-    const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email'>>): Promise<void> => {
-        const storedUsers = JSON.parse(localStorage.getItem('edgtec-users') || '{}');
+    const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>): Promise<void> => {
+        const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         const userEmailKey = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
 
         if (userEmailKey && storedUsers[userEmailKey]) {
@@ -127,13 +131,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 storedUsers[userEmailKey] = updatedUserData;
             }
             
-            localStorage.setItem('edgtec-users', JSON.stringify(storedUsers));
+            localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
 
             // If the current user is updating their own profile, update session
             if (user?.id === userId) {
                  const updatedSessionUser = { ...user, ...updates };
                  setUser(updatedSessionUser);
-                 localStorage.setItem('edgtec-user-session', JSON.stringify(updatedSessionUser));
+                 localStorage.setItem('utrend-user-session', JSON.stringify(updatedSessionUser));
             }
         } else {
             throw new Error("User not found for profile update.");
@@ -142,7 +146,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     return (
-        // FIX: Add `updateProfile` to the context value to match the AuthContextType interface.
         <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile }}>
             {children}
         </AuthContext.Provider>

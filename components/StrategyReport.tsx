@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { generateFullReport } from '../services/geminiService';
 import { FullReport, Tab } from '../types';
@@ -66,7 +67,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
         flushListItems();
         if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
           elements.push(
-            <h4 key={i} className="text-xl font-bold text-purple-300 mt-4 mb-2">
+            <h4 key={i} className="text-xl font-bold text-violet-300 mt-4 mb-2">
               {trimmedLine.replace(/\*\*/g, '')}
             </h4>
           );
@@ -82,13 +83,13 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
 
   if (user?.plan !== 'pro') {
     return (
-        <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
             <Star className="w-12 h-12 text-yellow-400 mb-4" />
             <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
-            <p className="text-gray-400 mb-6 max-w-md">Get a complete, AI-generated content strategy with in-depth trend analysis, content ideas, and monetization plans.</p>
+            <p className="text-slate-400 mb-6 max-w-md">Get a complete, AI-generated content strategy with in-depth trend analysis, content ideas, and monetization plans.</p>
             <button
                 onClick={() => setActiveTab(Tab.Pricing)}
-                className="flex items-center gap-2 bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
+                className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
             >
                 View Plans
             </button>
@@ -98,26 +99,26 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
 
   return (
     <div className="animate-slide-in-up">
-      <div className="bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">Generate Full Strategy Report</h2>
-        <p className="text-center text-gray-400 mb-6">Get a complete content strategy with trends, ideas, and monetization plans.</p>
+      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+        <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Generate Full Strategy Report</h2>
+        <p className="text-center text-slate-400 mb-6">Get a complete content strategy with trends, ideas, and monetization plans.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="relative">
                 <label htmlFor="report-topic" className="sr-only">Video Topic for Report</label>
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                  <input
                   id="report-topic"
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Enter a video topic..."
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
                   title="Enter the core topic for your comprehensive strategy report."
                 />
             </div>
             <div>
-                 <label htmlFor="followers-report" className="font-semibold text-gray-300 mb-2 block flex justify-between">
+                 <label htmlFor="followers-report" className="font-semibold text-slate-300 mb-2 block flex justify-between">
                   Target Audience Size <span>{formatFollowers(followers)}</span>
                 </label>
                 <input
@@ -128,7 +129,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
                   step="1000"
                   value={followers}
                   onChange={(e) => setFollowers(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-purple"
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet"
                   title="Set your target audience size or current follower count."
                 />
             </div>
@@ -137,7 +138,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
           title="Generate an all-in-one report including trends, ideas, and monetization."
         >
           {loading ? <Spinner /> : <><FileText className="w-5 h-5 mr-2" /> Generate Report</>}
@@ -148,29 +149,29 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
       {loading && (
         <div className="text-center py-10">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-300">Generating your comprehensive report...</p>
+          <p className="mt-4 text-slate-300">Generating your comprehensive report...</p>
         </div>
       )}
 
       {report && (
-        <div className="mt-8 bg-dark-card border border-gray-700 rounded-xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-fade-in space-y-8">
+        <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl animate-fade-in space-y-8">
             {/* Trend Analysis Section */}
             <section>
-                <h3 className="text-2xl font-bold mb-4 text-gray-100 flex items-center"><TrendingUp className="w-6 h-6 mr-3 text-purple-400"/> Trend Analysis</h3>
-                <div className="prose prose-invert text-gray-300 max-w-none">{formatTrends(report.trendAnalysis)}</div>
+                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><TrendingUp className="w-6 h-6 mr-3 text-violet-400"/> Trend Analysis</h3>
+                <div className="prose prose-invert text-slate-300 max-w-none prose-h4:text-violet-300">{formatTrends(report.trendAnalysis)}</div>
             </section>
 
             {/* Content Ideas Section */}
             <section>
-                <h3 className="text-2xl font-bold mb-4 text-gray-100 flex items-center"><Lightbulb className="w-6 h-6 mr-3 text-purple-400"/> Content Ideas</h3>
+                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><Lightbulb className="w-6 h-6 mr-3 text-violet-400"/> Content Ideas</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                  {report.contentIdeas.map((idea, index) => (
-                    <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 flex flex-col">
-                      <h4 className="text-lg font-bold text-purple-300 mb-2">{idea.title}</h4>
-                      <p className="text-gray-300 mb-3 text-sm italic">"{idea.hook}"</p>
+                    <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex flex-col">
+                      <h4 className="text-lg font-bold text-violet-300 mb-2">{idea.title}</h4>
+                      <p className="text-slate-300 mb-3 text-sm italic">"{idea.hook}"</p>
                       <div className="mb-3">
-                        <h5 className="font-semibold text-gray-200 mb-2 text-sm">Script Outline:</h5>
-                        <ul className="space-y-1.5 text-gray-400 text-sm">
+                        <h5 className="font-semibold text-slate-200 mb-2 text-sm">Script Outline:</h5>
+                        <ul className="space-y-1.5 text-slate-400 text-sm">
                             {idea.script_outline.map((step, i) => (
                                 <li key={i} className="flex items-start">
                                    <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-green-400 flex-shrink-0" />
@@ -180,10 +181,10 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
                         </ul>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-gray-200 mb-2 text-sm">Hashtags:</h5>
+                        <h5 className="font-semibold text-slate-200 mb-2 text-sm">Hashtags:</h5>
                         <div className="flex flex-wrap gap-1.5">
                           {idea.hashtags.map((tag, i) => (
-                            <span key={i} className="bg-gray-700 text-purple-300 text-xs font-medium px-2 py-0.5 rounded-full">#{tag}</span>
+                            <span key={i} className="bg-slate-700 text-violet-300 text-xs font-medium px-2 py-0.5 rounded-full">#{tag}</span>
                           ))}
                         </div>
                       </div>
@@ -194,20 +195,20 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
 
              {/* Monetization Strategies Section */}
              <section>
-                <h3 className="text-2xl font-bold mb-4 text-gray-100 flex items-center"><DollarSign className="w-6 h-6 mr-3 text-purple-400"/> Monetization Strategies</h3>
+                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><DollarSign className="w-6 h-6 mr-3 text-violet-400"/> Monetization Strategies</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {report.monetizationStrategies.map((strategy, index) => (
-                    <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
-                      <h4 className="text-lg font-bold text-purple-300 mb-2 flex items-center">{strategy.strategy}</h4>
-                      <p className="text-gray-300 mb-3 text-sm">{strategy.description}</p>
+                    <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                      <h4 className="text-lg font-bold text-violet-300 mb-2 flex items-center">{strategy.strategy}</h4>
+                      <p className="text-slate-300 mb-3 text-sm">{strategy.description}</p>
                       <div className="space-y-2 text-xs">
                         <div className="flex items-start">
-                            <Target className="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0"/>
-                            <div><strong className="text-gray-200">Requirements:</strong> {strategy.requirements}</div>
+                            <Target className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0"/>
+                            <div><strong className="text-slate-200">Requirements:</strong> {strategy.requirements}</div>
                         </div>
                         <div className="flex items-start">
-                            <Users className="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0"/>
-                            <div><strong className="text-gray-200">Potential:</strong> {strategy.potential}</div>
+                            <Users className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0"/>
+                            <div><strong className="text-slate-200">Potential:</strong> {strategy.potential}</div>
                         </div>
                       </div>
                     </div>

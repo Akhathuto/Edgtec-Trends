@@ -1,9 +1,12 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
-import { generateVideo, checkVideoStatus } from '../services/geminiService';
+import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star } from './Icons';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 const loadingMessages = [
     "Kicking off the render...",
@@ -22,7 +25,7 @@ const videoTemplates: { name: string; prompt: string; recommendedPlatform?: 'You
   { name: 'Product Demo', prompt: `// Goal: Showcase the product's key features and benefits in a visually appealing way.\n// Structure:\n// 1. Beauty shot of the product.\n// 2. Show the product in use, solving a specific problem.\n// 3. Highlight 2-3 key features with close-ups and text callouts.\n// 4. End with a strong call to action and where to buy.\n\n// Your prompt:\nA sleek and modern product demo for [YOUR PRODUCT]. Show it in a real-world setting, using slow-motion shots to highlight its design.`, recommendedPlatform: 'YouTube' },
 ];
 
-const styleFilters = ['Cinematic', 'Vintage', 'Grayscale', 'Vibrant'];
+const styleFilters = ['Cinematic', 'Vintage', 'Grayscale', 'Vibrant', 'Anime', 'Documentary', '8-bit', 'Noir'];
 
 interface VideoGeneratorProps {
   setActiveTab: (tab: Tab) => void;
@@ -30,6 +33,7 @@ interface VideoGeneratorProps {
 
 const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const [prompt, setPrompt] = useState('');
     const [basePrompt, setBasePrompt] = useState('');
     const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'YouTube Shorts'>('YouTube');
@@ -46,6 +50,11 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     const [editText, setEditText] = useState('');
     const [editFilter, setEditFilter] = useState('');
     const [duration, setDuration] = useState<number>(0);
+    
+    // Transcript State
+    const [transcript, setTranscript] = useState<string | null>(null);
+    const [transcriptLoading, setTranscriptLoading] = useState(false);
+    const [transcriptError, setTranscriptError] = useState<string | null>(null);
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -139,6 +148,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setError(null);
         setVideoUrl(null);
         setOperation(null);
+        setTranscript(null);
+        setTranscriptError(null);
         setLoadingMessage(loadingMessages[0]);
         
         let messageIndex = 0;
@@ -186,17 +197,42 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setEditText('');
         setEditFilter('');
         setDuration(0);
+        setTranscript(null);
+        setTranscriptLoading(false);
+        setTranscriptError(null);
     }
+    
+    const handleGenerateTranscript = async () => {
+        setTranscriptLoading(true);
+        setTranscriptError(null);
+        setTranscript(null);
+        try {
+            const result = await generateTranscriptFromPrompt(basePrompt); 
+            setTranscript(result);
+        } catch (e) {
+            setTranscriptError("Failed to generate transcript. Please try again.");
+            console.error(e);
+        } finally {
+            setTranscriptLoading(false);
+        }
+    };
+
+    const handleCopyTranscript = () => {
+        if (transcript) {
+            navigator.clipboard.writeText(transcript);
+            showToast('Transcript copied to clipboard!');
+        }
+    };
 
     if (user?.plan !== 'pro') {
         return (
-            <div className="bg-dark-card border border-gray-700 rounded-xl p-8 shadow-2xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro to Generate Videos</h2>
-                <p className="text-gray-400 mb-6 max-w-md">The AI Video Generator is a Pro feature. Upgrade your account to start creating.</p>
+                <p className="text-slate-400 mb-6 max-w-md">The AI Video Generator is a Pro feature. Upgrade your account to start creating.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
                 >
                     View Plans
                 </button>
@@ -206,36 +242,36 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
 
     return (
         <div className="animate-slide-in-up">
-            <div className="bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">AI Video Generator</h2>
-                <p className="text-center text-gray-400 mb-6">{videoUrl ? "Your video is ready. Refine it or start a new project." : "Create stunning videos from text or animate an image."}</p>
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">AI Video Generator</h2>
+                <p className="text-center text-slate-400 mb-6">{videoUrl ? "Your video is ready. Refine it or start a new project." : "Create stunning videos from text or animate an image."}</p>
                 
                 {(!loading && !videoUrl) && (
                     <div className="space-y-4">
                         <div className="mb-4">
-                            <label className="font-semibold text-gray-300 mb-2 block">Target Platform</label>
-                            <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-600">
-                                <button onClick={() => setPlatform('YouTube')} title="Generate a widescreen video for YouTube (16:9)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>
+                            <label className="font-semibold text-slate-300 mb-2 block">Target Platform</label>
+                            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+                                <button onClick={() => setPlatform('YouTube')} title="Generate a widescreen video for YouTube (16:9)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>
                                     <Youtube className="w-5 h-5"/> YouTube
                                 </button>
-                                <button onClick={() => setPlatform('YouTube Shorts')} title="Generate a vertical video for YouTube Shorts (9:16)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube Shorts' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>
+                                <button onClick={() => setPlatform('YouTube Shorts')} title="Generate a vertical video for YouTube Shorts (9:16)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube Shorts' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>
                                     <YoutubeShorts className="w-5 h-5"/> Shorts
                                 </button>
-                                <button onClick={() => setPlatform('TikTok')} title="Generate a vertical video for TikTok (9:16)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-brand-purple' : 'hover:bg-gray-700'}`}>
-                                    <Film className="w-5 h-5"/> TikTok
+                                <button onClick={() => setPlatform('TikTok')} title="Generate a vertical video for TikTok (9:16)" className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>
+                                    <TikTok className="w-5 h-5"/> TikTok
                                 </button>
                             </div>
                         </div>
 
                          <div>
-                            <label htmlFor="video-template" className="font-semibold text-gray-300 mb-2 block">
+                            <label htmlFor="video-template" className="font-semibold text-slate-300 mb-2 block">
                                 Video Template (Optional)
                             </label>
                             <select
                                 id="video-template"
                                 value={selectedTemplate}
                                 onChange={handleTemplateChange}
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
                                 title="Choose a template to get started with a pre-filled prompt."
                             >
                                 {videoTemplates.map((template, index) => (
@@ -253,16 +289,16 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             value={basePrompt}
                             onChange={(e) => setBasePrompt(e.target.value)}
                             placeholder="e.g., 'A neon hologram of a cat driving at top speed'"
-                            className="w-full bg-gray-800 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all h-32 resize-none"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all h-32 resize-none shadow-inner"
                             title="Describe the video you want to create."
                         />
                         
                         <div className="flex items-center justify-center w-full">
-                           <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors">
+                           <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <svg className="w-8 h-8 mb-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                                    <p className="mb-2 text-sm text-gray-400"><span className="font-semibold">Click to upload an image</span> (optional)</p>
-                                    <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 4MB)</p>
+                                    <UploadCloud className="w-8 h-8 mb-4 text-slate-400" />
+                                    <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload an image</span> (optional)</p>
+                                    <p className="text-xs text-slate-500">PNG, JPG or JPEG (MAX. 4MB)</p>
                                 </div>
                                 <input id="dropzone-file" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
                             </label>
@@ -272,7 +308,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
                             title="Start generating the video. This may take a few minutes."
                         >
                            <Video className="w-5 h-5 mr-2" /> Generate Video
@@ -284,63 +320,61 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
             </div>
 
             {loading && (
-                <div className="text-center py-10 bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl mt-8">
+                <div className="text-center py-10 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl mt-8">
                     <Spinner size="lg" />
-                    <p className="mt-4 text-gray-300 font-semibold text-lg">{loadingMessage}</p>
-                    <p className="mt-2 text-gray-400 text-sm">Please keep this tab open. Video generation is in progress.</p>
+                    <p className="mt-4 text-slate-300 font-semibold text-lg">{loadingMessage}</p>
+                    <p className="mt-2 text-slate-400 text-sm">Please keep this tab open. Video generation is in progress.</p>
                 </div>
             )}
 
             {videoUrl && (
-                <div className="mt-8 bg-dark-card border border-gray-700 rounded-xl p-6 shadow-2xl backdrop-blur-xl animate-fade-in">
-                    <h3 className="text-2xl font-bold mb-4 text-center text-gray-100">Your Video is Ready!</h3>
-                    <video controls autoPlay loop className="w-full rounded-lg mb-4 bg-black">
+                <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
+                    <h3 className="text-2xl font-bold mb-4 text-center text-slate-100">Your Video is Ready!</h3>
+                    <video controls autoPlay loop className="w-full rounded-lg mb-4 bg-black shadow-lg">
                         <source src={videoUrl} type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                     
                     {/* --- AI Editing Panel --- */}
-                    <div className="space-y-4 pt-4 border-t border-gray-700">
-                         <h4 className="text-lg font-bold text-center text-gray-200">Quick Edits</h4>
+                    <div className="space-y-4 pt-4 border-t border-slate-700">
+                         <h4 className="text-lg font-bold text-center text-slate-200">Quick Edits</h4>
+                         <p className="text-sm text-center text-slate-400 -mt-2 mb-4">Refine your video by adding edits below and clicking 'Regenerate'.</p>
                          
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Text Overlay */}
-                            <div>
-                                <label htmlFor="text-overlay" className="font-semibold text-gray-300 mb-2 block flex items-center gap-2">
-                                    <Type className="w-5 h-5" /> Text Overlay
-                                </label>
-                                <input
-                                id="text-overlay"
-                                type="text"
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                placeholder="e.g., 'My Awesome Vlog'"
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
-                                title="Type text here to add it as an overlay on the video."
-                                />
-                            </div>
-                            
-                            {/* Duration */}
-                             <div>
-                                <label htmlFor="duration" className="font-semibold text-gray-300 mb-2 block flex items-center gap-2">
-                                    <Clock className="w-5 h-5" /> Target Duration (seconds)
-                                </label>
-                                <input
-                                id="duration"
-                                type="number"
-                                value={duration || ''}
-                                onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
-                                placeholder="e.g., 15"
-                                className="w-full bg-gray-800 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
-                                title="Suggest a target length for the video in seconds."
-                                />
-                            </div>
+                         {/* Text Overlay */}
+                         <div>
+                             <label htmlFor="text-overlay" className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
+                                 <Type className="w-5 h-5" /> Text Overlay
+                             </label>
+                             <input
+                             id="text-overlay"
+                             type="text"
+                             value={editText}
+                             onChange={(e) => setEditText(e.target.value)}
+                             placeholder="e.g., 'My Awesome Vlog'"
+                             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                             title="Type text here to add it as an overlay on the video."
+                             />
                          </div>
-
+                         
+                         {/* Duration */}
+                          <div>
+                             <label htmlFor="duration" className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
+                                 <Clock className="w-5 h-5" /> Target Duration (s)
+                             </label>
+                             <input
+                             id="duration"
+                             type="number"
+                             value={duration || ''}
+                             onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
+                             placeholder="e.g., 15"
+                             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                             title="Suggest a target length for the video in seconds."
+                             />
+                         </div>
 
                         {/* Style Filters */}
                         <div>
-                            <label className="font-semibold text-gray-300 mb-2 block flex items-center gap-2">
+                            <label className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
                                 <Filter className="w-5 h-5" /> Style Filters
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -348,7 +382,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                                     <button 
                                         key={filter} 
                                         onClick={() => setEditFilter(current => current === filter ? '' : filter)}
-                                        className={`py-2 px-4 text-sm font-semibold rounded-lg transition-colors ${editFilter === filter ? 'bg-brand-purple text-white' : 'bg-gray-700 hover:bg-gray-600'}`}
+                                        className={`py-2 px-4 text-sm font-semibold rounded-lg transition-colors ${editFilter === filter ? 'bg-violet text-white' : 'bg-slate-700 hover:bg-slate-600'}`}
                                     >
                                         {filter}
                                     </button>
@@ -357,14 +391,14 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         </div>
 
                          <div className="pt-2">
-                             <label htmlFor="final-prompt" className="font-semibold text-gray-300 mb-2 block">
+                             <label htmlFor="final-prompt" className="font-semibold text-slate-300 mb-2 block">
                                 Final Prompt for Regeneration
                              </label>
                              <textarea
                                 id="final-prompt"
                                 value={prompt}
                                 readOnly
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg py-2 px-4 h-24 resize-none text-gray-400 text-sm"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 h-24 resize-none text-slate-400 text-sm font-mono"
                                 title="This is the final prompt that will be sent to the AI, updated with your edits."
                             />
                          </div>
@@ -372,7 +406,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         <div className="flex flex-col sm:flex-row gap-4">
                              <button
                                 onClick={handleStartOver}
-                                className="w-full flex items-center justify-center bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors"
+                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
                                 title="Clear everything and start a new video project."
                             >
                                Start Over
@@ -380,13 +414,48 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             <button
                                 onClick={handleGenerate}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center bg-gradient-to-r from-brand-purple to-brand-blue text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
                                 title="Regenerate the video with your new edits."
                             >
                                <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                             </button>
                         </div>
                     </div>
+
+                    {/* --- Transcript Section --- */}
+                    <div className="mt-6 pt-6 border-t border-slate-700">
+                        <h4 className="text-lg font-bold text-center text-slate-200 mb-4">Video Transcript</h4>
+                        {!transcript && !transcriptLoading && (
+                            <button
+                                onClick={handleGenerateTranscript}
+                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-slate-600 transition-colors"
+                                title="Generate an AI-powered transcript for your video."
+                            >
+                                <FileText className="w-5 h-5 mr-2" /> Generate Transcript
+                            </button>
+                        )}
+                        {transcriptLoading && (
+                            <div className="flex justify-center">
+                                <Spinner />
+                            </div>
+                        )}
+                        {transcriptError && <p className="text-red-400 text-center">{transcriptError}</p>}
+                        {transcript && (
+                            <div className="bg-slate-800/50 rounded-lg p-4 relative border border-slate-700">
+                                <button 
+                                    onClick={handleCopyTranscript}
+                                    className="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
+                                    title="Copy transcript"
+                                >
+                                    <Copy className="w-4 h-4 text-slate-300" />
+                                </button>
+                                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans max-h-48 overflow-y-auto">
+                                    {transcript}
+                                </pre>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             )}
         </div>
