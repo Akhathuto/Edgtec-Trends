@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { User, AuthContextType, ActivityLog } from '../types';
+import { User, AuthContextType, ActivityLog, KeywordUsage } from '../types';
+import { add, isAfter } from 'date-fns';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -190,9 +191,75 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [user]);
 
+    const getKeywordUsage = useCallback((): { remaining: number, limit: number | 'unlimited' } => {
+        if (!user) return { remaining: 0, limit: 0 };
+
+        const limits = {
+            free: 3,
+            starter: 15,
+            pro: 'unlimited' as const
+        };
+        const limit = limits[user.plan];
+
+        if (limit === 'unlimited') {
+            return { remaining: Infinity, limit: 'unlimited' };
+        }
+
+        const storageKey = `utrend-keyword-usage-${user.id}`;
+        let usageData: KeywordUsage | null = null;
+        try {
+            const storedData = localStorage.getItem(storageKey);
+            if (storedData) {
+                usageData = JSON.parse(storedData);
+            }
+        } catch (e) {
+            console.error("Failed to parse keyword usage data", e);
+            localStorage.removeItem(storageKey);
+        }
+
+        const now = new Date();
+        // If no data or if reset date is in the past, reset it
+        if (!usageData || isAfter(now, new Date(usageData.resetDate))) {
+            const newResetDate = add(now, { days: 30 });
+            usageData = { count: 0, resetDate: newResetDate.toISOString() };
+            localStorage.setItem(storageKey, JSON.stringify(usageData));
+        }
+        
+        const remaining = limit - usageData.count;
+        return { remaining: remaining > 0 ? remaining : 0, limit };
+
+    }, [user]);
+
+    const logKeywordAnalysis = useCallback(() => {
+        if (!user || user.plan === 'pro') return;
+
+        const storageKey = `utrend-keyword-usage-${user.id}`;
+        let usageData: KeywordUsage | null = null;
+        try {
+            const storedData = localStorage.getItem(storageKey);
+            if (storedData) {
+                usageData = JSON.parse(storedData);
+            }
+        } catch (e) {
+            console.error("Failed to parse keyword usage data", e);
+            localStorage.removeItem(storageKey);
+        }
+        
+        const now = new Date();
+        if (!usageData || isAfter(now, new Date(usageData.resetDate))) {
+            const newResetDate = add(now, { days: 30 });
+            usageData = { count: 1, resetDate: newResetDate.toISOString() };
+        } else {
+            usageData.count += 1;
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(usageData));
+        
+    }, [user]);
+
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile, logActivity, getAllActivities, deleteUser }}>
+        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile, logActivity, getAllActivities, deleteUser, getKeywordUsage, logKeywordAnalysis }}>
             {children}
         </AuthContext.Provider>
     );

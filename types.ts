@@ -10,6 +10,7 @@ export enum Tab {
   Keywords = 'keywords',
   Chat = 'chat',
   Analytics = 'analytics',
+  ChannelGrowth = 'channel-growth',
   About = 'about',
   Profile = 'profile',
   Admin = 'admin',
@@ -42,6 +43,11 @@ export interface ActivityLog {
   timestamp: string; // ISO string
 }
 
+export interface KeywordUsage {
+  count: number;
+  resetDate: string; // ISO string
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -55,6 +61,8 @@ export interface AuthContextType {
   logActivity: (action: string, icon: string) => void;
   getAllActivities: () => ActivityLog[];
   deleteUser: (userId: string) => void;
+  getKeywordUsage: () => { remaining: number; limit: number | 'unlimited' };
+  logKeywordAnalysis: () => void;
 }
 
 export interface GroundingSource {
@@ -148,6 +156,25 @@ export interface ChannelAnalyticsData {
     videoUrl: string;
     viewCount: string;
   }[];
+}
+
+export interface ChannelGrowthPlan {
+  contentStrategy: {
+    analysis: string;
+    recommendations: string[];
+  };
+  seoAndDiscoverability: {
+    analysis: string;
+    recommendations: string[];
+  };
+  audienceEngagement: {
+    analysis: string;
+    recommendations: string[];
+  };
+  thumbnailCritique: {
+    analysis: string;
+    recommendations: string[];
+  };
 }
 
 export interface Plan {

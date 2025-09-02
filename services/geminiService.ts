@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, GenerateContentResponse, Modality } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData } from '../types';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -578,5 +578,35 @@ export const getChannelAnalytics = async (channelUrl: string): Promise<ChannelAn
             throw new Error("API quota exceeded. Please try again later.");
         }
         throw new Error("Failed to fetch channel analytics from Gemini API. The channel might be new or private.");
+    }
+};
+
+export const generateChannelGrowthPlan = async (channelUrl: string): Promise<ChannelGrowthPlan> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Act as a world-class YouTube growth consultant. Use Google Search to perform a comprehensive analysis of the YouTube channel at this URL: ${channelUrl}. Based on your findings, generate a detailed and actionable growth plan. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. The JSON object must have these exact keys: 'contentStrategy', 'seoAndDiscoverability', 'audienceEngagement', and 'thumbnailCritique'. Each key should map to an object containing two properties: an 'analysis' (a paragraph summarizing your findings for that category) and 'recommendations' (an array of 3-5 specific, actionable string suggestions for improvement).`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+
+        if (jsonMatch && jsonMatch[0]) {
+            const jsonText = jsonMatch[0];
+            return JSON.parse(jsonText) as ChannelGrowthPlan;
+        } else {
+             throw new Error("The API response did not contain valid JSON data for the growth plan.");
+        }
+    } catch (error) {
+        console.error("Error generating channel growth plan:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+            throw new Error("API quota exceeded. Please try again later.");
+        }
+         if (error instanceof Error && error.message.includes("The API response did not contain valid JSON")) {
+            throw error;
+        }
+        throw new Error("Failed to generate channel growth plan from Gemini API. The channel might be new, private, or could not be analyzed.");
     }
 };

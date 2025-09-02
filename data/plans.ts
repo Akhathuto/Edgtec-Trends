@@ -35,6 +35,7 @@ export const plans: Plan[] = [
       'All features in Starter',
       'AI Video Generator',
       'Full Content Strategy Reports',
+      'Personalized Channel Growth Plan',
       'Priority support',
     ],
   },

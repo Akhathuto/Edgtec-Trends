@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService';
 import { KeywordAnalysis, Tab } from '../types';
 import Spinner from './Spinner';
@@ -12,30 +12,44 @@ interface KeywordResearchProps {
 }
 
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => {
-    const { user, logActivity } = useAuth();
+    const { user, logActivity, getKeywordUsage, logKeywordAnalysis } = useAuth();
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<KeywordAnalysis | null>(null);
+    const [usage, setUsage] = useState({ remaining: 0, limit: 0 as number | 'unlimited' });
+
+    const refreshUsage = useCallback(() => {
+        if (user) {
+            setUsage(getKeywordUsage());
+        }
+    }, [user, getKeywordUsage]);
+
+    useEffect(() => {
+        refreshUsage();
+    }, [refreshUsage]);
 
     const handleSearch = async () => {
         if (!keyword.trim()) {
             setError('Please enter a keyword to analyze.');
             return;
         }
-        if (user?.plan === 'free') {
-            onUpgradeClick();
-            return;
+
+        if (usage.limit !== 'unlimited' && usage.remaining <= 0) {
+            return; // Button is disabled, so this is a safeguard
         }
+
         setLoading(true);
         setError(null);
         setAnalysis(null);
         try {
             const result = await getKeywordAnalysis(keyword);
             setAnalysis(result);
+            logKeywordAnalysis();
             logActivity(`analyzed keyword: "${keyword}"`, 'Search');
-        } catch (e) {
-            setError('An error occurred while analyzing the keyword. Please try again.');
+            refreshUsage();
+        } catch (e: any) {
+            setError(e.message || 'An error occurred while analyzing the keyword. Please try again.');
             console.error(e);
         } finally {
             setLoading(false);
@@ -59,7 +73,7 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
         }
     };
 
-    const isLocked = user?.plan === 'free';
+    const hasReachedLimit = usage.limit !== 'unlimited' && usage.remaining <= 0;
 
     return (
         <div className="animate-slide-in-up space-y-8">
@@ -67,7 +81,12 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
                     <Search className="w-6 h-6 text-violet-400" /> Keyword Research Tool
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Unlock insights into any topic or keyword.</p>
+                <p className="text-center text-slate-400 mb-2">Unlock insights into any topic or keyword.</p>
+                {user?.plan !== 'pro' && (
+                    <p className="text-center text-slate-500 mb-6 text-sm">
+                        You have {usage.remaining} of {String(usage.limit)} analyses remaining this month.
+                    </p>
+                )}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-grow">
                         <label htmlFor="keyword-search" className="sr-only">Search by keyword</label>
@@ -84,17 +103,17 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
                     </div>
                     <button
                         onClick={handleSearch}
-                        disabled={loading || isLocked}
+                        disabled={loading || hasReachedLimit}
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
-                        title={isLocked ? "Upgrade to Starter or Pro to use this feature" : "Analyze Keyword"}
+                        title={hasReachedLimit ? "You have reached your monthly analysis limit" : "Analyze Keyword"}
                     >
                         {loading ? <Spinner /> : 'Analyze Keyword'}
                     </button>
                 </div>
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
-                 {isLocked && (
+                {hasReachedLimit && (
                     <p className="text-center text-yellow-300 mt-4 text-sm">
-                        The Keyword Research Tool is available on our Starter and Pro plans. Please <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">upgrade</button> to access.
+                        You've used all your keyword analyses for this month. Please <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">upgrade</button> to continue.
                     </p>
                 )}
             </div>

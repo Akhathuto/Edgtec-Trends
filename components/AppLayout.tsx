@@ -18,10 +18,11 @@ import ContactPage from './ContactPage';
 import PromptGenerator from './PromptGenerator';
 import KeywordResearch from './KeywordResearch';
 import ChannelAnalytics from './ChannelAnalytics';
+import ChannelGrowth from './ChannelGrowth';
 import LegalPage from './LegalPage';
 import { Tab, User } from '../types';
 import Sidebar from './Sidebar';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard } from './Icons';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket } from './Icons';
 import TrendingTicker from './TrendingTicker';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -69,6 +70,8 @@ const AppLayout: React.FC = () => {
         return <ImageEditor setActiveTab={setActiveTab} />;
       case Tab.Analytics:
         return <ChannelAnalytics setActiveTab={setActiveTab} />;
+      case Tab.ChannelGrowth:
+        return <ChannelGrowth setActiveTab={setActiveTab} />;
       case Tab.Pricing:
         return <PricingPage onUpgradeClick={handleUpgradeClick} />;
       case Tab.About:
@@ -108,6 +111,7 @@ const AppLayout: React.FC = () => {
   const strategyTabs = [
      { id: Tab.Monetization, label: 'Monetize', icon: <DollarSign className="w-5 h-5 mr-3" />, title: "Get monetization strategies" },
     { id: Tab.Report, label: 'Strategy Report', icon: <FileText className="w-5 h-5 mr-3" />, title: "Generate a content strategy report" },
+    { id: Tab.ChannelGrowth, label: 'Channel Growth', icon: <Rocket className="w-5 h-5 mr-3" />, title: "Get a personalized channel growth plan" },
   ];
 
   const userMenuTabs = [
