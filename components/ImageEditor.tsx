@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { editImage } from '../services/geminiService';
 import Spinner from './Spinner';
@@ -11,7 +10,7 @@ interface ImageEditorProps {
 }
 
 const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
-  const { user } = useAuth();
+  const { user, addContentToHistory } = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<{ data: string, mimeType: string, url: string } | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -71,6 +70,17 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
       if (result.image) {
         const imageUrl = `data:${imageBase64.mimeType};base64,${result.image}`;
         setEditedImage({ data: result.image, url: imageUrl });
+        addContentToHistory({
+            type: 'Image Edit',
+            summary: `Image edit with prompt: "${prompt}"`,
+            content: {
+                originalImageUrl: imageBase64.url,
+                editedImageBase64: result.image,
+                mimeType: imageBase64.mimeType,
+                prompt: prompt,
+                aiNote: result.text
+            }
+        });
       }
       if (result.text) {
         setEditedText(result.text);
@@ -80,7 +90,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     } finally {
       setLoading(false);
     }
-  }, [imageBase64, prompt]);
+  }, [imageBase64, prompt, addContentToHistory]);
 
   const handleStartOver = () => {
     setError(null);

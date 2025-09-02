@@ -12,7 +12,7 @@ interface KeywordResearchProps {
 }
 
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => {
-    const { user, logActivity, getKeywordUsage, logKeywordAnalysis } = useAuth();
+    const { user, logActivity, getKeywordUsage, logKeywordAnalysis, addContentToHistory } = useAuth();
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -47,6 +47,11 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
             setAnalysis(result);
             logKeywordAnalysis();
             logActivity(`analyzed keyword: "${keyword}"`, 'Search');
+            addContentToHistory({
+                type: 'Keyword Analysis',
+                summary: `Analysis for keyword: "${keyword}"`,
+                content: result
+            });
             refreshUsage();
         } catch (e: any) {
             setError(e.message || 'An error occurred while analyzing the keyword. Please try again.');

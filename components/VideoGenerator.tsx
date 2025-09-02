@@ -32,7 +32,7 @@ interface VideoGeneratorProps {
 }
 
 const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
-    const { user, logActivity } = useAuth();
+    const { user, logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     const [prompt, setPrompt] = useState('');
     const [basePrompt, setBasePrompt] = useState('');
@@ -220,6 +220,11 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         try {
             const result = await generateTranscriptFromPrompt(basePrompt); 
             setTranscript(result);
+            addContentToHistory({
+                type: 'Video Transcript',
+                summary: `Transcript for video: "${basePrompt.substring(0, 40)}..."`,
+                content: { prompt: basePrompt, transcript: result }
+            });
         } catch (e) {
             setTranscriptError("Failed to generate transcript. Please try again.");
             console.error(e);

@@ -1,132 +1,154 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab, ActivityLog, User } from '../types';
-import { Star, TrendingUp, Lightbulb, Video, Activity, Users } from './Icons';
-import { formatDistanceToNow } from 'date-fns';
+import { Tab, Channel } from '../types';
+import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool } from './Icons';
+import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
+import Spinner from './Spinner';
 
-const iconMap: { [key: string]: React.ReactNode } = {
-    Lightbulb: <Lightbulb className="w-5 h-5 text-violet-300" />,
-    Star: <Star className="w-5 h-5 text-yellow-300" />,
-    Video: <Video className="w-5 h-5 text-red-300" />,
-    Search: <TrendingUp className="w-5 h-5 text-blue-300" />,
-    User: <Users className="w-5 h-5 text-green-300" />,
-    MessageSquare: <Lightbulb className="w-5 h-5 text-cyan-300" />,
-    Trash2: <Users className="w-5 h-5 text-red-400" />,
-    Edit: <Users className="w-5 h-5 text-slate-300" />,
+interface EnrichedChannel extends Channel {
+    followerCount?: string;
+    totalViews?: string;
+}
+
+const AITipCard: React.FC = () => {
+    const { user } = useAuth();
+    const [tip, setTip] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    const fetchTip = useCallback(async () => {
+        if (!user) return;
+        setLoading(true);
+        const newTip = await generateDashboardTip(user.channels || []);
+        setTip(newTip);
+        setLoading(false);
+    }, [user]);
+
+    useEffect(() => {
+        fetchTip();
+    }, [fetchTip]);
+
+    return (
+        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl flex flex-col h-full">
+            <div className="flex justify-between items-start mb-3">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-violet-300"/> AI Tip of the Day
+                </h3>
+                <button onClick={fetchTip} disabled={loading} className="p-2 -mt-1 -mr-1 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+            </div>
+             {loading ? (
+                <div className="flex-grow flex items-center justify-center"><Spinner /></div>
+            ) : (
+                <p className="text-slate-300 flex-grow">{tip}</p>
+            )}
+        </div>
+    );
 };
 
 
-interface DashboardProps {
-    setActiveTab: (tab: Tab) => void;
-}
-
-const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; }> = ({ title, value, icon }) => (
-    <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-            {icon}
-        </div>
-        <div>
-            <p className="text-sm text-slate-400">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
+const QuickCreateCard: React.FC<{ setActiveTab: (tab: Tab) => void }> = ({ setActiveTab }) => (
+    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl h-full flex flex-col">
+        <h3 className="text-xl font-bold text-white mb-4">Quick Create</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-grow content-center">
+            <button onClick={() => setActiveTab(Tab.Ideas)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><Lightbulb className="w-4 h-4 text-violet-300"/> Idea</button>
+            <button onClick={() => setActiveTab(Tab.Prompt)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><Wand className="w-4 h-4 text-violet-300"/> Prompt</button>
+            <button onClick={() => setActiveTab(Tab.Video)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><Video className="w-4 h-4 text-violet-300"/> Video</button>
+            <button onClick={() => setActiveTab(Tab.AnimationCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><Clapperboard className="w-4 h-4 text-violet-300"/> Animation</button>
+            <button onClick={() => setActiveTab(Tab.GifCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><Gif className="w-4 h-4 text-violet-300"/> GIF</button>
+            <button onClick={() => setActiveTab(Tab.LogoCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-sm"><PenTool className="w-4 h-4 text-violet-300"/> Logo</button>
         </div>
     </div>
 );
 
-const QuickStartCard: React.FC<{ title: string; description: string; icon: React.ReactNode; onClick: () => void; }> = ({ title, description, icon, onClick }) => (
-     <button onClick={onClick} className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl w-full text-left transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1">
-        <div className="flex items-center gap-4 mb-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white">
-                {icon}
-            </div>
-            <h3 className="text-xl font-bold text-white">{title}</h3>
+const YourChannelsCard: React.FC<{ 
+    channels: Channel[]; 
+    onChannelClick: (channelId: string) => void; 
+}> = ({ channels, onChannelClick }) => {
+    const [enrichedChannels, setEnrichedChannels] = useState<EnrichedChannel[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSnapshots = async () => {
+            if (channels.length === 0) {
+                setLoading(false);
+                setEnrichedChannels([]);
+                return;
+            }
+            setLoading(true);
+            const snapshots = await getChannelSnapshots(channels);
+            const enriched = channels.map(channel => {
+                const snapshot = snapshots.find(s => s.id === channel.id);
+                return { ...channel, ...snapshot };
+            });
+            setEnrichedChannels(enriched);
+            setLoading(false);
+        };
+        fetchSnapshots();
+    }, [channels]);
+
+    return (
+        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl h-full">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Link className="w-5 h-5"/> Your Channels</h3>
+            {loading ? (
+                <div className="flex items-center justify-center h-full"><Spinner /></div>
+            ) : enrichedChannels.length === 0 ? (
+                 <p className="text-slate-400 text-sm">Connect your channels in your profile to see stats here.</p>
+            ) : (
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                    {enrichedChannels.map(channel => (
+                        <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-slate-700/80 p-3 rounded-lg transition-colors flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                                {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500 flex-shrink-0" /> : <TikTok className="w-6 h-6 text-white flex-shrink-0" />}
+                                <span className="font-semibold truncate">{channel.url.split('/').pop() || channel.url}</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm flex-shrink-0 ml-4">
+                                <span className="flex items-center gap-1.5 text-slate-400"><Users className="w-4 h-4"/>{channel.followerCount || 'N/A'}</span>
+                                <span className="flex items-center gap-1.5 text-slate-400"><Eye className="w-4 h-4"/>{channel.totalViews || 'N/A'}</span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
-        <p className="text-slate-400">{description}</p>
-    </button>
-);
+    );
+};
 
-const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
-    const { user, getAllActivities } = useAuth();
-    const activities = getAllActivities().slice(0, 3); // Get latest 3 activities
+interface DashboardProps {
+    setActiveTab: (tab: Tab) => void;
+    setActiveAnalyticsChannelId: (id: string | null) => void;
+}
 
-    const formatFollowers = (num: number) => {
-        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-        if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-        return num.toString();
-    };
+const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsChannelId }) => {
+    const { user } = useAuth();
     
     if (!user) return null;
+
+    const handleChannelClick = (channelId: string) => {
+        setActiveAnalyticsChannelId(channelId);
+        setActiveTab(Tab.Analytics);
+    };
 
     return (
         <div className="animate-slide-in-up space-y-8">
             <div>
                 <h1 className="text-4xl font-bold text-white">Welcome back, {user.name}!</h1>
-                <p className="text-slate-400 mt-1">Ready to create something amazing today?</p>
+                <p className="text-slate-400 mt-1">Here's your Creator Hub. Let's get started.</p>
             </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                    title="Current Plan" 
-                    value={user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} 
-                    icon={<Star className="w-6 h-6 text-yellow-300"/>} 
-                />
-                <StatCard 
-                    title="Followers" 
-                    value={user.followerCount ? formatFollowers(user.followerCount) : '-'} 
-                    icon={<Users className="w-6 h-6 text-blue-300"/>} 
-                />
-                 <StatCard 
-                    title="Recent Activity" 
-                    value={`${activities.length} actions`}
-                    icon={<Activity className="w-6 h-6 text-green-300"/>} 
-                />
-            </div>
-
-            {/* Quick Start */}
-             <div className="space-y-6">
-                 <h2 className="text-2xl font-bold text-white">Quick Start</h2>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <QuickStartCard
-                        title="Find Trends"
-                        description="Discover what's currently trending on YouTube & TikTok."
-                        icon={<TrendingUp className="w-6 h-6"/>}
-                        onClick={() => setActiveTab(Tab.Trends)}
-                    />
-                     <QuickStartCard
-                        title="Generate Ideas"
-                        description="Let AI brainstorm your next viral video."
-                        icon={<Lightbulb className="w-6 h-6"/>}
-                        onClick={() => setActiveTab(Tab.Ideas)}
-                    />
-                     <QuickStartCard
-                        title="Create a Video"
-                        description="Generate a stunning video from a text prompt."
-                        icon={<Video className="w-6 h-6"/>}
-                        onClick={() => setActiveTab(Tab.Video)}
-                    />
-                 </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2">
-                    <Activity className="w-5 h-5" /> Your Recent Activity
-                </h3>
-                <div className="space-y-3">
-                    {activities.length > 0 ? activities.map((activity) => (
-                        <div key={activity.id} className="flex items-center text-sm p-2.5 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mr-3 flex-shrink-0">
-                                {iconMap[activity.icon] || <Activity className="w-4 h-4 text-slate-300"/>}
-                            </div>
-                            <p className="text-slate-300 flex-grow">
-                                You {activity.action}.
-                            </p>
-                            <span className="text-xs text-slate-500 ml-auto flex-shrink-0 pl-2" title={new Date(activity.timestamp).toLocaleString()}>
-                                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                            </span>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <YourChannelsCard channels={user.channels || []} onChannelClick={handleChannelClick} />
+                <AITipCard />
+                <QuickCreateCard setActiveTab={setActiveTab} />
+                <button onClick={() => setActiveTab(Tab.BrandConnect)} className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl w-full text-left transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 flex flex-col justify-center">
+                     <div className="flex items-center gap-4 mb-3">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white">
+                            <Briefcase className="w-8 h-8"/>
                         </div>
-                    )) : <p className="text-slate-500 text-center py-4">You haven't performed any actions yet.</p>}
-                </div>
+                        <h3 className="text-3xl font-bold text-white">Brand Connect</h3>
+                    </div>
+                    <p className="text-slate-400 text-lg">Find brand sponsors and generate personalized pitches with AI.</p>
+                </button>
             </div>
         </div>
     );

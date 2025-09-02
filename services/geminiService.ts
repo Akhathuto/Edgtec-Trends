@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse, Modality } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan } from '../types';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -15,47 +16,21 @@ export const getRealtimeTrends = async (userPlan: User['plan'], country: string)
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `As a social media trend expert, identify up to ${trendLimit} of the top currently trending channels and up to ${trendLimit} of the top trending topics across YouTube (including Shorts) and TikTok${countryFilter}. Leverage real-time search data. For each channel, provide the name, platform (either 'YouTube' or 'TikTok'), a brief description, its direct URL, formatted subscriber count (e.g., '1.5M'), and formatted total view count (e.g., '250M'). For each topic, provide the name, platform, and a brief description.`,
+            contents: `As a social media trend expert, identify up to ${trendLimit} of the top currently trending channels and up to ${trendLimit} of the top trending topics across YouTube (including Shorts) and TikTok${countryFilter}. Leverage real-time search data. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. The JSON object must have these keys: "trendingChannels" (an array of objects with keys: "name", "platform", "description", "channel_url", "subscriber_count", "view_count") and "trendingTopics" (an array of objects with keys: "name", "platform", "description").`,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        trendingChannels: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    name: { type: Type.STRING, description: "The name of the trending channel." },
-                                    platform: { type: Type.STRING, description: "The platform, either 'YouTube' or 'TikTok'." },
-                                    description: { type: Type.STRING, description: "A brief explanation of why the channel is trending." },
-                                    channel_url: { type: Type.STRING, description: "The direct URL to the channel's main page." },
-                                    subscriber_count: { type: Type.STRING, description: "The channel's subscriber count, formatted (e.g., '1.2M')." },
-                                    view_count: { type: Type.STRING, description: "The channel's total view count, formatted (e.g., '250M')." }
-                                }
-                            }
-                        },
-                        trendingTopics: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    name: { type: Type.STRING, description: "The name of the trending topic or theme." },
-                                    platform: { type: Type.STRING, description: "The platform, either 'YouTube' or 'TikTok'." },
-                                    description: { type: Type.STRING, description: "A brief explanation of why the topic is trending." }
-                                }
-                            }
-                        }
-                    }
-                }
+                tools: [{ googleSearch: {} }],
             }
         });
-        const jsonText = response.text.trim();
-        const parsed = JSON.parse(jsonText);
-        return {
-            channels: parsed.trendingChannels || [],
-            topics: parsed.trendingTopics || []
-        };
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+        if (jsonMatch && jsonMatch[0]) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return {
+                channels: parsed.trendingChannels || [],
+                topics: parsed.trendingTopics || []
+            };
+        }
+        throw new Error("The API response did not contain valid JSON data for trends.");
     } catch (error) {
         console.error("Error fetching real-time trends:", error);
         if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
@@ -76,57 +51,17 @@ export const getTrendingContent = async (
   const countryFilter = country === 'Worldwide' ? 'globally' : `in ${country}`;
   const categoryFilter = category === 'All' ? '' : `in the '${category}' category`;
 
-  let prompt = `Using real-time search data, identify the top ${trendLimit} currently trending ${platform} ${contentType} ${categoryFilter} ${countryFilter}.`;
-  let responseSchema: any;
+  let prompt = `Using real-time search data, identify the top ${trendLimit} currently trending ${platform} ${contentType} ${categoryFilter} ${countryFilter}. Your response MUST be a single JSON array of objects that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`.`;
 
   switch (contentType) {
     case 'videos':
-      prompt += ` For each video, provide its title, the full direct video URL, a valid and direct URL to its high-quality thumbnail image, channel name, formatted view count (e.g., '2.1M views'), and published time (e.g., '5 hours ago'). Ensure the thumbnailUrl is a direct link to an image file.`;
-      responseSchema = {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            videoUrl: { type: Type.STRING },
-            thumbnailUrl: { type: Type.STRING, description: "Direct URL to the video's thumbnail image." },
-            channelName: { type: Type.STRING },
-            viewCount: { type: Type.STRING },
-            publishedTime: { type: Type.STRING },
-          },
-        },
-      };
+      prompt += ` Each object in the array should have these exact keys: "title", "videoUrl", "thumbnailUrl" (a direct, valid image link), "channelName", "viewCount", "publishedTime".`;
       break;
     case 'music':
-      prompt += ` For each track, provide the track title, artist name, an estimated number of videos using the sound (formatted, e.g., '1.2M+ videos'), and a brief reason why it's trending (e.g., 'viral dance challenge').`;
-      responseSchema = {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            trackTitle: { type: Type.STRING },
-            artistName: { type: Type.STRING },
-            videosUsingSound: { type: Type.STRING },
-            reason: { type: Type.STRING },
-          },
-        },
-      };
+      prompt += ` Each object in the array should have these exact keys: "trackTitle", "artistName", "videosUsingSound", "reason".`;
       break;
     case 'creators':
-      prompt += ` This includes both top creators and breakout creators. For each creator, provide their channel name, channel URL, formatted subscriber count, main content category, and a brief reason for their current trendiness.`;
-      responseSchema = {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            channelUrl: { type: Type.STRING },
-            subscriberCount: { type: Type.STRING },
-            category: { type: Type.STRING },
-            reason: { type: Type.STRING },
-          },
-        },
-      };
+      prompt += ` This includes both top creators and breakout creators. Each object in the array should have these exact keys: "name", "channelUrl", "subscriberCount", "category", "reason".`;
       break;
   }
   
@@ -135,27 +70,47 @@ export const getTrendingContent = async (
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
-            responseMimeType: "application/json",
-            responseSchema,
+            tools: [{ googleSearch: {} }],
         }
     });
-    const jsonText = response.text.trim();
-    return JSON.parse(jsonText);
+    const rawText = response.text.trim();
+    
+    let jsonString = rawText;
+    const markdownMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (markdownMatch && markdownMatch[1]) {
+        jsonString = markdownMatch[1].trim();
+    }
+    
+    const jsonMatch = jsonString.match(/(\[[\s\S]*\])/);
+    if (jsonMatch && jsonMatch[0]) {
+        try {
+            return JSON.parse(jsonMatch[0]);
+        } catch (parseError) {
+             console.error(`Failed to parse JSON for trending ${contentType}:`, parseError);
+             console.error("Raw API response:", rawText);
+        }
+    }
+    throw new Error(`The API response did not contain valid JSON data for trending ${contentType}.`);
   } catch (error) {
     console.error(`Error fetching trending ${contentType}:`, error);
     if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
         throw new Error("API quota exceeded. Please try again later.");
+    }
+    if (error instanceof Error && error.message.includes('The API response did not contain valid JSON')) {
+      throw error;
     }
     throw new Error(`Failed to fetch trending ${contentType} from Gemini API.`);
   }
 };
 
 
-export const findTrends = async (topic: string): Promise<GenerateContentResponse> => {
+export const findTrends = async (topic: string, platform: 'YouTube' | 'TikTok', country: string, category: string): Promise<GenerateContentResponse> => {
+  const countryFilter = country === 'Worldwide' ? '' : ` in ${country}`;
+  const categoryFilter = category === 'All' ? '' : ` within the '${category}' category`;
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Analyze current trends for the topic "${topic}" on YouTube, YouTube Shorts, and TikTok. Identify viral challenges, popular sounds/music, trending video formats, and key conversations. Present the findings clearly, separating YouTube, YouTube Shorts, and TikTok trends.`,
+      contents: `Analyze current trends for the topic "${topic}" specifically on ${platform}${countryFilter}${categoryFilter}. ${platform === 'YouTube' ? 'If relevant, include YouTube Shorts trends.' : ''} Identify viral challenges, popular sounds/music, trending video formats, and key conversations. Present the findings clearly.`,
       config: {
         tools: [{ googleSearch: {} }],
       },
@@ -325,46 +280,21 @@ export const generateFullReport = async (topic: string, followers: number): Prom
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: `Create a comprehensive content strategy report for the topic "${topic}". The report should be for a creator with ${followers} followers.
-            The report must include three sections:
-            1.  **Trend Analysis**: Analyze current trends for "${topic}" on both YouTube and TikTok. Identify viral challenges, popular sounds/music, trending video formats, and key conversations. Present the findings clearly in a markdown-formatted string, separating YouTube and TikTok trends.
-            2.  **Content Ideas**: Generate 3 viral video ideas for both YouTube and TikTok about "${topic}". For each idea, provide a catchy title, a strong hook (first 3 seconds), a brief script outline, and 5 relevant hashtags.
-            3.  **Monetization Strategies**: List and explain monetization strategies suitable for a creator with this topic and follower count. For each strategy, describe it, explain the typical requirements, and estimate the earning potential.`,
+            Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. 
+            The JSON object must have these exact keys:
+            1.  "trendAnalysis": A markdown-formatted string analyzing current trends for "${topic}" on both YouTube and TikTok. Identify viral challenges, popular sounds/music, trending video formats, and key conversations.
+            2.  "contentIdeas": An array of 3 objects, each with keys "title", "hook", "script_outline" (array of strings), and "hashtags" (array of strings).
+            3.  "monetizationStrategies": An array of objects, each with keys "strategy", "description", "requirements", and "potential".`,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        trendAnalysis: { type: Type.STRING, description: "Markdown formatted string analyzing trends for the topic on YouTube and TikTok." },
-                        contentIdeas: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    title: { type: Type.STRING },
-                                    hook: { type: Type.STRING },
-                                    script_outline: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                }
-                            }
-                        },
-                        monetizationStrategies: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    strategy: { type: Type.STRING },
-                                    description: { type: Type.STRING },
-                                    requirements: { type: Type.STRING },
-                                    potential: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    }
-                }
+                tools: [{ googleSearch: {} }],
             }
         });
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as FullReport;
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]) as FullReport;
+        }
+        throw new Error("The API response did not contain valid JSON data for the report.");
     } catch (error) {
         console.error("Error generating full report:", error);
         if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
@@ -404,6 +334,50 @@ export const generateVideo = async (prompt: string, platform: 'YouTube' | 'TikTo
     }
 };
 
+export const generateAnimation = async (prompt: string, style: string): Promise<any> => {
+    try {
+        const modifiedPrompt = `Create a high-quality animation in a ${style} style. The animation should be in a 16:9 aspect ratio. The user's prompt is: "${prompt}"`;
+
+        const operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: modifiedPrompt,
+            config: {
+                numberOfVideos: 1
+            }
+        });
+        return operation;
+    } catch (error) {
+        console.error("Error initiating animation generation:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+             throw new Error("API quota exceeded. Please check your plan and billing details.");
+        }
+        throw new Error("Failed to start animation generation.");
+    }
+};
+
+export const generateGif = async (prompt: string): Promise<any> => {
+    try {
+        const modifiedPrompt = `Create a short, silent, high-quality, seamlessly looping GIF. The user's prompt is: "${prompt}"`;
+
+        const operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: modifiedPrompt,
+            // FIX: Removed 'outputMimeType' from the config as it is not a valid property for generateVideos.
+            // The API returns an MP4 by default, which can be looped in the browser.
+            config: {
+                numberOfVideos: 1,
+            }
+        });
+        return operation;
+    } catch (error) {
+        console.error("Error initiating GIF generation:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+             throw new Error("API quota exceeded. Please check your plan and billing details.");
+        }
+        throw new Error("Failed to start GIF generation.");
+    }
+};
+
 export const checkVideoStatus = async (operation: any): Promise<any> => {
     try {
         const updatedOperation = await ai.operations.getVideosOperation({ operation: operation });
@@ -421,21 +395,31 @@ export const getTickerTrends = async (): Promise<string[]> => {
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: "List up to 30 of the most current, viral, and trending topics, keywords, or challenges on YouTube and TikTok. Use real-time search data for this. Return only a JSON array of strings.",
+            contents: "List up to 30 of the most current, viral, and trending topics, keywords, or challenges on YouTube and TikTok. Use real-time search data. Your response MUST be a single JSON array of strings that can be parsed directly. Do not include markdown formatting like ```json ... ```. Ensure quotes inside strings are properly escaped.",
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.STRING,
-                        description: "A single trending topic name."
-                    }
-                },
+                tools: [{ googleSearch: {} }],
                 thinkingConfig: { thinkingBudget: 0 }
             }
         });
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as string[];
+        const rawText = response.text.trim();
+        let jsonString = rawText;
+        const markdownMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (markdownMatch && markdownMatch[1]) {
+            jsonString = markdownMatch[1].trim();
+        }
+        const jsonMatch = jsonString.match(/(\[[\s\S]*\])/);
+
+
+        if (jsonMatch && jsonMatch[0]) {
+            try {
+                return JSON.parse(jsonMatch[0]) as string[];
+            } catch (parseError) {
+                 console.warn("Ticker trends JSON could not be parsed:", jsonMatch[0]);
+                 return [];
+            }
+        }
+        console.warn("Ticker trends response did not contain a valid JSON array.", rawText);
+        return [];
     } catch (error) {
         if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
             console.warn("Ticker trends skipped due to API quota limit.");
@@ -521,6 +505,33 @@ export const editImage = async (
     }
 };
 
+export const generateLogo = async (prompt: string, style: string): Promise<string> => {
+    try {
+        const modifiedPrompt = `Generate a professional, vector-style logo for a brand described as: "${prompt}". The logo must be in a ${style} style. It should be simple, memorable, and suitable for a profile picture. Use a solid white or transparent background.`;
+        const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: modifiedPrompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/png',
+              aspectRatio: '1:1',
+            },
+        });
+
+        if (response.generatedImages && response.generatedImages.length > 0) {
+            return response.generatedImages[0].image.imageBytes;
+        }
+        throw new Error("The AI did not return a logo.");
+
+    } catch (error) {
+        console.error("Error generating logo:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+            throw new Error("API quota exceeded. Please try again later.");
+        }
+        throw new Error("Failed to generate a logo using the Gemini API.");
+    }
+};
+
 export const generateTranscriptFromPrompt = async (videoPrompt: string): Promise<string> => {
     try {
         const response = await ai.models.generateContent({
@@ -541,35 +552,51 @@ export const generateTranscriptFromPrompt = async (videoPrompt: string): Promise
     }
 };
 
-export const getChannelAnalytics = async (channelUrl: string): Promise<ChannelAnalyticsData> => {
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: `Act as a YouTube analytics expert. Use Google Search to find the latest live data for the YouTube channel at this URL: ${channelUrl}. 
+export const getChannelAnalytics = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelAnalyticsData> => {
+    let prompt: string;
+    if (platform === 'YouTube') {
+         prompt = `Act as a YouTube analytics expert. Use Google Search to find the latest live data for the YouTube channel at this URL: ${channelUrl}. 
             Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. 
             The JSON object must have these exact keys and value types: 
             - "channelName": string (The name of the channel)
-            - "subscriberCount": string (e.g., "1.23M")
-            - "subscriberTrend": "up" | "down" | "stable"
+            - "followerCount": string (e.g., "1.23M")
+            - "followerTrend": "up" | "down" | "stable"
             - "totalViews": string (e.g., "45.6M")
             - "viewsTrend": "up" | "down" | "stable"
             - "aiSummary": string (A brief, one-paragraph summary of the channel's recent performance and content focus)
             - "recentVideos": Array<{ "title": string, "videoUrl": string, "viewCount": string }> (Find the 3 most recent videos with their full URL and formatted view count)
-            `,
+            `;
+    } else { // TikTok
+        prompt = `Act as a TikTok analytics expert. Use Google Search to find the latest live data for the TikTok channel at this URL: ${channelUrl}. 
+            Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. 
+            The JSON object must have these exact keys and value types: 
+            - "channelName": string (The name of the channel)
+            - "followerCount": string (e.g., "1.23M")
+            - "followerTrend": "up" | "down" | "stable"
+            - "totalViews": string (e.g., "45.6M")
+            - "viewsTrend": "up" | "down" | "stable"
+            - "totalLikes": string (e.g., "10.2M")
+            - "aiSummary": string (A brief, one-paragraph summary of the channel's recent performance and content focus)
+            `;
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
-            },
+            }
         });
         const rawText = response.text.trim();
-        // The model might sometimes wrap the JSON in markdown or add extra text.
-        // We'll extract the JSON object from the string for robust parsing.
         const jsonMatch = rawText.match(/{[\s\S]*}/);
 
         if (jsonMatch && jsonMatch[0]) {
             const jsonText = jsonMatch[0];
-            return JSON.parse(jsonText) as ChannelAnalyticsData;
+            const parsedData = JSON.parse(jsonText);
+            // Add platform to the response object
+            return { ...parsedData, platform } as ChannelAnalyticsData;
         } else {
-             // If no JSON object is found, throw a more specific error.
              throw new Error("The API response did not contain valid JSON data for analytics.");
         }
     } catch (error) {
@@ -577,15 +604,46 @@ export const getChannelAnalytics = async (channelUrl: string): Promise<ChannelAn
         if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
             throw new Error("API quota exceeded. Please try again later.");
         }
-        throw new Error("Failed to fetch channel analytics from Gemini API. The channel might be new or private.");
+        throw new Error(`Failed to fetch channel analytics from Gemini API for ${platform}. The channel might be new or private.`);
     }
 };
 
-export const generateChannelGrowthPlan = async (channelUrl: string): Promise<ChannelGrowthPlan> => {
+export const getChannelSnapshots = async (channels: Channel[]): Promise<{ id: string; followerCount: string; totalViews: string }[]> => {
+    if (channels.length === 0) return [];
+    
+    const channelList = channels.map(c => `- ID: ${c.id}, Platform: ${c.platform}, URL: ${c.url}`).join('\n');
+
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Act as a world-class YouTube growth consultant. Use Google Search to perform a comprehensive analysis of the YouTube channel at this URL: ${channelUrl}. Based on your findings, generate a detailed and actionable growth plan. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. The JSON object must have these exact keys: 'contentStrategy', 'seoAndDiscoverability', 'audienceEngagement', and 'thumbnailCritique'. Each key should map to an object containing two properties: an 'analysis' (a paragraph summarizing your findings for that category) and 'recommendations' (an array of 3-5 specific, actionable string suggestions for improvement).`,
+            contents: `Using Google Search, find the latest public data for the following list of channels:\n${channelList}\n\nYour response MUST be a single JSON array of objects that can be parsed directly. Do not include markdown formatting. Each object in the array must have these exact keys: "id" (use the ID from the input list), "followerCount" (e.g., "1.23M"), and "totalViews" (e.g., "45.6M"). If a channel cannot be found, omit it from the array.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        console.warn("Could not parse channel snapshots from response:", rawText);
+        return [];
+    } catch (error) {
+        console.error("Error fetching channel snapshots:", error);
+        return [];
+    }
+};
+
+
+export const generateChannelGrowthPlan = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelGrowthPlan> => {
+    const platformSpecificPrompt = platform === 'TikTok' 
+        ? `Act as a world-class TikTok growth consultant. Use Google Search to perform a comprehensive analysis of the TikTok channel at this URL: ${channelUrl}. Based on your findings, generate a detailed and actionable growth plan. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. The JSON object must have these exact keys: 'contentStrategy', 'seoAndDiscoverability', 'audienceEngagement', and 'thumbnailCritique'. For 'seoAndDiscoverability' on TikTok, focus on hashtag strategy, trending sounds, and profile optimization. For 'thumbnailCritique', analyze the first frame/cover image of recent videos. Each key should map to an object containing two properties: an 'analysis' (a paragraph summarizing your findings for that category) and 'recommendations' (an array of 3-5 specific, actionable string suggestions for improvement).`
+        : `Act as a world-class YouTube growth consultant. Use Google Search to perform a comprehensive analysis of the YouTube channel at this URL: ${channelUrl}. Based on your findings, generate a detailed and actionable growth plan. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`. The JSON object must have these exact keys: 'contentStrategy', 'seoAndDiscoverability', 'audienceEngagement', and 'thumbnailCritique'. Each key should map to an object containing two properties: an 'analysis' (a paragraph summarizing your findings for that category) and 'recommendations' (an array of 3-5 specific, actionable string suggestions for improvement).`;
+        
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: platformSpecificPrompt,
             config: {
                 tools: [{ googleSearch: {} }],
             }
@@ -607,6 +665,104 @@ export const generateChannelGrowthPlan = async (channelUrl: string): Promise<Cha
          if (error instanceof Error && error.message.includes("The API response did not contain valid JSON")) {
             throw error;
         }
-        throw new Error("Failed to generate channel growth plan from Gemini API. The channel might be new, private, or could not be analyzed.");
+        throw new Error(`Failed to generate channel growth plan from Gemini API for ${platform}. The channel might be new, private, or could not be analyzed.`);
+    }
+};
+
+export const generateChannelOpportunities = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<string[]> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `As a social media growth expert, analyze the ${platform} channel at this URL: ${channelUrl}. Based on public data, identify 3 key, actionable growth opportunities. Focus on content gaps, untapped audiences, collaboration ideas, or titling/thumbnail strategies. Your response MUST be a single JSON array of strings that can be parsed directly. Do not include markdown formatting.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        console.warn("Could not parse opportunities from response:", rawText);
+        return [];
+    } catch (error) {
+        console.error("Error generating channel opportunities:", error);
+        return [];
+    }
+};
+
+export const generateDashboardTip = async (channels: Channel[]): Promise<string> => {
+    const channelInfo = channels.map(c => `${c.platform} channel at ${c.url}`).join(' and ');
+    if (channels.length === 0) {
+        return "Connect your YouTube or TikTok channel in your profile to get personalized tips!";
+    }
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `As a YouTube growth expert, analyze the creator's channels: ${channelInfo}. Give one specific, actionable, and creative tip for their content strategy today. The tip should be short (1-2 sentences). Use real-time search for current trends if relevant.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+                thinkingConfig: { thinkingBudget: 0 }
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error generating dashboard tip:", error);
+        return "Could not load a tip right now. Try refreshing!";
+    }
+};
+
+export const findSponsorshipOpportunities = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<SponsorshipOpportunity[]> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `As a sponsorship expert, analyze the ${platform} channel at this URL: ${channelUrl}. Based on its content, audience, and brand safety, identify 5 potential brand sponsors. For each brand, explain its relevance. Your response MUST be a single JSON array of objects that can be parsed directly. Do not include markdown formatting. Each object must have these keys: "brandName", "industry", "relevance", and "sponsorMatchScore". The sponsorMatchScore should be a string representing a rating out of 100 (e.g., "95/100"). Calculate this score by holistically analyzing the alignment between the brand's target market and the channel's content niche, audience demographics (if inferable), overall tone, and brand safety. A high score (90+) indicates a near-perfect alignment. A medium score (70-89) is a good fit. A lower score indicates a potential mismatch.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        throw new Error("Could not parse sponsorship opportunities from the API response.");
+    } catch (error) {
+        console.error("Error finding sponsorship opportunities:", error);
+        throw new Error("Failed to find sponsorship opportunities from Gemini API.");
+    }
+};
+
+export const generateBrandPitch = async (channelName: string, platform: 'YouTube' | 'TikTok', brandName: string, industry: string): Promise<BrandPitch> => {
+     try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Generate a professional and concise sponsorship pitch email.
+            My Channel Name: "${channelName}" on ${platform}.
+            Brand I'm pitching: "${brandName}" (Industry: ${industry}).
+            
+            The email should be enthusiastic, highlight my channel's value proposition for their brand, mention my audience alignment, and end with a clear call to action (e.g., scheduling a call).
+            
+            Your response MUST be a single JSON object that can be parsed directly. Do not include markdown formatting. The object must have these keys: "subject" and "body". The body should be a single string with newline characters (\\n) for paragraph breaks.`,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        subject: { type: Type.STRING },
+                        body: { type: Type.STRING },
+                    },
+                },
+            },
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        throw new Error("Could not parse the brand pitch from the API response.");
+    } catch (error) {
+        console.error("Error generating brand pitch:", error);
+        throw new Error("Failed to generate brand pitch from Gemini API.");
     }
 };

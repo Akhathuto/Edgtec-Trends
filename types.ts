@@ -6,6 +6,7 @@ export enum Tab {
   Report = 'report',
   Prompt = 'prompt',
   Video = 'video',
+  AnimationCreator = 'animation-creator',
   ImageEditor = 'image-editor',
   Keywords = 'keywords',
   Chat = 'chat',
@@ -19,6 +20,16 @@ export enum Tab {
   Contact = 'contact',
   TermsOfUse = 'terms-of-use',
   License = 'license',
+  BrandConnect = 'brand-connect',
+  ContentHistory = 'content-history',
+  GifCreator = 'gif-creator',
+  LogoCreator = 'logo-creator',
+}
+
+export interface Channel {
+  id: string;
+  platform: 'YouTube' | 'TikTok' | 'X' | 'Instagram' | 'Facebook' | 'Website';
+  url: string;
 }
 
 export interface User {
@@ -30,8 +41,7 @@ export interface User {
   country?: string;
   phone?: string;
   company?: string;
-  followerCount?: number;
-  youtubeChannelUrl?: string;
+  channels?: Channel[];
 }
 
 export interface ActivityLog {
@@ -48,6 +58,29 @@ export interface KeywordUsage {
   resetDate: string; // ISO string
 }
 
+export type HistoryContentType =
+  | 'Content Idea'
+  | 'Strategy Report'
+  | 'Video Transcript'
+  | 'Generated Prompt'
+  | 'Image Edit'
+  | 'Keyword Analysis'
+  | 'Channel Growth Plan'
+  | 'Sponsorship Opportunities'
+  | 'Brand Pitch'
+  | 'Animation'
+  | 'GIF'
+  | 'Logo';
+
+export interface HistoryItem {
+  id: string;
+  timestamp: string; // ISO string
+  type: HistoryContentType;
+  summary: string;
+  content: any;
+}
+
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -57,12 +90,14 @@ export interface AuthContextType {
   upgradePlan: (plan: 'starter' | 'pro') => void;
   getAllUsers: () => User[];
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
-  updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>) => Promise<void>;
+  updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'channels'>>) => Promise<void>;
   logActivity: (action: string, icon: string) => void;
   getAllActivities: () => ActivityLog[];
   deleteUser: (userId: string) => void;
   getKeywordUsage: () => { remaining: number; limit: number | 'unlimited' };
   logKeywordAnalysis: () => void;
+  getContentHistory: () => HistoryItem[];
+  addContentToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
 }
 
 export interface GroundingSource {
@@ -145,13 +180,15 @@ export interface KeywordAnalysis {
 }
 
 export interface ChannelAnalyticsData {
+  platform: 'YouTube' | 'TikTok';
   channelName: string;
-  subscriberCount: string;
-  subscriberTrend: 'up' | 'down' | 'stable';
+  followerCount: string;
+  followerTrend: 'up' | 'down' | 'stable';
   totalViews: string;
   viewsTrend: 'up' | 'down' | 'stable';
+  totalLikes?: string;
   aiSummary: string;
-  recentVideos: {
+  recentVideos?: {
     title: string;
     videoUrl: string;
     viewCount: string;
@@ -184,4 +221,16 @@ export interface Plan {
   description: string;
   features: string[];
   isFeatured?: boolean;
+}
+
+export interface SponsorshipOpportunity {
+  brandName: string;
+  industry: string;
+  relevance: string;
+  sponsorMatchScore: string;
+}
+
+export interface BrandPitch {
+  subject: string;
+  body: string;
 }

@@ -6,6 +6,7 @@ import ContentGenerator from './ContentGenerator';
 import MonetizationGuide from './MonetizationGuide';
 import StrategyReport from './StrategyReport';
 import VideoGenerator from './VideoGenerator';
+import AnimationCreator from './AnimationCreator';
 import ImageEditor from './ImageEditor';
 import AIChat from './AIChat';
 import About from './About';
@@ -19,10 +20,14 @@ import PromptGenerator from './PromptGenerator';
 import KeywordResearch from './KeywordResearch';
 import ChannelAnalytics from './ChannelAnalytics';
 import ChannelGrowth from './ChannelGrowth';
+import BrandConnect from './BrandConnect';
 import LegalPage from './LegalPage';
+import ContentHistory from './ContentHistory';
+import GifCreator from './GifCreator';
+import LogoCreator from './LogoCreator';
 import { Tab, User } from '../types';
 import Sidebar from './Sidebar';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket } from './Icons';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool } from './Icons';
 import TrendingTicker from './TrendingTicker';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -34,12 +39,22 @@ const AppLayout: React.FC = () => {
   });
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<User['plan'] | null>(null);
+  
+  // State for analytics page to be controlled from dashboard
+  const [activeAnalyticsChannelId, setActiveAnalyticsChannelId] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTab !== Tab.License && activeTab !== Tab.TermsOfUse) {
       localStorage.setItem('utrend-active-tab', activeTab);
     }
-  }, [activeTab]);
+    // Auto-select first channel when navigating to analytics
+    if (activeTab === Tab.Analytics && !activeAnalyticsChannelId && user?.channels && user.channels.length > 0) {
+        const compatibleChannels = user.channels.filter(c => c.platform === 'YouTube' || c.platform === 'TikTok');
+        if (compatibleChannels.length > 0) {
+            setActiveAnalyticsChannelId(compatibleChannels[0].id);
+        }
+    }
+  }, [activeTab, activeAnalyticsChannelId, user?.channels]);
 
   const handleUpgradeClick = (plan: User['plan']) => {
     setSelectedPlan(plan);
@@ -49,7 +64,7 @@ const AppLayout: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case Tab.Dashboard:
-        return <Dashboard setActiveTab={setActiveTab} />;
+        return <Dashboard setActiveTab={setActiveTab} setActiveAnalyticsChannelId={setActiveAnalyticsChannelId} />;
       case Tab.Trends:
         return <TrendDiscovery onUpgradeClick={() => setActiveTab(Tab.Pricing)} />;
       case Tab.Ideas:
@@ -66,12 +81,26 @@ const AppLayout: React.FC = () => {
         return <PromptGenerator />;
       case Tab.Video:
         return <VideoGenerator setActiveTab={setActiveTab} />;
+      case Tab.AnimationCreator:
+        return <AnimationCreator setActiveTab={setActiveTab} />;
+      case Tab.GifCreator:
+        return <GifCreator setActiveTab={setActiveTab} />;
+      case Tab.LogoCreator:
+        return <LogoCreator setActiveTab={setActiveTab} />;
       case Tab.ImageEditor:
         return <ImageEditor setActiveTab={setActiveTab} />;
       case Tab.Analytics:
-        return <ChannelAnalytics setActiveTab={setActiveTab} />;
+        return <ChannelAnalytics 
+                  setActiveTab={setActiveTab} 
+                  activeChannelIdProp={activeAnalyticsChannelId}
+                  setActiveChannelId={setActiveAnalyticsChannelId}
+                />;
       case Tab.ChannelGrowth:
         return <ChannelGrowth setActiveTab={setActiveTab} />;
+      case Tab.BrandConnect:
+        return <BrandConnect setActiveTab={setActiveTab} />;
+      case Tab.ContentHistory:
+        return <ContentHistory />;
       case Tab.Pricing:
         return <PricingPage onUpgradeClick={handleUpgradeClick} />;
       case Tab.About:
@@ -89,7 +118,7 @@ const AppLayout: React.FC = () => {
       case Tab.License:
         return <LegalPage type="license" />;
       default:
-        return <Dashboard setActiveTab={setActiveTab} />;
+        return <Dashboard setActiveTab={setActiveTab} setActiveAnalyticsChannelId={setActiveAnalyticsChannelId} />;
     }
   };
 
@@ -99,12 +128,16 @@ const AppLayout: React.FC = () => {
     { id: Tab.Analytics, label: 'Analytics', icon: <BarChart2 className="w-5 h-5 mr-3" />, title: "View channel analytics" },
     { id: Tab.Keywords, label: 'Keywords', icon: <Search className="w-5 h-5 mr-3" />, title: "Research keywords" },
     { id: Tab.Chat, label: 'AI Chat', icon: <MessageSquare className="w-5 h-5 mr-3" />, title: "Chat with an AI Assistant" },
+    { id: Tab.ContentHistory, label: 'My Content', icon: <History className="w-5 h-5 mr-3" />, title: "View your generated content" },
   ];
 
   const createTabs = [
     { id: Tab.Ideas, label: 'Ideas', icon: <Lightbulb className="w-5 h-5 mr-3" />, title: "Generate viral video ideas" },
     { id: Tab.Prompt, label: 'Prompt Generator', icon: <Wand className="w-5 h-5 mr-3" />, title: "Generate optimized prompts" },
     { id: Tab.Video, label: 'Video Generator', icon: <Video className="w-5 h-5 mr-3" />, title: "Generate video content" },
+    { id: Tab.AnimationCreator, label: 'Animation Creator', icon: <Clapperboard className="w-5 h-5 mr-3" />, title: "Generate animations" },
+    { id: Tab.GifCreator, label: 'GIF Creator', icon: <Gif className="w-5 h-5 mr-3" />, title: "Generate GIFs" },
+    { id: Tab.LogoCreator, label: 'Logo Creator', icon: <PenTool className="w-5 h-5 mr-3" />, title: "Generate a logo" },
     { id: Tab.ImageEditor, label: 'Image Editor', icon: <Edit className="w-5 h-5 mr-3" />, title: "Edit images with AI" },
   ];
 
@@ -112,6 +145,7 @@ const AppLayout: React.FC = () => {
      { id: Tab.Monetization, label: 'Monetize', icon: <DollarSign className="w-5 h-5 mr-3" />, title: "Get monetization strategies" },
     { id: Tab.Report, label: 'Strategy Report', icon: <FileText className="w-5 h-5 mr-3" />, title: "Generate a content strategy report" },
     { id: Tab.ChannelGrowth, label: 'Channel Growth', icon: <Rocket className="w-5 h-5 mr-3" />, title: "Get a personalized channel growth plan" },
+    { id: Tab.BrandConnect, label: 'Brand Connect', icon: <Briefcase className="w-5 h-5 mr-3" />, title: "Find brand sponsorships" },
   ];
 
   const userMenuTabs = [

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Send, Star, Sparkles, Trash2, Volume2, VolumeX } from './Icons';
+import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif } from './Icons';
 import Spinner from './Spinner';
 
 interface AIChatProps {
@@ -12,6 +12,7 @@ interface AIChatProps {
 interface ChatMessage {
   role: 'user' | 'model';
   content: string;
+  gifUrl?: string;
 }
 
 const TypingIndicator = () => (
@@ -22,6 +23,33 @@ const TypingIndicator = () => (
     </div>
 );
 
+const gifs = [
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDB6a3JscDlyeXE2dGN2aWd2MGRuZmoyY3ozZ3NqZzJjMGFoZjl0ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abB06u9bNzA8lu8/giphy.gif', alt: 'Thumbs up' },
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3dta3U4bGI3ZmN5eGNxazFnZ2Y5Znh1NzVqbzRkd2NudXZkbzYyeSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5GoVLqeAOo6PK/giphy.gif', alt: 'Happy dance' },
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2YxbjR2dzZtd3J0ZGdldDFwN200dWF0b3hjaDdsemFkZmpjN2RhayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3q2K5jinAlChoCLS/giphy.gif', alt: 'Confused' },
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaG1iY2Z3bHVsbHllbjZjaXlna3VubG91d2c1eHpxeXd1bmd1d3hpbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT0xeJpnrWC4XWblEk/giphy.gif', alt: 'Mind blown' },
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3g5ZWJqajRjZm14cHlwcGtvajZqNjIzNnlqZTN2bmI0am1kM2RuaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pUeXcg80cO8I8/giphy.gif', alt: 'Popcorn' },
+    { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjg1OHM1OGM2eW1vYzF5c3A5bnducGxtNTNpa2JocjNjc2lqNTNnMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/osjgQPWRx3cac/giphy.gif', alt: 'Thank you' },
+];
+
+const GifPicker: React.FC<{ onSelect: (url: string) => void; }> = ({ onSelect }) => {
+    return (
+        <div className="absolute bottom-full mb-2 right-0 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-80 h-96 animate-fade-in z-10">
+            <header className="p-2 border-b border-slate-700">
+                <h4 className="text-center font-semibold text-slate-300">Select a GIF</h4>
+            </header>
+            <div className="p-2 grid grid-cols-3 gap-2 overflow-y-auto h-[calc(100%-41px)]">
+                {gifs.map(gif => (
+                    <button key={gif.url} onClick={() => onSelect(gif.url)} className="aspect-square bg-slate-800 rounded-md overflow-hidden hover:ring-2 ring-violet-500 focus:outline-none focus:ring-2 ring-violet-500">
+                        <img src={gif.url} alt={gif.alt} className="w-full h-full object-cover" loading="lazy" />
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
 const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const { user, logActivity } = useAuth();
   const [chat, setChat] = useState<Chat | null>(null);
@@ -30,6 +58,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isTtsEnabled, setIsTtsEnabled] = useState(false);
+  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,7 +88,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         model: 'gemini-2.5-flash',
         history: historyToRestore?.map((msg) => ({
           role: msg.role,
-          parts: [{ text: msg.content }],
+          parts: [{ text: msg.gifUrl ? '[User sent a GIF]' : msg.content }],
         })),
         config: {
           systemInstruction: `You are Nolo, an expert AI content co-pilot. Your personality is helpful, creative, and proactive. Your goal is to assist content creators. If a user's request could lead to using another tool in the app, suggest it using the format ACTION:[TOOL_NAME,"parameter"]. For example: 'That's a great topic! I can create a full strategy report for you. ACTION:[REPORT,"Keto Recipes"]'. Valid tools are: REPORT, TRENDS, IDEAS, KEYWORDS. Always be encouraging and provide actionable advice.`
@@ -133,33 +162,30 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         textarea.style.height = `${scrollHeight}px`;
     }
   }, [input]);
-  
-  const sendMessage = useCallback(async (message: string) => {
-    if (!message.trim() || loading) return;
-    
-     let currentChat = chat;
+
+  const sendToAI = useCallback(async (messageForAI: string) => {
+    if (!messageForAI.trim() || loading) return;
+
+    let currentChat = chat;
     if (!currentChat) {
-        // This is a failsafe. If chat isn't initialized, do it now.
-        const storedHistory = JSON.parse(localStorage.getItem('utrend-chat-history') || '[]');
-        currentChat = initializeChat(storedHistory);
-        if (!currentChat) {
-             setError("Chat service is not available. Please refresh.");
-             return;
-        }
+      const storedHistory = JSON.parse(localStorage.getItem('utrend-chat-history') || '[]');
+      currentChat = initializeChat(storedHistory);
+      if (!currentChat) {
+        setError("Chat service is not available. Please refresh.");
+        return;
+      }
     }
 
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
     }
 
-    const userMessage: ChatMessage = { role: 'user', content: message };
-    setHistory(prev => [...prev, userMessage]);
     setLoading(true);
     let fullResponse = '';
 
     try {
-      logActivity(`sent a message to Nolo: "${message.substring(0, 30)}..."`, 'MessageSquare');
-      const stream = await currentChat.sendMessageStream({ message });
+      logActivity(`sent a message to Nolo: "${messageForAI.substring(0, 30)}..."`, 'MessageSquare');
+      const stream = await currentChat.sendMessageStream({ message: messageForAI });
       setHistory(prev => [...prev, { role: 'model', content: '' }]);
 
       for await (const chunk of stream) {
@@ -184,11 +210,31 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     }
   }, [loading, chat, isTtsEnabled, speak, logActivity, initializeChat]);
 
+  const handleUserMessageSend = (message: string, gifUrl?: string) => {
+    if (loading) return;
+    if (!message.trim() && !gifUrl) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: message,
+      ...(gifUrl && { gifUrl }),
+    };
+    setHistory(prev => [...prev, userMessage]);
+
+    const messageForAI = gifUrl ? '[User sent a GIF]' : message;
+    sendToAI(messageForAI);
+  };
+  
   const handleFormSubmit = () => {
     if (input.trim()) {
-        sendMessage(input);
-        setInput('');
+      handleUserMessageSend(input);
+      setInput('');
     }
+  };
+
+  const handleSendGif = (gifUrl: string) => {
+    handleUserMessageSend('', gifUrl);
+    setIsGifPickerOpen(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -214,8 +260,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     };
     const targetTab = toolMap[tool];
     if (targetTab) {
-        // In a more complex app, we'd use context or a state manager to pass the param
-        // For now, we just switch the tab. The user can copy/paste the param.
         console.log(`Navigating to ${targetTab} with param: ${param}`);
         setActiveTab(targetTab);
     }
@@ -299,7 +343,11 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
               </div>
             )}
             <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                {formatContent(msg.content)}
+              {msg.gifUrl ? (
+                <img src={msg.gifUrl} alt="User GIF" className="max-w-[200px] rounded-lg" />
+              ) : (
+                formatContent(msg.content)
+              )}
             </div>
              {msg.role === 'model' && msg.content && (index !== history.length - 1 || !loading) && (
                 <button 
@@ -333,7 +381,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {conversationStarters.map((starter, i) => (
-                        <button key={i} onClick={() => sendMessage(starter)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
+                        <button key={i} onClick={() => handleUserMessageSend(starter)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
                            {starter}
                         </button>
                     ))}
@@ -341,6 +389,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             </div>
         )}
         <div className="relative">
+          {isGifPickerOpen && <GifPicker onSelect={handleSendGif} />}
           <textarea
             ref={textareaRef}
             value={input}
@@ -348,10 +397,18 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about content creation..."
             disabled={loading}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-16 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none overflow-y-hidden shadow-inner"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-24 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none overflow-y-hidden shadow-inner"
             rows={1}
             style={{ maxHeight: '120px' }}
           />
+           <button 
+              onClick={() => setIsGifPickerOpen(prev => !prev)}
+              disabled={loading}
+              className="absolute right-[3.25rem] top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50"
+              title="Send GIF"
+          >
+              <Gif className="w-5 h-5 text-slate-400" />
+          </button>
           <button
             onClick={handleFormSubmit}
             disabled={loading || !input.trim()}

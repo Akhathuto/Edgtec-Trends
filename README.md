@@ -124,19 +124,43 @@ This application is built with a modern frontend stack, leveraging the power of 
 
 ## Terms of Use
 
+**Last Updated: August 1, 2024**
+
 By using `utrend`, you agree to the following terms and conditions:
 
-1.  **Acceptance of Terms:** Your use of the application constitutes your acceptance of these terms. If you do not agree, you must not use the application.
-2.  **User Accounts:** You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account.
-3.  **Acceptable Use:** You agree not to use the application for any unlawful purpose or to violate any regulations. You may not reverse-engineer or otherwise attempt to discover the source code.
-4.  **User-Generated Content:** You retain all rights to the content you generate using the application ("User Content"). However, you are solely responsible for your User Content and ensuring it is lawful and appropriate.
-5.  **Subscription Plans:** The application offers free and paid plans with features limited by tier. Payments for paid plans are processed through secure third-party payment gateways.
-6.  **Termination:** We may terminate or suspend your access to our service immediately, without prior notice, for any reason, including a breach of these Terms.
-7.  **Third-Party Services:** This application utilizes third-party services, including the Google Gemini API. Your use is also subject to their terms.
-8.  **"As Is" Basis:** This software is provided "as is", without warranty of any kind, express or implied.
-9.  **Limitation of Liability:** In no event shall EDGTEC be liable for any claim, damages, or other liability arising from the use of the software.
-10. **Governing Law:** These Terms shall be governed in accordance with the laws of South Africa.
-11. **Changes to Terms:** We reserve the right to modify or replace these Terms at any time.
+1.  **Acceptance of Terms:** Your access to and use of the application constitutes your binding agreement to these Terms of Use. If you do not agree to these terms, you must not use the application.
+
+2.  **Eligibility:** You must be at least 18 years of age to use this application. By using `utrend`, you represent and warrant that you meet this age requirement.
+
+3.  **User Accounts & Responsibility:** You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.
+
+4.  **Acceptable Use Policy:** You agree not to use the application to:
+    -   Conduct any illegal, fraudulent, or malicious activities.
+    -   Infringe on the intellectual property rights of others.
+    -   Generate content that is hateful, defamatory, obscene, or otherwise objectionable.
+    -   Attempt to reverse-engineer, decompile, or otherwise discover the source code of the application.
+    -   Use automated systems (bots, scrapers) to access the application in a manner that sends more request messages to our servers than a human can reasonably produce in the same period.
+
+5.  **AI-Generated Content & User Responsibility:**
+    -   **Ownership:** You retain all ownership rights to the content you generate using the application's AI tools ("User Content").
+    -   **Responsibility:** You are solely responsible for the User Content you generate, publish, and use. You must review all AI-generated content for accuracy and appropriateness before use.
+    -   **Disclaimer:** AI-generated content may contain inaccuracies, errors, or reflect biases from its training data. EDGTEC makes no warranties regarding the accuracy, reliability, or suitability of AI-generated content. It is your responsibility to ensure your final content complies with all applicable platform policies (e.g., YouTube's Terms of Service).
+
+6.  **Subscription & Payments:** The application offers free and paid plans. By subscribing to a paid plan, you agree to pay the specified fees. All payments are processed through secure third-party gateways.
+
+7.  **Data Privacy:** We are committed to protecting your privacy. We collect and use personal information, such as your name and email address, to provide and improve our services. Your payment information is handled by secure third-party processors. We do not sell your personal data.
+
+8.  **Termination:** We reserve the right to terminate or suspend your account and access to the service at our sole discretion, without notice, for conduct that we believe violates these Terms of Use or is harmful to other users of the application, us, or third parties.
+
+9.  **Third-Party Services:** This application utilizes third-party services, including the Google Gemini API. Your use of these features is also subject to their respective terms and conditions.
+
+10. **Indemnification:** You agree to indemnify and hold harmless EDGTEC, its directors, and employees from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your access to or use of the application or your violation of these Terms.
+
+11. **Disclaimer of Warranties & Limitation of Liability:** The application is provided on an "as is" and "as available" basis, without any warranties of any kind. In no event shall EDGTEC be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the application.
+
+12. **Governing Law & Dispute Resolution:** These Terms shall be governed and construed in accordance with the laws of South Africa, without regard to its conflict of law provisions. Any disputes will be resolved in the courts of Gauteng, South Africa.
+
+13. **Changes to Terms:** We reserve the right to modify or replace these Terms at any time. We will provide notice of any significant changes.
 
 ## Powered by EDGTEC
 

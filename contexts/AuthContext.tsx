@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { User, AuthContextType, ActivityLog, KeywordUsage } from '../types';
+import { User, AuthContextType, ActivityLog, KeywordUsage, Channel, HistoryItem } from '../types';
 import { add, isAfter } from 'date-fns';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,20 +66,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     const login = async (email: string, pass: string): Promise<void> => {
-        // This is a mock login. In a real app, you'd call an API.
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
-        if (storedUsers[email] && storedUsers[email].password === pass) {
+        const userData = storedUsers[email];
+
+        if (userData && userData.password === pass) {
+            // One-time migration for existing users from youtubeChannelUrl to channels array
+            if (userData.youtubeChannelUrl && !userData.channels) {
+                userData.channels = [{
+                    id: 'yt_migrated_' + userData.id,
+                    platform: 'YouTube',
+                    url: userData.youtubeChannelUrl
+                }];
+                delete userData.youtubeChannelUrl; // Clean up old field
+                storedUsers[email] = userData;
+                localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
+            }
+
             const loggedInUser: User = {
-                id: storedUsers[email].id,
-                name: storedUsers[email].name,
+                id: userData.id,
+                name: userData.name,
                 email: email,
-                plan: storedUsers[email].plan,
-                role: storedUsers[email].role || 'user',
-                country: storedUsers[email].country,
-                phone: storedUsers[email].phone,
-                company: storedUsers[email].company,
-                followerCount: storedUsers[email].followerCount,
-                youtubeChannelUrl: storedUsers[email].youtubeChannelUrl,
+                plan: userData.plan,
+                role: userData.role || 'user',
+                country: userData.country,
+                phone: userData.phone,
+                company: userData.company,
+                channels: userData.channels || [],
             };
             setUser(loggedInUser);
             localStorage.setItem('utrend-user-session', JSON.stringify(loggedInUser));
@@ -89,7 +101,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const signUp = async (name: string, email: string, pass: string, plan: 'free' | 'starter' | 'pro'): Promise<void> => {
-        // Mock sign-up
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         if (storedUsers[email]) {
             throw new Error("User with this email already exists.");
@@ -98,8 +109,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const isFirstUser = Object.keys(storedUsers).length === 0;
         const role = isFirstUser ? 'admin' : 'user';
 
-        const newUser: User = { id: Date.now().toString(), name, email, plan, role };
-        storedUsers[email] = { ...newUser, password: pass }; // Store password only in mock DB
+        const newUser: User = { id: Date.now().toString(), name, email, plan, role, channels: [] };
+        storedUsers[email] = { ...newUser, password: pass };
 
         localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
         setUser(newUser);
@@ -117,7 +128,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(updatedUser);
             localStorage.setItem('utrend-user-session', JSON.stringify(updatedUser));
             
-            // Also update the mock user database
             const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
             if(storedUsers[user.email]) {
                 storedUsers[user.email].plan = plan;
@@ -130,8 +140,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const getAllUsers = useCallback((): User[] => {
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         return Object.values(storedUsers).map((u: any) => {
-            const { password, ...userWithoutPassword } = u;
-            return userWithoutPassword as User;
+            const { password, youtubeChannelUrl, ...userWithoutSensitiveData } = u;
+            return userWithoutSensitiveData as User;
         });
     }, []);
 
@@ -147,7 +157,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const updatesString = Object.entries(updates).map(([key, value]) => `${key} to ${value}`).join(', ');
             logActivity(`updated user ${updatedUserRecord.name} (${updatesString})`, 'Edit');
 
-            // If the admin is updating their own details, update the session as well
             if (user?.id === userId) {
                  const updatedSessionUser = { ...user, ...updates };
                  setUser(updatedSessionUser);
@@ -158,7 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [user, logActivity]);
 
-    const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'followerCount' | 'youtubeChannelUrl'>>): Promise<void> => {
+    const updateProfile = useCallback(async (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'channels'>>): Promise<void> => {
         const storedUsers = JSON.parse(localStorage.getItem('utrend-users') || '{}');
         const userEmailKey = Object.keys(storedUsers).find(email => storedUsers[email].id === userId);
 
@@ -167,7 +176,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const updatedUserData = { ...oldUserData, ...updates };
             
             const newEmail = updates.email;
-            // If email is being updated, we need to change the key in our mock DB
             if (newEmail && newEmail !== userEmailKey) {
                 if (storedUsers[newEmail]) {
                     throw new Error("A user with this email already exists.");
@@ -180,7 +188,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             localStorage.setItem('utrend-users', JSON.stringify(storedUsers));
 
-            // If the current user is updating their own profile, update session
             if (user?.id === userId) {
                  const updatedSessionUser = { ...user, ...updates };
                  setUser(updatedSessionUser);
@@ -218,7 +225,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const now = new Date();
-        // If no data or if reset date is in the past, reset it
         if (!usageData || isAfter(now, new Date(usageData.resetDate))) {
             const newResetDate = add(now, { days: 30 });
             usageData = { count: 0, resetDate: newResetDate.toISOString() };
@@ -257,9 +263,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
     }, [user]);
 
+    const getContentHistory = useCallback((): HistoryItem[] => {
+        if (!user) return [];
+        const storageKey = `utrend-history-${user.id}`;
+        try {
+            return JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch (e) {
+            console.error("Failed to parse content history", e);
+            return [];
+        }
+    }, [user]);
+
+    const addContentToHistory = useCallback((item: Omit<HistoryItem, 'id' | 'timestamp'>) => {
+        if (!user) return;
+        
+        const newItem: HistoryItem = {
+            ...item,
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+        };
+
+        const currentHistory = getContentHistory();
+        const updatedHistory = [newItem, ...currentHistory].slice(0, 100); // Keep last 100 items
+
+        const storageKey = `utrend-history-${user.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
+    }, [user, getContentHistory]);
+
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile, logActivity, getAllActivities, deleteUser, getKeywordUsage, logKeywordAnalysis }}>
+        <AuthContext.Provider value={{ user, loading, login, signUp, logout, upgradePlan, getAllUsers, updateUser, updateProfile, logActivity, getAllActivities, deleteUser, getKeywordUsage, logKeywordAnalysis, getContentHistory, addContentToHistory }}>
             {children}
         </AuthContext.Provider>
     );

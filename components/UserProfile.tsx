@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link } from './Icons';
+import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link, Youtube, TikTok, Trash2 } from './Icons';
 import { useToast } from '../contexts/ToastContext';
 import Spinner from './Spinner';
+import { Channel } from '../types';
+import { getChannelSnapshots } from '../services/geminiService';
 
 interface UserProfileProps {
     onUpgradeClick: () => void;
@@ -11,213 +13,285 @@ interface UserProfileProps {
 const DetailItem: React.FC<{ label: string; value: React.ReactNode; className?: string }> = ({ label, value, className }) => (
     <div className={className}>
         <p className="text-sm text-slate-400">{label}</p>
-        <p className="font-semibold text-slate-200 text-lg truncate">{value || '-'}</p>
+        <p className="font-semibold text-slate-200">{value || '-'}</p>
     </div>
 );
 
 const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
     const { user, updateProfile } = useAuth();
     const { showToast } = useToast();
-
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    // Form state
-    const [name, setName] = useState(user?.name || '');
-    const [email, setEmail] = useState(user?.email || '');
-    const [country, setCountry] = useState(user?.country || '');
-    const [phone, setPhone] = useState(user?.phone || '');
-    const [company, setCompany] = useState(user?.company || '');
-    const [followerCount, setFollowerCount] = useState(user?.followerCount || 0);
-    const [youtubeChannelUrl, setYoutubeChannelUrl] = useState(user?.youtubeChannelUrl || '');
+    // State for editable fields
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [country, setCountry] = useState('');
+    const [phone, setPhone] = useState('');
+    const [company, setCompany] = useState('');
+    const [channels, setChannels] = useState<Channel[]>([]);
+    
+    // State for automated follower count
+    const [totalFollowers, setTotalFollowers] = useState<number | null>(null);
+    const [followersLoading, setFollowersLoading] = useState(false);
 
-    const resetFormState = () => {
-        setName(user?.name || '');
-        setEmail(user?.email || '');
-        setCountry(user?.country || '');
-        setPhone(user?.phone || '');
-        setCompany(user?.company || '');
-        setFollowerCount(user?.followerCount || 0);
-        setYoutubeChannelUrl(user?.youtubeChannelUrl || '');
+    // State for new channel form
+    const [newChannelPlatform, setNewChannelPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [newChannelUrl, setNewChannelUrl] = useState('');
+
+    useEffect(() => {
+        if (user) {
+            setName(user.name);
+            setEmail(user.email);
+            setCountry(user.country || '');
+            setPhone(user.phone || '');
+            setCompany(user.company || '');
+            setChannels(user.channels || []);
+        }
+    }, [user]);
+
+    const parseFollowerCount = (countStr: string): number => {
+        if (!countStr || typeof countStr !== 'string') return 0;
+        const lowerCaseCount = countStr.toLowerCase().replace(/,/g, '');
+        const num = parseFloat(lowerCaseCount);
+        if (isNaN(num)) return 0;
+
+        if (lowerCaseCount.includes('m')) {
+            return Math.round(num * 1000000);
+        }
+        if (lowerCaseCount.includes('k')) {
+            return Math.round(num * 1000);
+        }
+        return Math.round(num);
     };
 
     useEffect(() => {
-       resetFormState();
-    }, [user]);
+        const calculateTotalFollowers = async () => {
+            if (channels.length === 0) {
+                setTotalFollowers(0);
+                return;
+            }
+            
+            setFollowersLoading(true);
+            try {
+                const snapshots = await getChannelSnapshots(channels);
+                const total = snapshots.reduce((acc, snapshot) => {
+                    return acc + parseFollowerCount(snapshot.followerCount);
+                }, 0);
+                setTotalFollowers(total);
+            } catch (error) {
+                console.error("Failed to fetch channel snapshots for follower count", error);
+                setTotalFollowers(null);
+                showToast("Could not fetch follower counts.");
+            } finally {
+                setFollowersLoading(false);
+            }
+        };
 
-    if (!user) {
-        return null;
-    }
-
-    const handleEditToggle = () => {
-        setIsEditing(!isEditing);
-        setError(null);
-        if (isEditing) {
-            resetFormState();
-        }
-    };
+        calculateTotalFollowers();
+    }, [channels, showToast]);
 
     const handleSave = async () => {
-        if (!name.trim() || !email.trim()) {
-            setError("Name and email cannot be empty.");
-            return;
-        }
+        if (!user) return;
         setLoading(true);
-        setError(null);
         try {
-            await updateProfile(user.id, { 
-                name, 
-                email, 
-                country,
-                phone,
-                company,
-                followerCount: Number(followerCount) || 0,
-                youtubeChannelUrl,
-            });
-            showToast("Profile updated successfully!");
+            if (channels.some(c => !c.url.trim().toLowerCase().startsWith('http'))) {
+                showToast('Please enter valid URLs (starting with http) for all channels.');
+                setLoading(false);
+                return;
+            }
+            await updateProfile(user.id, { name, email, country, phone, company, channels });
+            showToast('Profile updated successfully!');
             setIsEditing(false);
         } catch (e: any) {
-            setError(e.message || "Failed to update profile.");
+            showToast(e.message);
         } finally {
             setLoading(false);
         }
     };
-
-    const getPlanStyles = () => {
-        switch(user.plan) {
-            case 'pro': return 'bg-yellow-400/10 text-yellow-300 border border-yellow-400/20';
-            case 'starter': return 'bg-blue-400/10 text-blue-300 border border-blue-400/20';
-            default: return 'bg-slate-700/50 text-slate-300 border border-slate-600';
+    
+    const handleCancel = () => {
+        if (user) {
+            setName(user.name);
+            setEmail(user.email);
+            setCountry(user.country || '');
+            setPhone(user.phone || '');
+            setCompany(user.company || '');
+            setChannels(user.channels || []);
         }
+        setIsEditing(false);
+    };
+
+    const handleAddChannel = () => {
+        if (!newChannelUrl.trim().toLowerCase().startsWith('http')) {
+            showToast('Please enter a valid channel URL starting with http.');
+            return;
+        }
+        const newChannel: Channel = {
+            id: Date.now().toString(),
+            platform: newChannelPlatform,
+            url: newChannelUrl
+        };
+        setChannels(prev => [...prev, newChannel]);
+        setNewChannelUrl('');
+        setNewChannelPlatform('YouTube');
+    };
+
+    const handleRemoveChannel = (id: string) => {
+        setChannels(prev => prev.filter(c => c.id !== id));
     };
     
-    const formatFollowers = (num: number) => {
-      if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-      if (num >= 1000) return `${(num/1000).toFixed(0)}K`;
-      return num;
+    const handleChannelUrlChange = (id: string, newUrl: string) => {
+        setChannels(prev => prev.map(c => c.id === id ? { ...c, url: newUrl } : c));
+    };
+    
+    const handleChannelPlatformChange = (id: string, newPlatform: 'YouTube' | 'TikTok') => {
+         setChannels(prev => prev.map(c => c.id === id ? { ...c, platform: newPlatform } : c));
     };
 
-    const openChannelPopup = () => {
-        if (user.youtubeChannelUrl) {
-            window.open(user.youtubeChannelUrl, 'youtubeChannel', 'width=900,height=700,noopener,noreferrer');
-        }
-    };
+    if (!user) return null;
 
     return (
         <div className="animate-slide-in-up">
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl max-w-4xl mx-auto">
-                <div className="flex flex-col sm:flex-row sm:items-start text-center sm:text-left mb-8">
-                    <div className="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-violet-600 to-blue-600 rounded-full flex items-center justify-center mb-4 sm:mb-0 sm:mr-6 ring-4 ring-slate-700/50">
-                        <UserIcon className="w-12 h-12 text-white" />
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start mb-6">
+                    <div>
+                         <h2 className="text-3xl font-bold text-center sm:text-left mb-1 flex items-center gap-3">
+                            <UserIcon className="w-8 h-8 text-violet-400" /> My Profile
+                        </h2>
+                        <p className="text-center sm:text-left text-slate-400">View and manage your account details.</p>
                     </div>
-                    <div className="flex-grow">
-                        <h2 className="text-3xl font-bold text-white">{isEditing ? name : user.name}</h2>
-                        <p className="text-slate-400">{isEditing ? email : user.email}</p>
-                        <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start">
-                            <span className={`inline-block font-bold text-sm px-3 py-1 rounded-full ${getPlanStyles()}`}>
-                                {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
-                            </span>
-                             {user.role === 'admin' && (
-                                <span className="inline-flex items-center gap-1.5 font-bold text-sm px-3 py-1 rounded-full bg-green-500/10 text-green-300 border border-green-500/20">
-                                    <Shield className="w-4 h-4" />
-                                    Admin
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                     {!isEditing && (
-                         <button onClick={handleEditToggle} className="flex-shrink-0 mt-4 sm:mt-0 flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 font-semibold py-2 px-4 rounded-lg transition-colors">
-                            <Edit className="w-4 h-4"/> Edit Profile
+                    {!isEditing ? (
+                        <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mt-4 sm:mt-0 w-full sm:w-auto justify-center">
+                            <Edit className="w-4 h-4" /> Edit Profile
                         </button>
-                     )}
-                </div>
-
-                <div className="border-t border-slate-700 pt-6">
-                    {isEditing ? (
-                        <div className="space-y-4">
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="profile-name" className="block text-sm font-medium text-slate-300 mb-1">Name</label>
-                                    <input id="profile-name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                 <div>
-                                    <label htmlFor="profile-email" className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                                     <input id="profile-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                <div>
-                                    <label htmlFor="profile-company" className="block text-sm font-medium text-slate-300 mb-1">Company / Channel</label>
-                                    <input id="profile-company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                <div>
-                                    <label htmlFor="profile-followers" className="block text-sm font-medium text-slate-300 mb-1">Follower Count</label>
-                                    <input id="profile-followers" type="number" value={followerCount || ''} onChange={(e) => setFollowerCount(Number(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                <div>
-                                    <label htmlFor="profile-country" className="block text-sm font-medium text-slate-300 mb-1">Country</label>
-                                    <input id="profile-country" type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                <div>
-                                    <label htmlFor="profile-phone" className="block text-sm font-medium text-slate-300 mb-1">Contact No.</label>
-                                    <input id="profile-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label htmlFor="profile-youtube-url" className="block text-sm font-medium text-slate-300 mb-1">YouTube Channel URL</label>
-                                    <input id="profile-youtube-url" type="url" value={youtubeChannelUrl} onChange={(e) => setYoutubeChannelUrl(e.target.value)} placeholder="https://www.youtube.com/c/YourChannel" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
-                                </div>
-                            </div>
-                        </div>
                     ) : (
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <DetailItem label="Company / Channel" value={user.company} />
-                            <DetailItem label="Follower Count" value={user.followerCount ? formatFollowers(user.followerCount) : '-'} />
-                            <DetailItem label="Country" value={user.country} />
-                            <DetailItem label="Contact Number" value={user.phone} />
-                            <DetailItem label="User ID" value={user.id} />
-                            <DetailItem 
-                                label="YouTube Channel" 
-                                value={user.youtubeChannelUrl ? (
-                                    <button onClick={openChannelPopup} className="text-blue-400 hover:underline flex items-center gap-1.5 focus:outline-none">
-                                        <Link className="w-4 h-4" />
-                                        View Channel
-                                    </button>
-                                ) : '-'} 
-                            />
+                         <div className="flex items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
+                            <button onClick={handleCancel} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full justify-center">
+                                <X className="w-4 h-4" /> Cancel
+                            </button>
+                            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 text-sm bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 w-full justify-center">
+                                {loading ? <Spinner size="sm" /> : <><Save className="w-4 h-4" /> Save Changes</>}
+                            </button>
                         </div>
                     )}
-                    
-                    {error && <p className="text-red-400 text-center my-4">{error}</p>}
-                    
-                    <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-6 border-t border-slate-700">
-                       {isEditing ? (
-                           <>
-                                <button 
-                                    onClick={handleEditToggle}
-                                    className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 font-semibold py-3 px-6 rounded-lg transition-colors"
-                                >
-                                    <X className="w-5 h-5"/> Cancel
-                                </button>
-                                <button 
-                                    onClick={handleSave}
-                                    disabled={loading}
-                                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
-                                >
-                                    {loading ? <Spinner /> : <><Save className="w-5 h-5"/> Save Changes</>}
-                                </button>
-                           </>
-                       ) : (
-                            <>
-                                {user.plan !== 'pro' && (
-                                     <button 
-                                        onClick={onUpgradeClick}
-                                        className="w-full flex items-center justify-center gap-2 bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 text-yellow-300 font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-yellow-400/20"
-                                    >
-                                        <Star className="w-5 h-5"/> View Upgrade Options
-                                    </button>
-                                )}
-                            </>
-                       )}
+                </div>
+
+                <div className="space-y-6">
+                    {/* Account Info */}
+                    <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+                         <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2">Account Information</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {isEditing ? (
+                                <>
+                                    <div>
+                                        <label htmlFor="name" className="text-sm text-slate-400">Full Name</label>
+                                        <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="email" className="text-sm text-slate-400">Email Address</label>
+                                        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <DetailItem label="Full Name" value={user.name} />
+                                    <DetailItem label="Email Address" value={user.email} />
+                                </>
+                            )}
+                            <DetailItem label="Current Plan" value={<span className="font-bold text-yellow-300 flex items-center gap-2">{user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} <Star className="w-4 h-4"/></span>} />
+                            {user.role === 'admin' && <DetailItem label="Role" value={<span className="font-bold text-green-400 flex items-center gap-2">{user.role.charAt(0).toUpperCase() + user.role.slice(1)} <Shield className="w-4 h-4"/></span>} />}
+                         </div>
                     </div>
+                    
+                    {/* Creator Details */}
+                    <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+                         <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2">Creator Details</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {isEditing ? (
+                                <>
+                                    <div>
+                                        <label htmlFor="country" className="text-sm text-slate-400">Country</label>
+                                        <input id="country" type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. South Africa" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                    </div>
+                                     <div>
+                                        <label htmlFor="phone" className="text-sm text-slate-400">Phone</label>
+                                        <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +27..." className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                    </div>
+                                     <div>
+                                        <label htmlFor="company" className="text-sm text-slate-400">Company/Brand</label>
+                                        <input id="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. EDGTEC" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                    </div>
+                                </>
+                            ) : (
+                                 <>
+                                    <DetailItem label="Country" value={user.country} />
+                                    <DetailItem label="Phone" value={user.phone} />
+                                    <DetailItem label="Company/Brand" value={user.company} />
+                                 </>
+                            )}
+                             <DetailItem
+                                label="Total Follower Count (Approx.)"
+                                value={
+                                    followersLoading ? <div className="flex items-center pt-1"><Spinner size="sm" /></div> :
+                                    totalFollowers !== null ? totalFollowers.toLocaleString() : 'N/A'
+                                }
+                            />
+                         </div>
+                    </div>
+
+                    {/* Connected Channels */}
+                     <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+                         <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2"><Link className="w-5 h-5"/> Connected Channels</h3>
+                         <div className="space-y-3">
+                             {channels.map(channel => (
+                                <div key={channel.id} className="flex flex-col sm:flex-row items-center gap-2 p-2 bg-slate-900/40 rounded-lg">
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                        <span className="p-2 bg-slate-700 rounded-lg">
+                                            {channel.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500" /> : <TikTok className="w-5 h-5 text-white" />}
+                                        </span>
+                                        {isEditing && (
+                                            <select 
+                                                value={channel.platform}
+                                                onChange={(e) => handleChannelPlatformChange(channel.id, e.target.value as 'YouTube' | 'TikTok')}
+                                                className="bg-slate-700 border-slate-600 rounded-lg p-2 text-white"
+                                            >
+                                                <option value="YouTube">YouTube</option>
+                                                <option value="TikTok">TikTok</option>
+                                            </select>
+                                        )}
+                                    </div>
+                                    {isEditing ? (
+                                        <input type="url" value={channel.url} onChange={(e) => handleChannelUrlChange(channel.id, e.target.value)} placeholder="https://..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" />
+                                    ) : (
+                                        <p className="flex-grow text-slate-300 truncate text-sm">{channel.url}</p>
+                                    )}
+                                     {isEditing && (
+                                        <button onClick={() => handleRemoveChannel(channel.id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-full">
+                                            <Trash2 className="w-5 h-5"/>
+                                        </button>
+                                     )}
+                                </div>
+                             ))}
+                             {channels.length === 0 && !isEditing && (
+                                <p className="text-slate-500 text-center py-2">No channels connected yet.</p>
+                             )}
+                             {isEditing && (
+                                <div className="pt-4 border-t border-slate-700/50">
+                                    <h4 className="text-lg font-semibold text-slate-200 mb-2">Add New Channel</h4>
+                                    <div className="flex flex-col sm:flex-row items-center gap-2 p-2">
+                                        <select value={newChannelPlatform} onChange={(e) => setNewChannelPlatform(e.target.value as 'YouTube' | 'TikTok')} className="bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white">
+                                            <option value="YouTube">YouTube</option>
+                                            <option value="TikTok">TikTok</option>
+                                        </select>
+                                        <input type="url" value={newChannelUrl} onChange={(e) => setNewChannelUrl(e.target.value)} placeholder="Enter new channel URL..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" />
+                                        <button onClick={handleAddChannel} className="w-full sm:w-auto bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors">Add</button>
+                                    </div>
+                                </div>
+                             )}
+                         </div>
+                     </div>
+
                 </div>
             </div>
         </div>

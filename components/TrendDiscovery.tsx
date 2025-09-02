@@ -182,7 +182,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
     setSources([]);
 
     try {
-      const response = await findTrends(topic);
+      const response = await findTrends(topic, platform, selectedCountry, selectedCategory);
       setTrends(response.text);
       const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
       if (groundingMetadata?.groundingChunks) {
@@ -392,7 +392,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
       {/* Topic Search Section */}
       <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
         <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Discover What's Next</h2>
-        <p className="text-center text-slate-400 mb-6">Enter a topic to find the latest trends on YouTube & TikTok.</p>
+        <p className="text-center text-slate-400 mb-6">Enter a topic to find the latest trends on your selected platform.</p>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-grow">
             <label htmlFor="topic-search" className="sr-only">Search by topic</label>
@@ -428,7 +428,16 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
 
       {trends && (
         <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
-          <h3 className="text-2xl font-bold mb-4 text-slate-100">Trending Now: {topic}</h3>
+          <h3 className="text-2xl font-bold mb-2 text-slate-100">Trending Now for "{topic}" on {platform}</h3>
+          {(selectedCountry !== 'Worldwide' || selectedCategory !== 'All') && (
+            <p className="text-slate-400 -mt-2 mb-4 text-sm">
+              Filtered by: {
+                [selectedCategory !== 'All' ? selectedCategory : null, selectedCountry !== 'Worldwide' ? selectedCountry : null]
+                  .filter(Boolean)
+                  .join(' & ')
+              }
+            </p>
+          )}
           <div className="prose prose-invert text-slate-300 max-w-none prose-h3:text-violet-300">{formatTrends(trends)}</div>
            {sources.length > 0 && (
             <div className="mt-6 border-t border-slate-700 pt-4">

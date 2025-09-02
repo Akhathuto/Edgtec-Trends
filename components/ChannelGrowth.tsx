@@ -1,9 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateChannelGrowthPlan } from '../services/geminiService';
 import { ChannelGrowthPlan, Tab } from '../types';
 import Spinner from './Spinner';
-import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye } from './Icons';
+import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons';
 
 interface ChannelGrowthProps {
   setActiveTab: (tab: Tab) => void;
@@ -34,56 +35,71 @@ const GrowthSection: React.FC<{ title: string; icon: React.ReactNode; analysis: 
 
 
 const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
-    const { user, logActivity } = useAuth();
+    const { user, logActivity, addContentToHistory } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [plan, setPlan] = useState<ChannelGrowthPlan | null>(null);
 
+    const compatibleChannels = user?.channels?.filter(c => c.platform === 'YouTube' || c.platform === 'TikTok') || [];
+    const [selectedChannelId, setSelectedChannelId] = useState<string | null>(compatibleChannels[0]?.id || null);
+
     const handleGenerate = useCallback(async () => {
-        if (!user?.youtubeChannelUrl) {
-            setError("Please add your YouTube channel URL to your profile first.");
+        if (!selectedChannelId || !user?.channels) {
+            setError("Please select a channel to analyze.");
             return;
         }
+
+        const selectedChannel = user.channels.find(c => c.id === selectedChannelId);
+        if (!selectedChannel) {
+             setError("Selected channel not found.");
+            return;
+        }
+
+        // FIX: Ensure platform is compatible before making API call.
+        if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
+            setError(`Growth plans for "${selectedChannel.platform}" channels are not supported.`);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         setPlan(null);
         try {
-            const result = await generateChannelGrowthPlan(user.youtubeChannelUrl);
+            const result = await generateChannelGrowthPlan(selectedChannel.url, selectedChannel.platform);
             setPlan(result);
-            logActivity(`generated a growth plan for their channel`, 'Rocket');
+            logActivity(`generated a growth plan for their ${selectedChannel.platform} channel`, 'Rocket');
+            addContentToHistory({
+                type: 'Channel Growth Plan',
+                summary: `Growth plan for ${selectedChannel.platform} channel`,
+                content: result
+            });
         } catch (e: any) {
             setError(e.message || 'Failed to generate growth plan.');
         } finally {
             setLoading(false);
         }
-    }, [user?.youtubeChannelUrl, logActivity]);
+    }, [user?.channels, selectedChannelId, logActivity, addContentToHistory]);
 
     if (user?.plan !== 'pro') {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for a Personalized Growth Plan</h2>
-                <p className="text-slate-400 mb-6 max-w-md">Get a custom, AI-powered strategy to grow your YouTube channel, including content, SEO, and thumbnail analysis.</p>
-                <button
-                    onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
-                >
+                <p className="text-slate-400 mb-6 max-w-md">Get a custom, AI-powered strategy to grow your channel, including content, SEO, and thumbnail analysis.</p>
+                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     View Plans
                 </button>
             </div>
         );
     }
 
-    if (!user.youtubeChannelUrl) {
+    if (!compatibleChannels.length) {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Connect Your YouTube Channel</h2>
-                <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add your YouTube channel URL to your profile.</p>
-                <button
-                    onClick={() => setActiveTab(Tab.Profile)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
-                >
+                <h2 className="text-2xl font-bold mb-2">Connect a YouTube or TikTok Channel</h2>
+                <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add a YouTube or TikTok channel URL to your profile.</p>
+                <button onClick={() => setActiveTab(Tab.Profile)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     Go to Profile
                 </button>
             </div>
@@ -96,15 +112,35 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
                     <Rocket className="w-6 h-6 text-violet-400" /> Channel Growth Plan
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Get your personalized, AI-powered strategy to level up your YouTube channel.</p>
+                <p className="text-center text-slate-400 mb-6">Get your personalized, AI-powered strategy to level up your channel.</p>
                 
-                <button
-                    onClick={handleGenerate}
-                    disabled={loading}
-                    className="w-full max-w-sm mx-auto flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
-                >
-                    {loading ? <Spinner /> : 'Generate My Growth Plan'}
-                </button>
+                <div className="max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-grow">
+                         <label htmlFor="channel-select" className="sr-only">Select Channel</label>
+                        <select
+                            id="channel-select"
+                            value={selectedChannelId || ''}
+                            onChange={(e) => setSelectedChannelId(e.target.value)}
+                            className="w-full bg-slate-800 border border-slate-600 rounded-lg py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all appearance-none"
+                            title="Select a channel to analyze"
+                        >
+                            {compatibleChannels.map(channel => (
+                                <option key={channel.id} value={channel.id}>
+                                    {channel.platform} - {channel.url.split('/').pop() || channel.url}
+                                </option>
+                            ))}
+                        </select>
+                         <ChevronDown className="w-5 h-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    <button
+                        onClick={handleGenerate}
+                        disabled={loading || !selectedChannelId}
+                        className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    >
+                        {loading ? <Spinner /> : 'Generate My Growth Plan'}
+                    </button>
+                </div>
+
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
             </div>
 
@@ -124,7 +160,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                         recommendations={plan.contentStrategy.recommendations}
                     />
                      <GrowthSection 
-                        title="SEO & Discoverability"
+                        title={plan.seoAndDiscoverability.analysis.toLowerCase().includes('thumbnail') ? "SEO & Discoverability" : "Discoverability (Hashtags & Sounds)"}
                         icon={<BarChart2 className="w-5 h-5 mr-2" />}
                         analysis={plan.seoAndDiscoverability.analysis}
                         recommendations={plan.seoAndDiscoverability.recommendations}
@@ -136,7 +172,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                         recommendations={plan.audienceEngagement.recommendations}
                     />
                       <GrowthSection 
-                        title="Thumbnail Critique"
+                        title={plan.thumbnailCritique.analysis.toLowerCase().includes('first frame') ? "First Frame / Cover Critique" : "Thumbnail Critique"}
                         icon={<Eye className="w-5 h-5 mr-2" />}
                         analysis={plan.thumbnailCritique.analysis}
                         recommendations={plan.thumbnailCritique.recommendations}

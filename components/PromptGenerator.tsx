@@ -1,11 +1,12 @@
-
 import React, { useState, useCallback } from 'react';
 import Spinner from './Spinner';
 import { Wand, FileText, Trash2, Copy } from './Icons';
 import { useToast } from '../contexts/ToastContext';
 import { generateContentPrompt } from '../services/geminiService';
+import { useAuth } from '../contexts/AuthContext';
 
 const PromptGenerator: React.FC = () => {
+  const { addContentToHistory } = useAuth();
   const [topic, setTopic] = useState('');
   const [audience, setAudience] = useState('');
   const [style, setStyle] = useState('');
@@ -27,13 +28,18 @@ const PromptGenerator: React.FC = () => {
     try {
       const result = await generateContentPrompt(topic, audience, style, elements);
       setGeneratedPrompt(result);
+      addContentToHistory({
+        type: 'Generated Prompt',
+        summary: `Prompt for topic: '${topic}'`,
+        content: { input: { topic, audience, style, elements }, output: result }
+      });
     } catch (e) {
       setError('An error occurred while generating the prompt. Please try again.');
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [topic, audience, style, elements]);
+  }, [topic, audience, style, elements, addContentToHistory]);
   
   const handleCopy = useCallback(() => {
     if (generatedPrompt) {

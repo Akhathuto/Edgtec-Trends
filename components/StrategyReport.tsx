@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { generateFullReport } from '../services/geminiService';
 import { FullReport, Tab } from '../types';
@@ -11,7 +10,7 @@ interface StrategyReportProps {
 }
 
 const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
-  const { user } = useAuth();
+  const { user, addContentToHistory } = useAuth();
   const [topic, setTopic] = useState('');
   const [followers, setFollowers] = useState(10000);
   const [loading, setLoading] = useState(false);
@@ -29,6 +28,11 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
     try {
       const result = await generateFullReport(topic, followers);
       setReport(result);
+      addContentToHistory({
+        type: 'Strategy Report',
+        summary: `Full report for topic: "${topic}"`,
+        content: result
+      });
     } catch (e) {
       setError('An error occurred while generating the report. Please try again.');
       console.error(e);
