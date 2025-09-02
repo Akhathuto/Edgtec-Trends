@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { findTrends, getTrendingContent } from '../services/geminiService';
 import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator } from '../types';
 import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video } from './Icons';
@@ -44,6 +44,87 @@ const youtubeCategories = [
 const tiktokCategories = [
     'All', 'Trending', 'Comedy', 'Dance', 'Education', 'DIY', 'Fashion', 'Food', 'Gaming', 'Lifehacks', 'Music', 'Sports', 'Tech', 'Animals'
 ];
+
+const VideoCard: React.FC<{ video: TrendingVideo; index: number; onImageError: (index: number) => void; imageErrors: Record<number, boolean> }> = ({ video, index, onImageError, imageErrors }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const [isClamped, setIsClamped] = useState(false);
+
+    useEffect(() => {
+        const checkClamping = () => {
+            if (titleRef.current) {
+                const isOverflowing = titleRef.current.scrollHeight > titleRef.current.clientHeight;
+                if (isOverflowing !== isClamped) {
+                    setIsClamped(isOverflowing);
+                }
+            }
+        };
+
+        const timer = setTimeout(checkClamping, 50);
+        window.addEventListener('resize', checkClamping);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', checkClamping);
+        };
+    }, [isClamped, isExpanded, video.title]);
+
+    const toggleExpand = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsExpanded(!isExpanded);
+    };
+
+    const showPlaceholder = !video.thumbnailUrl || imageErrors[index];
+
+    return (
+        <a 
+            href={video.videoUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group flex flex-col"
+        >
+            <div className="aspect-video bg-black rounded-md mb-3 flex items-center justify-center overflow-hidden">
+                {showPlaceholder ? (
+                    <Video className="w-10 h-10 text-slate-600" />
+                ) : (
+                    <img 
+                        src={video.thumbnailUrl} 
+                        alt={video.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={() => onImageError(index)}
+                    />
+                )}
+            </div>
+            
+            <div className="flex flex-col flex-grow">
+                <h4 ref={titleRef} className={`font-bold text-violet-300 text-sm leading-snug ${!isExpanded ? 'line-clamp-1' : ''}`}>{video.title}</h4>
+                
+                {(isClamped || (isExpanded && isClamped)) && (
+                    <button onClick={toggleExpand} className="text-xs text-slate-400 hover:text-white self-start mt-1 focus:outline-none bg-transparent border-none p-0 cursor-pointer">
+                        {isExpanded ? 'See Less' : '...See More'}
+                    </button>
+                )}
+
+                <div className="flex-grow"></div>
+
+                <div className="pt-1">
+                    <p className="text-xs text-slate-400 mt-1 truncate">{video.channelName}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5">
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{video.viewCount}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                            <span>{video.publishedTime}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    );
+};
 
 const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
   const { user } = useAuth();
@@ -162,45 +243,6 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
     flushListItems(); // Flush any remaining list items at the end
     return elements;
   };
-  
-  const renderVideoCard = (video: TrendingVideo, index: number) => {
-    const showPlaceholder = !video.thumbnailUrl || imageErrors[index];
-
-    return (
-      <a 
-        href={video.videoUrl} 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        key={`video-${index}`}
-        className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group flex flex-col"
-      >
-        <div className="aspect-video bg-black rounded-md mb-3 flex items-center justify-center overflow-hidden">
-          {showPlaceholder ? (
-            <Video className="w-10 h-10 text-slate-600" />
-          ) : (
-            <img 
-              src={video.thumbnailUrl} 
-              alt={video.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => handleImageError(index)}
-            />
-          )}
-        </div>
-        <h4 className="font-bold text-violet-300 text-sm line-clamp-2 leading-snug flex-grow">{video.title}</h4>
-        <p className="text-xs text-slate-400 mt-1 truncate">{video.channelName}</p>
-        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-          <div className="flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5" />
-            <span>{video.viewCount}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <ThumbsUp className="w-3.5 h-3.5" />
-            <span>{video.publishedTime}</span>
-          </div>
-        </div>
-      </a>
-    );
-  };
 
   const renderMusicCard = (music: TrendingMusic, index: number) => (
     <div key={`music-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 flex items-center">
@@ -259,7 +301,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
           <div className={gridClass}>
               {realtimeTrends.map((item, index) => {
                   switch(activeTrendType) {
-                      case 'videos': return renderVideoCard(item as TrendingVideo, index);
+                      case 'videos': return <VideoCard video={item as TrendingVideo} index={index} onImageError={handleImageError} imageErrors={imageErrors} key={`video-${index}`} />;
                       case 'music': return renderMusicCard(item as TrendingMusic, index);
                       case 'creators': return renderCreatorCard(item as TrendingCreator, index);
                       default: return null;

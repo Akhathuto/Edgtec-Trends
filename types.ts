@@ -1,4 +1,5 @@
 export enum Tab {
+  Dashboard = 'dashboard',
   Trends = 'trends',
   Ideas = 'ideas',
   Monetization = 'monetization',
@@ -15,6 +16,8 @@ export enum Tab {
   Pricing = 'pricing',
   Support = 'support',
   Contact = 'contact',
+  TermsOfUse = 'terms-of-use',
+  License = 'license',
 }
 
 export interface User {
@@ -114,9 +117,9 @@ export interface ContentIdea {
 export interface MonetizationStrategy {
   strategy: string;
   description: string;
-  requirements: string;
   potential: string;
-  action_steps: string[];
+  // Fix: Replaced 'action_steps' with 'requirements' to match the Gemini API schema and component usage.
+  requirements: string;
 }
 
 export interface FullReport {

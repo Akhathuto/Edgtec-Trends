@@ -24,6 +24,10 @@
 - **Create with AI:** Generate entire videos from a simple text prompt, edit images with AI instructions, and craft the perfect prompt for any AI task.
 - **Analyze and Optimize:** Get live, AI-powered analytics for your YouTube channel and perform deep keyword research to optimize your content's reach.
 
+<details>
+<summary><strong>... See More</strong></summary>
+<br>
+
 ## ✨ What's New in the Current Update
 - **Revamped Admin Dashboard:** The dashboard now features a tabbed interface with a new "Overview" section displaying key user stats and a real-time, persistent activity feed showing key user actions across the platform.
 - **Full User Management:** Administrators can now delete users directly from the "User Management" tab within the dashboard, with appropriate safety confirmations.
@@ -41,6 +45,20 @@
 - **Full Strategy Reports:** A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report.
 - **Advanced Admin Dashboard:** A secure panel for administrators to manage users (update plans, roles, and delete users), view platform statistics, and monitor a live feed of user activity.
 - **Modern UI:** A clean, intuitive, and responsive interface with persistent sidebar navigation.
+
+## Key Outputs & Deliverables
+
+`utrend` is designed to produce tangible, actionable content and strategies that you can directly implement. Here are the key outputs you can generate:
+
+-   **📈 In-Depth Trend Reports:** Get detailed analysis of what's currently trending for any topic on YouTube and TikTok, including viral challenges, popular sounds, and video formats.
+-   **💡 Viral Content Blueprints:** Generate multiple content ideas complete with catchy titles, strong hooks (for the first 3 seconds), script outlines, and relevant hashtags.
+-   **✍️ Production-Ready Scripts:** Turn a content idea into a complete, detailed video script with dialogue, visual cues, and calls to action.
+-   **💰 Custom Monetization Plans:** Receive a list of suitable monetization strategies based on your platform and follower count, including requirements and earning potential.
+-   **📄 Comprehensive Strategy Documents:** A Pro-exclusive feature that combines trend analysis, content ideas, and monetization strategies into a single, downloadable report for long-term planning.
+-   **🎬 AI-Generated Videos:** Create short-form or long-form videos directly from a text prompt or by animating a static image.
+-   **🖼️ AI-Edited Images:** Magically edit your images by simply telling the AI what changes to make (e.g., "add a hat," "change the background to a futuristic city").
+-   **🔍 SEO Keyword Analysis:** Uncover valuable keywords with data on search volume, competition level, and related long-tail keywords to boost your video's visibility.
+-   **📊 Live Channel Dashboards:** Get a real-time, AI-powered analytics report for your connected YouTube channel, summarizing performance and highlighting recent video stats.
 
 ## 🚀 Getting Started
 
@@ -94,6 +112,32 @@ This application is built with a modern frontend stack, leveraging the power of 
 - **Language:** TypeScript for type safety and improved developer experience.
 - **Date Handling:** `date-fns` for lightweight and reliable date formatting.
 
+## License and Intellectual Property
+
+-   **Proprietary Property:** This software, including its source code, visual design, features, and the "utrend" name and logo, are the proprietary property and trademarks of EDGTEC. All rights are reserved.
+-   **Limited License:** EDGTEC grants you a limited, non-exclusive, non-transferable, revocable license to use the `utrend` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
+-   **Restrictions:** Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of EDGTEC.
+
+**Copyright (c) 2024 EDGTEC. All Rights Reserved.**
+
+---
+
+## Terms of Use
+
+By using `utrend`, you agree to the following terms and conditions:
+
+1.  **Acceptance of Terms:** Your use of the application constitutes your acceptance of these terms. If you do not agree, you must not use the application.
+2.  **User Accounts:** You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account.
+3.  **Acceptable Use:** You agree not to use the application for any unlawful purpose or to violate any regulations. You may not reverse-engineer or otherwise attempt to discover the source code.
+4.  **User-Generated Content:** You retain all rights to the content you generate using the application ("User Content"). However, you are solely responsible for your User Content and ensuring it is lawful and appropriate.
+5.  **Subscription Plans:** The application offers free and paid plans with features limited by tier. Payments for paid plans are processed through secure third-party payment gateways.
+6.  **Termination:** We may terminate or suspend your access to our service immediately, without prior notice, for any reason, including a breach of these Terms.
+7.  **Third-Party Services:** This application utilizes third-party services, including the Google Gemini API. Your use is also subject to their terms.
+8.  **"As Is" Basis:** This software is provided "as is", without warranty of any kind, express or implied.
+9.  **Limitation of Liability:** In no event shall EDGTEC be liable for any claim, damages, or other liability arising from the use of the software.
+10. **Governing Law:** These Terms shall be governed in accordance with the laws of South Africa.
+11. **Changes to Terms:** We reserve the right to modify or replace these Terms at any time.
+
 ## Powered by EDGTEC
 
 `utrend` is proudly developed by **EDGTEC**, a forward-thinking technology company based in South Africa.
@@ -114,3 +158,4 @@ This application is built with a modern frontend stack, leveraging the power of 
 `utrend` is driven by the vision of its directors:
 - **Ranthutu Lepheane** (r.lepheane@outlook.com)
 - **Siphosakhe Mathews Msimango** (siphosakhemsimanngo@gmail.com)
+</details>

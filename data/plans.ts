@@ -7,7 +7,7 @@ export const plans: Plan[] = [
     pricePeriod: '/ month',
     description: 'Get started and explore the basics of trend discovery.',
     features: [
-      'View top 3 trends',
+      'View top 8 trends',
       'Generate 1 content idea at a time',
       'Basic monetization tips',
     ],
@@ -18,7 +18,8 @@ export const plans: Plan[] = [
     pricePeriod: '/ month',
     description: 'For creators ready to level up their content game.',
     features: [
-      'View all 50+ trends',
+      'View all 48 trends',
+      'Keyword Research Tool',
       'Generate 3 content ideas at once',
       'Unlock AI script generation',
       'Personalized monetization strategies',

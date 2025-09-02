@@ -45,7 +45,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         setError("Sorry, your browser doesn't support Text-to-Speech.");
         return;
     }
-    // Cancel any ongoing speech before starting a new one
     window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
@@ -53,7 +52,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  // FIX: Pass history during chat initialization instead of trying to set it later.
   const initializeChat = useCallback((historyToRestore?: ChatMessage[]) => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -64,7 +62,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
           parts: [{ text: msg.content }],
         })),
         config: {
-          systemInstruction: 'You are Nolo, a helpful, friendly, and creative assistant for content creators. Provide concise, actionable, and inspiring advice. Use markdown for formatting when appropriate.'
+          systemInstruction: `You are Nolo, an expert AI content co-pilot. Your personality is helpful, creative, and proactive. Your goal is to assist content creators. If a user's request could lead to using another tool in the app, suggest it using the format ACTION:[TOOL_NAME,"parameter"]. For example: 'That's a great topic! I can create a full strategy report for you. ACTION:[REPORT,"Keto Recipes"]'. Valid tools are: REPORT, TRENDS, IDEAS, KEYWORDS. Always be encouraging and provide actionable advice.`
         }
       });
       setChat(chatInstance);
@@ -82,7 +80,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
       setIsTtsEnabled(JSON.parse(savedTtsPref));
     }
     return () => {
-        // Stop any speech when the component unmounts
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
         }
@@ -93,7 +90,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     localStorage.setItem('utrend-tts-enabled', JSON.stringify(isTtsEnabled));
   }, [isTtsEnabled]);
 
-  // FIX: Load history from localStorage and initialize chat with it, ensuring UI and AI history are in sync.
   useEffect(() => {
     if (user?.plan === 'pro') {
       const storedHistory = localStorage.getItem('utrend-chat-history');
@@ -101,16 +97,13 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
       if (storedHistory) {
         try {
           initialHistory = JSON.parse(storedHistory);
-          if (!Array.isArray(initialHistory) || initialHistory.length === 0) {
-            throw new Error("Invalid history format");
-          }
         } catch (e) {
-          console.error('Failed to parse chat history from localStorage', e);
-          localStorage.removeItem('utrend-chat-history');
-          initialHistory = [{ role: 'model', content: "Hello! I'm Nolo. How can I help you brainstorm your next viral video today?" }];
+            initialHistory = [];
         }
-      } else {
-        initialHistory = [{ role: 'model', content: "Hello! I'm Nolo. How can I help you brainstorm your next viral video today?" }];
+      }
+      
+      if(initialHistory.length === 0) {
+           initialHistory = [{ role: 'model', content: "Hello! I'm Nolo, your AI Co-pilot. How can I help you brainstorm your next viral video today?" }];
       }
       
       setHistory(initialHistory);
@@ -142,8 +135,19 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   }, [input]);
   
   const sendMessage = useCallback(async (message: string) => {
-    if (!message.trim() || loading || !chat) return;
+    if (!message.trim() || loading) return;
     
+     let currentChat = chat;
+    if (!currentChat) {
+        // This is a failsafe. If chat isn't initialized, do it now.
+        const storedHistory = JSON.parse(localStorage.getItem('utrend-chat-history') || '[]');
+        currentChat = initializeChat(storedHistory);
+        if (!currentChat) {
+             setError("Chat service is not available. Please refresh.");
+             return;
+        }
+    }
+
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
     }
@@ -155,14 +159,13 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
     try {
       logActivity(`sent a message to Nolo: "${message.substring(0, 30)}..."`, 'MessageSquare');
-      const stream = await chat.sendMessageStream({ message });
+      const stream = await currentChat.sendMessageStream({ message });
       setHistory(prev => [...prev, { role: 'model', content: '' }]);
 
       for await (const chunk of stream) {
         fullResponse += chunk.text;
         setHistory(prev => {
           const newHistory = [...prev];
-          // FIX: Corrected typo from `newhistory` to `newHistory`.
           const lastMessage = newHistory[newHistory.length - 1];
           if (lastMessage && lastMessage.role === 'model') {
             lastMessage.content = fullResponse;
@@ -179,7 +182,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         speak(fullResponse);
       }
     }
-  }, [loading, chat, isTtsEnabled, speak, logActivity]);
+  }, [loading, chat, isTtsEnabled, speak, logActivity, initializeChat]);
 
   const handleFormSubmit = () => {
     if (input.trim()) {
@@ -195,22 +198,62 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     }
   };
   
-  // FIX: Ensure clearing chat re-initializes both the UI and AI history.
   const handleClearChat = useCallback(() => {
     const freshHistory: ChatMessage[] = [{ role: 'model', content: "Hello again! Let's start fresh. What's on your mind?" }];
-    initializeChat(freshHistory);
     setHistory(freshHistory);
+    initializeChat(freshHistory);
+    localStorage.removeItem('utrend-chat-history');
   }, [initializeChat]);
   
+  const handleActionClick = (tool: string, param: string) => {
+    const toolMap: { [key: string]: Tab } = {
+        'REPORT': Tab.Report,
+        'TRENDS': Tab.Trends,
+        'IDEAS': Tab.Ideas,
+        'KEYWORDS': Tab.Keywords
+    };
+    const targetTab = toolMap[tool];
+    if (targetTab) {
+        // In a more complex app, we'd use context or a state manager to pass the param
+        // For now, we just switch the tab. The user can copy/paste the param.
+        console.log(`Navigating to ${targetTab} with param: ${param}`);
+        setActiveTab(targetTab);
+    }
+  };
+
   const formatContent = (text: string) => {
-    const formatted = text
+    let content = text;
+    const actionRegex = /ACTION:\[(REPORT|TRENDS|IDEAS|KEYWORDS),"([^"]+)"\]/g;
+    
+    const actionMatch = actionRegex.exec(content);
+    let actionButton = null;
+    if (actionMatch) {
+        content = content.replace(actionRegex, '').trim();
+        const [_, tool, param] = actionMatch;
+        actionButton = (
+             <button
+                onClick={() => handleActionClick(tool, param)}
+                className="mt-2 w-full text-left flex items-center justify-center text-sm bg-violet-600 hover:bg-violet-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+             >
+                Go to {tool.charAt(0) + tool.slice(1).toLowerCase()} for "{param}"
+             </button>
+        );
+    }
+    
+    const formattedHtml = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 p-2 rounded-md my-2 text-sm"><code>$1</code></pre>')
       .replace(/`([^`]+)`/g, '<code class="bg-slate-700/50 px-1 py-0.5 rounded text-violet-300">$1</code>')
       .replace(/(\n\s*[\*\-]\s)(.*)/g, (match, bullet, item) => `<br />• ${item}`)
       .replace(/\n/g, '<br />');
-    return <div dangerouslySetInnerHTML={{ __html: formatted }} />;
+
+    return (
+        <>
+            <div dangerouslySetInnerHTML={{ __html: formattedHtml }} />
+            {actionButton}
+        </>
+    );
   };
 
   if (user?.plan !== 'pro') {

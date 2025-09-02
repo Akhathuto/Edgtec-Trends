@@ -64,11 +64,24 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
         : 'bg-slate-700 hover:bg-slate-600 text-white';
   };
 
+  const getLimitText = () => {
+    if (!user) return '';
+    switch(user.plan) {
+        case 'pro':
+            return 'Pro plan users get 5 ideas per request.';
+        case 'starter':
+            return 'Starter plan users get 3 ideas per request.';
+        case 'free':
+        default:
+            return 'Freemium users get 1 idea.';
+    }
+  };
+
   return (
     <div className="animate-slide-in-up">
       <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
         <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Generate Viral Ideas</h2>
-        <p className="text-center text-slate-400 mb-6">Let AI brainstorm your next hit video. {user?.plan === 'free' && 'Freemium users get 1 idea.'}</p>
+        <p className="text-center text-slate-400 mb-6">Let AI brainstorm your next hit video. {getLimitText()}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label htmlFor="content-topic" className="sr-only">Video Topic</label>

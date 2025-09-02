@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
+import Dashboard from './Dashboard';
 import TrendDiscovery from './TrendDiscovery';
 import ContentGenerator from './ContentGenerator';
 import MonetizationGuide from './MonetizationGuide';
@@ -17,9 +18,10 @@ import ContactPage from './ContactPage';
 import PromptGenerator from './PromptGenerator';
 import KeywordResearch from './KeywordResearch';
 import ChannelAnalytics from './ChannelAnalytics';
+import LegalPage from './LegalPage';
 import { Tab, User } from '../types';
 import Sidebar from './Sidebar';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2 } from './Icons';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard } from './Icons';
 import TrendingTicker from './TrendingTicker';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -27,13 +29,15 @@ const AppLayout: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const savedTab = localStorage.getItem('utrend-active-tab');
-    return savedTab ? (savedTab as Tab) : Tab.Trends;
+    return savedTab ? (savedTab as Tab) : Tab.Dashboard;
   });
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<User['plan'] | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('utrend-active-tab', activeTab);
+    if (activeTab !== Tab.License && activeTab !== Tab.TermsOfUse) {
+      localStorage.setItem('utrend-active-tab', activeTab);
+    }
   }, [activeTab]);
 
   const handleUpgradeClick = (plan: User['plan']) => {
@@ -43,6 +47,8 @@ const AppLayout: React.FC = () => {
   
   const renderContent = () => {
     switch (activeTab) {
+      case Tab.Dashboard:
+        return <Dashboard setActiveTab={setActiveTab} />;
       case Tab.Trends:
         return <TrendDiscovery onUpgradeClick={() => setActiveTab(Tab.Pricing)} />;
       case Tab.Ideas:
@@ -75,16 +81,21 @@ const AppLayout: React.FC = () => {
         return <SupportPage setActiveTab={setActiveTab} />;
       case Tab.Contact:
         return <ContactPage />;
+      case Tab.TermsOfUse:
+        return <LegalPage type="terms" />;
+      case Tab.License:
+        return <LegalPage type="license" />;
       default:
-        return <TrendDiscovery onUpgradeClick={() => setActiveTab(Tab.Pricing)} />;
+        return <Dashboard setActiveTab={setActiveTab} />;
     }
   };
 
   const mainNavTabs = [
+    { id: Tab.Dashboard, label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5 mr-3" />, title: "View your dashboard" },
     { id: Tab.Trends, label: 'Trends', icon: <TrendingUp className="w-5 h-5 mr-3" />, title: "Discover current trends" },
     { id: Tab.Analytics, label: 'Analytics', icon: <BarChart2 className="w-5 h-5 mr-3" />, title: "View channel analytics" },
     { id: Tab.Keywords, label: 'Keywords', icon: <Search className="w-5 h-5 mr-3" />, title: "Research keywords" },
-    { id: Tab.Chat, label: 'Chat', icon: <MessageSquare className="w-5 h-5 mr-3" />, title: "Chat with an AI Assistant" },
+    { id: Tab.Chat, label: 'AI Chat', icon: <MessageSquare className="w-5 h-5 mr-3" />, title: "Chat with an AI Assistant" },
   ];
 
   const createTabs = [
@@ -124,8 +135,13 @@ const AppLayout: React.FC = () => {
         />
         <main className="flex-1 p-8 overflow-y-auto">
           {renderContent()}
-          <footer className="text-center py-6 text-slate-500 text-sm mt-12">
-            <p>Copyright © utrend. Powered by Gemini API.</p>
+          <footer className="text-center py-6 text-slate-500 text-sm mt-12 space-y-2">
+            <div className="space-x-4">
+                <button onClick={() => setActiveTab(Tab.TermsOfUse)} className="hover:text-slate-300 transition-colors">Terms of Use</button>
+                <span className="text-slate-600">&bull;</span>
+                <button onClick={() => setActiveTab(Tab.License)} className="hover:text-slate-300 transition-colors">License</button>
+            </div>
+            <p>Copyright © {new Date().getFullYear()} EDGTEC. All Rights Reserved. Powered by Gemini API.</p>
           </footer>
         </main>
       </div>

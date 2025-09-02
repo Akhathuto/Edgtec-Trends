@@ -94,7 +94,7 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => 
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
                  {isLocked && (
                     <p className="text-center text-yellow-300 mt-4 text-sm">
-                        The Keyword Research Tool is a premium feature. Please <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">upgrade</button> to access.
+                        The Keyword Research Tool is available on our Starter and Pro plans. Please <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">upgrade</button> to access.
                     </p>
                 )}
             </div>

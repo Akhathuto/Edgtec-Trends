@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud } from './Icons';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 import { useToast } from '../contexts/ToastContext';
@@ -51,10 +51,11 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     const [editFilter, setEditFilter] = useState('');
     const [duration, setDuration] = useState<number>(0);
     
-    // Transcript State
+    // Transcript and TTS State
     const [transcript, setTranscript] = useState<string | null>(null);
     const [transcriptLoading, setTranscriptLoading] = useState(false);
     const [transcriptError, setTranscriptError] = useState<string | null>(null);
+    const [isSpeaking, setIsSpeaking] = useState(false);
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -108,7 +109,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     }
 
     useEffect(() => {
-        return () => cleanupIntervals(); // Cleanup on unmount
+         return () => {
+            cleanupIntervals(); // Cleanup on unmount
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any speech on unmount
+            }
+        }
     }, []);
 
     const pollOperationStatus = (op: any) => {
@@ -201,6 +207,10 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setTranscript(null);
         setTranscriptLoading(false);
         setTranscriptError(null);
+         if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        setIsSpeaking(false);
     }
     
     const handleGenerateTranscript = async () => {
@@ -225,6 +235,31 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         }
     };
 
+    const handleToggleSpeech = () => {
+        if (!transcript || !('speechSynthesis' in window)) return;
+
+        if (isSpeaking) {
+            window.speechSynthesis.pause();
+            setIsSpeaking(false);
+        } else {
+            if (window.speechSynthesis.paused) {
+                 window.speechSynthesis.resume();
+            } else {
+                const utterance = new SpeechSynthesisUtterance(transcript);
+                utterance.onend = () => setIsSpeaking(false);
+                window.speechSynthesis.speak(utterance);
+            }
+            setIsSpeaking(true);
+        }
+    };
+    
+    const handleStopSpeech = () => {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+    };
+
+
     if (user?.plan !== 'pro') {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
@@ -245,7 +280,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         <div className="animate-slide-in-up">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">AI Video Generator</h2>
-                <p className="text-center text-slate-400 mb-6">{videoUrl ? "Your video is ready. Refine it or start a new project." : "Create stunning videos from text or animate an image."}</p>
+                <p className="text-center text-slate-400 mb-6">{videoUrl ? "Your video is ready. Add a voiceover or start a new project." : "Create stunning videos from text or animate an image."}</p>
                 
                 {(!loading && !videoUrl) && (
                     <div className="space-y-4">
@@ -336,75 +371,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         Your browser does not support the video tag.
                     </video>
                     
-                    {/* --- AI Editing Panel --- */}
-                    <div className="space-y-4 pt-4 border-t border-slate-700">
-                         <h4 className="text-lg font-bold text-center text-slate-200">Quick Edits</h4>
-                         <p className="text-sm text-center text-slate-400 -mt-2 mb-4">Refine your video by adding edits below and clicking 'Regenerate'.</p>
-                         
-                         {/* Text Overlay */}
-                         <div>
-                             <label htmlFor="text-overlay" className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
-                                 <Type className="w-5 h-5" /> Text Overlay
-                             </label>
-                             <input
-                             id="text-overlay"
-                             type="text"
-                             value={editText}
-                             onChange={(e) => setEditText(e.target.value)}
-                             placeholder="e.g., 'My Awesome Vlog'"
-                             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
-                             title="Type text here to add it as an overlay on the video."
-                             />
-                         </div>
-                         
-                         {/* Duration */}
-                          <div>
-                             <label htmlFor="duration" className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
-                                 <Clock className="w-5 h-5" /> Target Duration (s)
-                             </label>
-                             <input
-                             id="duration"
-                             type="number"
-                             value={duration || ''}
-                             onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
-                             placeholder="e.g., 15"
-                             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
-                             title="Suggest a target length for the video in seconds."
-                             />
-                         </div>
-
-                        {/* Style Filters */}
-                        <div>
-                            <label className="font-semibold text-slate-300 mb-2 block flex items-center gap-2">
-                                <Filter className="w-5 h-5" /> Style Filters
-                            </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                {styleFilters.map(filter => (
-                                    <button 
-                                        key={filter} 
-                                        onClick={() => setEditFilter(current => current === filter ? '' : filter)}
-                                        className={`py-2 px-4 text-sm font-semibold rounded-lg transition-colors ${editFilter === filter ? 'bg-violet text-white' : 'bg-slate-700 hover:bg-slate-600'}`}
-                                    >
-                                        {filter}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                         <div className="pt-2">
-                             <label htmlFor="final-prompt" className="font-semibold text-slate-300 mb-2 block">
-                                Final Prompt for Regeneration
-                             </label>
-                             <textarea
-                                id="final-prompt"
-                                value={prompt}
-                                readOnly
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 h-24 resize-none text-slate-400 text-sm font-mono"
-                                title="This is the final prompt that will be sent to the AI, updated with your edits."
-                            />
-                         </div>
-
-                        <div className="flex flex-col sm:flex-row gap-4">
+                     <div className="flex flex-col sm:flex-row gap-4">
                              <button
                                 onClick={handleStartOver}
                                 className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
@@ -416,16 +383,16 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                                 onClick={handleGenerate}
                                 disabled={loading}
                                 className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
-                                title="Regenerate the video with your new edits."
+                                title="Regenerate the video with the same prompt"
                             >
                                <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                             </button>
                         </div>
-                    </div>
 
-                    {/* --- Transcript Section --- */}
+
+                    {/* --- Transcript & Voiceover Section --- */}
                     <div className="mt-6 pt-6 border-t border-slate-700">
-                        <h4 className="text-lg font-bold text-center text-slate-200 mb-4">Video Transcript</h4>
+                        <h4 className="text-lg font-bold text-center text-slate-200 mb-4">AI Transcript & Voiceover</h4>
                         {!transcript && !transcriptLoading && (
                             <button
                                 onClick={handleGenerateTranscript}
@@ -443,20 +410,35 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         {transcriptError && <p className="text-red-400 text-center">{transcriptError}</p>}
                         {transcript && (
                             <div className="bg-slate-800/50 rounded-lg p-4 relative border border-slate-700">
-                                <button 
-                                    onClick={handleCopyTranscript}
-                                    className="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
-                                    title="Copy transcript"
-                                >
-                                    <Copy className="w-4 h-4 text-slate-300" />
-                                </button>
-                                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans max-h-48 overflow-y-auto">
+                                <div className="absolute top-2 right-2 flex items-center gap-1">
+                                    <button 
+                                        onClick={handleToggleSpeech}
+                                        className="p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
+                                        title={isSpeaking ? "Pause Voiceover" : "Play Voiceover"}
+                                    >
+                                        {isSpeaking ? <Pause className="w-4 h-4 text-slate-300" /> : <Play className="w-4 h-4 text-slate-300" />}
+                                    </button>
+                                     <button 
+                                        onClick={handleStopSpeech}
+                                        className="p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
+                                        title="Stop Voiceover"
+                                    >
+                                        <StopCircle className="w-4 h-4 text-slate-300" />
+                                    </button>
+                                    <button 
+                                        onClick={handleCopyTranscript}
+                                        className="p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
+                                        title="Copy transcript"
+                                    >
+                                        <Copy className="w-4 h-4 text-slate-300" />
+                                    </button>
+                                </div>
+                                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans max-h-48 overflow-y-auto pr-24">
                                     {transcript}
                                 </pre>
                             </div>
                         )}
                     </div>
-
                 </div>
             )}
         </div>

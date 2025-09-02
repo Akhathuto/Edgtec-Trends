@@ -113,8 +113,9 @@ const PromptGenerator: React.FC = () => {
                 <button
                     onClick={handleCopy}
                     className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                    title="Copy the generated prompt to your clipboard"
                 >
-                    <Copy className="w-4 h-4" /> Copy
+                    <Copy className="w-4 h-4" /> Copy Prompt
                 </button>
            </div>
           <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">

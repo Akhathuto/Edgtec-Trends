@@ -201,7 +201,20 @@ export const getKeywordAnalysis = async (keyword: string): Promise<KeywordAnalys
 };
 
 export const generateContentIdeas = async (topic: string, platform: 'YouTube' | 'TikTok' | 'Both', userPlan: User['plan']): Promise<ContentIdea[]> => {
-    const ideaCount = userPlan === 'free' ? 1 : 3;
+    let ideaCount: number;
+    switch(userPlan) {
+        case 'pro':
+            ideaCount = 5;
+            break;
+        case 'starter':
+            ideaCount = 3;
+            break;
+        case 'free':
+        default:
+            ideaCount = 1;
+            break;
+    }
+
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",

@@ -47,7 +47,7 @@ const NavItem: React.FC<{
 
 const Sidebar: React.FC<SidebarProps> = ({ mainTabs, createTabs, strategyTabs, activeTab, setActiveTab }) => {
   return (
-    <aside className="w-60 flex-shrink-0 bg-brand-glass border-r border-slate-700/50 p-3 h-[calc(100vh-65px)] sticky top-[65px] overflow-y-auto">
+    <aside className="w-80 flex-shrink-0 bg-brand-glass border-r border-slate-700/50 p-3 h-[calc(100vh-65px)] sticky top-[65px] overflow-y-auto">
       <nav className="flex flex-col space-y-2">
         <NavSection title="Main">
             {mainTabs.map((tab) => (
