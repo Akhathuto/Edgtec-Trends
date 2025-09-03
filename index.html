@@ -1,8 +1,22 @@
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
+  }
+}
+</script>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
+    <meta name="msvalidate.01" content="YOUR_MICROSOFT_VERIFICATION_CODE" />
+    <!-- Apple verification is typically done by hosting a file at /.well-known/apple-app-site-association -->
     <title>utrend - AI Content Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,91 +36,116 @@
       }
       body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(-45deg, #020617, #1e1b4b, #020617, #312e81);
+        background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617, #4c1d95);
         background-size: 400% 400%;
-        animation: gradientBG 25s ease infinite;
+        animation: bg-animate 40s ease infinite;
+        color: #e2e8f0; /* Default text color slate-200 */
       }
-       @keyframes gradientBG {
+      @keyframes bg-animate {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
+      }
+      @keyframes ticker {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .animate-ticker {
+        animation: ticker 120s linear infinite;
+      }
+      @keyframes logo-pulse {
+        50% { filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.5)); }
+      }
+      .animate-logo-pulse {
+        animation: logo-pulse 4s ease-in-out infinite;
+      }
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes scale-in {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes slide-in-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Custom utility classes for the new design */
+      .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 20px rgba(167, 139, 250, 0.2);
+      }
+      .bg-brand-glass {
+        background-color: rgba(15, 23, 42, 0.4); /* slate-900/40 */
+        backdrop-filter: blur(16px);
+        --tw-border-opacity: 0.5;
+        border-color: rgb(51 65 85 / var(--tw-border-opacity)); /* slate-700/50 */
+      }
+      .interactive-card {
+        background-color: rgba(15, 23, 42, 0.4); /* slate-900/40 */
+        backdrop-filter: blur(16px);
+        border: 1px solid rgb(51 65 85 / 0.5); /* slate-700/50 */
+        border-radius: 0.75rem; /* rounded-xl */
+        padding: 1.5rem; /* p-6 */
+        transition: all 0.3s ease-in-out;
+      }
+      .interactive-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(139, 92, 246, 0.5); /* violet-500/50 */
+        box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -4px rgba(139, 92, 246, 0.1);
       }
     </style>
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
             colors: {
-              slate: {
-                950: '#020617',
-                900: '#0f172a',
-                800: '#1e293b',
-                700: '#334155',
-                600: '#475569',
-              },
-              violet: {
-                  DEFAULT: '#8b5cf6',
-                  'light': '#a78bfa',
-                  'dark': '#7c3aed',
-              },
-              'brand-glass': 'rgba(30, 41, 59, 0.5)', // slate-800 with 50% opacity
+              'violet': '#8B5CF6',
+              'violet-dark': '#7C3AED',
+              'violet-light': '#A78BFA',
+              'violet-rich': '#6D28D9',
             },
             animation: {
-              'fade-in': 'fadeIn 0.5s ease-in-out forwards',
-              'slide-in-up': 'slideInUp 0.5s ease-in-out forwards',
-              'ticker': 'ticker 80s linear infinite',
-              'glow': 'glow 2s ease-in-out infinite alternate',
-              'logo-pulse': 'logoPulse 4s ease-in-out infinite',
+              'fade-in': 'fade-in 0.5s ease-in-out',
+              'scale-in': 'scale-in 0.3s ease-in-out',
+              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
+              'ticker': 'ticker 120s linear infinite',
+              'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
             },
             keyframes: {
-              fadeIn: {
-                '0%': { opacity: 0 },
-                '100%': { opacity: 1 },
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
               },
-              slideInUp: {
-                '0%': { transform: 'translateY(20px)', opacity: 0 },
-                '100%': { transform: 'translateY(0)', opacity: 1 },
+              'scale-in': {
+                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '100%': { opacity: '1', transform: 'scale(1)' },
               },
-              ticker: {
+              'slide-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'ticker': {
                 '0%': { transform: 'translateX(0)' },
                 '100%': { transform: 'translateX(-50%)' },
               },
-              glow: {
-                'from': { textShadow: '0 0 5px #a78bfa, 0 0 10px #a78bfa, 0 0 15px #7c3aed', color: '#a78bfa' },
-                'to': { textShadow: '0 0 10px #a78bfa, 0 0 20px #7c3aed, 0 0 30px #7c3aed', color: '#c4b5fd' },
-              },
-              logoPulse: {
-                '0%, 100%': { filter: 'drop-shadow(0 0 5px rgba(167, 139, 250, 0.4))' },
-                '50%': { filter: 'drop-shadow(0 0 15px rgba(167, 139, 250, 0.7))' },
-              },
+               'logo-pulse': {
+                '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' },
+              }
             },
             boxShadow: {
-              'glow-sm': '0 0 8px rgba(139, 92, 246, 0.4)',
-              'glow-md': '0 0 16px rgba(139, 92, 246, 0.4)',
-              'glow-lg': '0 0 24px rgba(139, 92, 246, 0.5)',
-              'card': '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-              'card-hover': '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)',
+              'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',
+              'glow-lg': '0 0 25px rgba(167, 139, 250, 0.3)',
+              'glow-violet': '0 0 40px rgba(139, 92, 246, 0.3)',
             }
           }
         }
       }
     </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
-    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-slate-950 text-slate-100">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

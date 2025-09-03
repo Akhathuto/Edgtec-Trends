@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { generateContentIdeas, generateVideoScript } from '../services/geminiService.ts';
 import { ContentIdea } from '../types.ts';
@@ -99,8 +98,8 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
 
   return (
     <div className="animate-slide-in-up">
-      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Generate Viral Ideas</h2>
+      <div className="bg-brand-glass rounded-xl p-6 shadow-xl">
+        <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow">Generate Viral Ideas</h2>
         <p className="text-center text-slate-400 mb-6">Let AI brainstorm your next hit video. {getLimitText()}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -111,7 +110,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Enter a video topic..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+              className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
               title="What kind of video do you want to make? e.g., 'unboxing tech gadgets'"
             />
           </div>
@@ -121,7 +120,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
               id="content-platform"
               value={platform}
               onChange={(e) => setPlatform(e.target.value as 'YouTube' | 'TikTok' | 'Both')}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+              className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
               title="Choose the platform(s) you're targeting."
             >
               <option value="Both">Both YouTube & TikTok</option>
@@ -151,7 +150,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
       {ideas.length > 0 && (
         <div className={`mt-8 grid grid-cols-1 ${ideas.length > 1 ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 animate-fade-in`}>
           {ideas.map((idea, index) => (
-            <div key={index} className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl flex flex-col transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1">
+            <div key={index} className="interactive-card flex flex-col">
               <div className="flex-grow">
                 <h3 className="text-xl font-bold text-violet-300 mb-3">{idea.title}</h3>
                 <p className="text-slate-300 mb-4 italic">"{idea.hook}"</p>

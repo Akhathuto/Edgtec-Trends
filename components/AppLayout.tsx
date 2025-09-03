@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './Header.tsx';
 import Dashboard from './Dashboard.tsx';
@@ -26,9 +25,11 @@ import LegalPage from './LegalPage.tsx';
 import ContentHistory from './ContentHistory.tsx';
 import GifCreator from './GifCreator.tsx';
 import LogoCreator from './LogoCreator.tsx';
+import VideoAnalyzer from './VideoAnalyzer.tsx';
+import RepurposeContent from './RepurposeContent.tsx';
 import { Tab, User } from '../types.ts';
 import Sidebar from './Sidebar.tsx';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool } from './Icons.tsx';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool, Film, RefreshCw } from './Icons.tsx';
 import TrendingTicker from './TrendingTicker.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
@@ -90,6 +91,10 @@ const AppLayout: React.FC = () => {
         return <LogoCreator setActiveTab={setActiveTab} />;
       case Tab.ImageEditor:
         return <ImageEditor setActiveTab={setActiveTab} />;
+      case Tab.VideoAnalyzer:
+        return <VideoAnalyzer setActiveTab={setActiveTab} />;
+      case Tab.RepurposeContent:
+        return <RepurposeContent setActiveTab={setActiveTab} />;
       case Tab.Analytics:
         return <ChannelAnalytics 
                   setActiveTab={setActiveTab} 
@@ -146,6 +151,8 @@ const AppLayout: React.FC = () => {
      { id: Tab.Monetization, label: 'Monetize', icon: <DollarSign className="w-5 h-5 mr-3" />, title: "Get monetization strategies" },
     { id: Tab.Report, label: 'Strategy Report', icon: <FileText className="w-5 h-5 mr-3" />, title: "Generate a content strategy report" },
     { id: Tab.ChannelGrowth, label: 'Channel Growth', icon: <Rocket className="w-5 h-5 mr-3" />, title: "Get a personalized channel growth plan" },
+    { id: Tab.VideoAnalyzer, label: 'Video Analyzer', icon: <Film className="w-5 h-5 mr-3" />, title: "Analyze a YouTube or TikTok video" },
+    { id: Tab.RepurposeContent, label: 'Repurpose', icon: <RefreshCw className="w-5 h-5 mr-3" />, title: "Repurpose video content" },
     { id: Tab.BrandConnect, label: 'Brand Connect', icon: <Briefcase className="w-5 h-5 mr-3" />, title: "Find brand sponsorships" },
   ];
 
@@ -172,7 +179,7 @@ const AppLayout: React.FC = () => {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
         />
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           {renderContent()}
           <footer className="text-center py-6 text-slate-500 text-sm mt-12 space-y-2">
             <div className="space-x-4">

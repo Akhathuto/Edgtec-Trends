@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { UtrendLogo } from './Logo.tsx';
@@ -33,16 +32,16 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen text-white flex flex-col justify-center items-center p-4">
+        <div className="min-h-screen text-white flex flex-col justify-center items-center p-4 animate-fade-in">
              <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                      <UtrendLogo className="h-16 inline-block" />
-                     <h1 className="text-3xl font-bold mt-2">Welcome to utrend</h1>
+                     <h1 className="text-3xl font-bold mt-2 text-glow">Welcome to utrend</h1>
                      <p className="text-slate-400">Your AI-powered content assistant.</p>
                 </div>
                 
-                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl">
-                    <h2 className="text-2xl font-bold text-center mb-6">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
+                <div className="bg-brand-glass rounded-2xl p-8 shadow-glow-violet">
+                    <h2 className="text-2xl font-bold text-center mb-6 text-glow">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
                     {error && <p className="bg-red-500/20 text-red-300 text-center text-sm p-3 rounded-lg mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {!isLoginView && (
@@ -55,7 +54,7 @@ const Login: React.FC = () => {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Full Name"
                                     required
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
+                                    className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
                                 />
                             </div>
                         )}
@@ -68,7 +67,7 @@ const Login: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email Address"
                                 required
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
+                                className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
                             />
                         </div>
                         <div>
@@ -81,7 +80,7 @@ const Login: React.FC = () => {
                                 placeholder="Password"
                                 required
                                 minLength={6}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 focus:backdrop-blur-sm transition-all shadow-inner"
+                                className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
                             />
                         </div>
 
@@ -99,7 +98,7 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
+                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:scale-105"
                         >
                             {loading ? <Spinner /> : (isLoginView ? 'Sign In' : 'Sign Up')}
                         </button>

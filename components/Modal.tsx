@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X } from './Icons.tsx';
 
@@ -22,11 +21,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer 
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col m-4 animate-slide-in-up"
+        className="bg-brand-glass rounded-xl shadow-2xl shadow-violet-rich/10 w-full max-w-2xl max-h-[80vh] flex flex-col m-4 animate-scale-in"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
         <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
-          <h2 id="modal-title" className="text-xl font-bold text-slate-100">{title}</h2>
+          <h2 id="modal-title" className="text-xl font-bold text-slate-100 text-glow">{title}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Close modal">
             <X className="w-6 h-6" />
           </button>

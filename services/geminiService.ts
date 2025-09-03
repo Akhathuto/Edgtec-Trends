@@ -1,6 +1,5 @@
-
 import { GoogleGenAI, Type, GenerateContentResponse, Modality } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch } from '../types.ts';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent } from '../types.ts';
 
 const API_KEY = process.env.API_KEY;
 
@@ -611,7 +610,7 @@ export const getChannelAnalytics = async (channelUrl: string, platform: 'YouTube
     }
 };
 
-export const getChannelSnapshots = async (channels: Channel[]): Promise<{ id: string; followerCount: string; totalViews: string }[]> => {
+export const getChannelSnapshots = async (channels: Channel[]): Promise<{ id: string; followerCount: string; totalViews: string; followerTrend: 'up' | 'down' | 'stable'; viewsTrend: 'up' | 'down' | 'stable'; weeklyViewGrowth: string; }[]> => {
     if (channels.length === 0) return [];
     
     const channelList = channels.map(c => `- ID: ${c.id}, Platform: ${c.platform}, URL: ${c.url}`).join('\n');
@@ -619,7 +618,7 @@ export const getChannelSnapshots = async (channels: Channel[]): Promise<{ id: st
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Using Google Search, find the latest public data for the following list of channels:\n${channelList}\n\nYour response MUST be a single JSON array of objects that can be parsed directly. Do not include markdown formatting. Each object in the array must have these exact keys: "id" (use the ID from the input list), "followerCount" (e.g., "1.23M"), and "totalViews" (e.g., "45.6M"). If a channel cannot be found, omit it from the array.`,
+            contents: `Using Google Search, find the latest public data for the following list of channels:\n${channelList}\n\nYour response MUST be a single JSON array of objects that can be parsed directly. Do not include markdown formatting. Each object in the array must have these exact keys: "id" (use the ID from the input list), "followerCount" (e.g., "1.23M"), "followerTrend" ('up', 'down', or 'stable'), "totalViews" (e.g., "45.6M"), "viewsTrend" ('up', 'down', or 'stable'), and "weeklyViewGrowth" (a string representing the percentage change in views over the last 7 days, e.g., "+5.2%", "-1.1%", or "+0.0%"). If a channel cannot be found, omit it from the array.`,
             config: {
                 tools: [{ googleSearch: {} }],
             }
@@ -767,5 +766,79 @@ export const generateBrandPitch = async (channelName: string, platform: 'YouTube
     } catch (error) {
         console.error("Error generating brand pitch:", error);
         throw new Error("Failed to generate brand pitch from Gemini API.");
+    }
+};
+
+export const analyzeVideoUrl = async (videoUrl: string): Promise<VideoAnalysis> => {
+    const prompt = `Act as a world-class YouTube and TikTok content strategist. Analyze the video at this URL: ${videoUrl}. 
+    Provide a comprehensive analysis covering the video's content, structure, and potential engagement.
+    Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`.
+    The JSON object must have these exact keys:
+    - "title": The title of the video.
+    - "aiSummary": A concise, one-paragraph summary of the video's content and purpose.
+    - "engagementAnalysis": A brief analysis of the video's likely engagement signals (e.g., comment sentiment, like-to-view ratio, shareability).
+    - "contentAnalysis": A critique of the content itself, focusing on the hook, pacing, structure, and call-to-action.
+    - "improvementSuggestions": An array of 3-5 specific, actionable suggestions for how the creator could improve this video or future videos on the same topic.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]) as VideoAnalysis;
+        } else {
+            throw new Error("The API response did not contain valid JSON data for the video analysis.");
+        }
+    } catch (error) {
+        console.error("Error analyzing video URL:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+            throw new Error("API quota exceeded. Please try again later.");
+        }
+        throw new Error(`Failed to analyze the video. The URL might be invalid, private, or the AI could not access it.`);
+    }
+};
+
+export const repurposeVideoContent = async (videoUrl: string): Promise<RepurposedContent> => {
+    const prompt = `Act as an expert content repurposing strategist. Analyze the video at this URL: ${videoUrl}. 
+    Based on its content, generate the following:
+    1. A well-structured, SEO-friendly blog post with a title, introduction, main body with headings, and conclusion.
+    2. An engaging tweet thread (as an array of strings, each tweet max 280 chars) summarizing the key points.
+    3. A professional LinkedIn post highlighting the video's value for a professional audience.
+    
+    Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting.
+    The JSON object must have these exact keys:
+    - "blogPost": A single string containing the full blog post with markdown formatting (e.g., "## Heading").
+    - "tweetThread": An array of strings, where each string is a single tweet.
+    - "linkedInPost": A single string for the LinkedIn post.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            }
+        });
+        const rawText = response.text.trim();
+        const jsonMatch = rawText.match(/{[\s\S]*}/);
+
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]) as RepurposedContent;
+        } else {
+            throw new Error("The API response did not contain valid JSON data for repurposing.");
+        }
+    } catch (error) {
+        console.error("Error repurposing video content:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+            throw new Error("API quota exceeded. Please try again later.");
+        }
+        throw new Error(`Failed to repurpose the video. The URL might be invalid, private, or the AI could not access it.`);
     }
 };

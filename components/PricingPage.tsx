@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { plans } from '../data/plans.ts';
 import { CheckCircle, Star } from './Icons.tsx';
@@ -16,7 +14,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
   return (
     <div className="animate-slide-in-up">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-white">Find the Perfect Plan</h2>
+        <h2 className="text-4xl font-bold text-white text-glow">Find the Perfect Plan</h2>
         <p className="text-slate-400 mt-2 max-w-2xl mx-auto">
           Whether you're just starting out or a seasoned pro, we have a plan that fits your needs.
         </p>
@@ -26,8 +24,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`bg-brand-glass border rounded-xl p-8 flex flex-col transition-all duration-300 relative ${
-              plan.isFeatured ? 'border-violet-500 shadow-glow-lg' : 'border-slate-700/50'
+            className={`bg-slate-800/50 border rounded-xl p-8 flex flex-col transition-all duration-300 relative backdrop-blur-lg hover:-translate-y-2 ${
+              plan.isFeatured ? 'border-violet-500 shadow-glow-lg hover:shadow-violet-rich/40' : 'border-slate-700/50 hover:border-violet-500/50'
             }`}
           >
             {plan.isFeatured && (
@@ -38,7 +36,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
                 </span>
               </div>
             )}
-            <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+            <h3 className="text-2xl font-bold text-white text-glow">{plan.name}</h3>
             <p className="text-slate-400 mt-2 flex-grow">{plan.description}</p>
             <div className="mt-6">
               <span className="text-5xl font-extrabold text-white">{plan.price}</span>
@@ -61,7 +59,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
                 <button
                   onClick={() => onUpgradeClick(plan.name.toLowerCase() as User['plan'])}
                   disabled={plan.name === 'Free'}
-                  className={`w-full font-semibold py-3 px-6 rounded-lg transition-opacity ${
+                  className={`w-full font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 ${
                     plan.isFeatured
                       ? 'bg-gradient-to-r from-violet-dark to-violet-light text-white hover:opacity-90 shadow-md hover:shadow-lg hover:shadow-violet/30'
                       : 'bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50'

@@ -24,6 +24,8 @@ export enum Tab {
   ContentHistory = 'content-history',
   GifCreator = 'gif-creator',
   LogoCreator = 'logo-creator',
+  VideoAnalyzer = 'video-analyzer',
+  RepurposeContent = 'repurpose-content',
 }
 
 export interface Channel {
@@ -68,9 +70,11 @@ export type HistoryContentType =
   | 'Channel Growth Plan'
   | 'Sponsorship Opportunities'
   | 'Brand Pitch'
+  | 'Video Analysis'
   | 'Animation'
   | 'GIF'
-  | 'Logo';
+  | 'Logo'
+  | 'Repurposed Content';
 
 export interface HistoryItem {
   id: string;
@@ -233,4 +237,18 @@ export interface SponsorshipOpportunity {
 export interface BrandPitch {
   subject: string;
   body: string;
+}
+
+export interface VideoAnalysis {
+  title: string;
+  aiSummary: string;
+  engagementAnalysis: string;
+  contentAnalysis: string;
+  improvementSuggestions: string[];
+}
+
+export interface RepurposedContent {
+  blogPost: string;
+  tweetThread: string[];
+  linkedInPost: string;
 }
