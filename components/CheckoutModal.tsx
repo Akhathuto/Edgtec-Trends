@@ -1,12 +1,12 @@
 
 
 import React, { useState } from 'react';
-import { X, Star, CreditCard } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { User } from '../types';
-import Spinner from './Spinner';
-import { plans } from '../data/plans';
+import { X, Star, CreditCard } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
+import { User } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { plans } from '../data/plans.ts';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -126,17 +126,16 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, plan }) 
                         <input type="text" id="card-cvc" placeholder="123" value={cardCvc} onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))} maxLength={4} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"/>
                     </div>
                 </div>
-                
-                <div className="pt-4">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
-                    >
-                        {loading ? <Spinner /> : `Confirm & Upgrade`}
-                    </button>
-                    <p className="text-xs text-center text-slate-500 mt-3">(This is a simulation. No real payment will be processed.)</p>
-                </div>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                    {loading ? <Spinner /> : `Pay ${planPrice}`}
+                </button>
+                <p className="text-xs text-center text-slate-500 mt-4">
+                    Payments are securely processed. This is a simulation.
+                </p>
            </form>
         </main>
       </div>

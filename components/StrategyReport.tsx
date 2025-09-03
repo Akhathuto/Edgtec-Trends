@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { generateFullReport } from '../services/geminiService';
-import { FullReport, Tab } from '../types';
-import Spinner from './Spinner';
-import { Lightbulb, DollarSign, Users, Target, CheckCircle, TrendingUp, FileText, Star } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
+import { generateFullReport } from '../services/geminiService.ts';
+import { FullReport, Tab } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Lightbulb, DollarSign, Users, Target, CheckCircle, TrendingUp, FileText, Star, Download } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface StrategyReportProps {
   setActiveTab: (tab: Tab) => void;
@@ -41,6 +42,41 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
     }
   };
   
+  const handleDownloadReport = (report: FullReport, topic: string) => {
+    let content = `# Content Strategy Report for "${topic}"\n\n`;
+
+    content += `## Trend Analysis\n${report.trendAnalysis.replace(/\*\*/g, '**')}\n\n`;
+
+    content += `## Content Ideas\n`;
+    report.contentIdeas.forEach((idea, index) => {
+        content += `### Idea ${index + 1}: ${idea.title}\n`;
+        content += `**Hook:** ${idea.hook}\n`;
+        content += `**Outline:**\n`;
+        idea.script_outline.forEach(step => {
+            content += `- ${step}\n`;
+        });
+        content += `**Hashtags:** ${idea.hashtags.join(', ')}\n\n`;
+    });
+
+    content += `## Monetization Strategies\n`;
+    report.monetizationStrategies.forEach(strategy => {
+        content += `### ${strategy.strategy}\n`;
+        content += `**Description:** ${strategy.description}\n`;
+        content += `**Requirements:** ${strategy.requirements}\n`;
+        content += `**Potential:** ${strategy.potential}\n\n`;
+    });
+
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `utrend_report_${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const formatFollowers = (num: number) => {
       if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
       if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
@@ -159,6 +195,15 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
 
       {report && (
         <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl animate-fade-in space-y-8">
+            <div className="flex justify-between items-center -mb-2">
+                <h2 className="text-3xl font-bold text-white">Your Strategy Report</h2>
+                <button
+                    onClick={() => handleDownloadReport(report, topic)}
+                    className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                    <Download className="w-4 h-4" /> Download Report
+                </button>
+            </div>
             {/* Trend Analysis Section */}
             <section>
                 <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><TrendingUp className="w-6 h-6 mr-3 text-violet-400"/> Trend Analysis</h3>

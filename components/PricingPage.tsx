@@ -1,9 +1,10 @@
 
+
 import React from 'react';
-import { plans } from '../data/plans';
-import { CheckCircle, Star } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { User } from '../types';
+import { plans } from '../data/plans.ts';
+import { CheckCircle, Star } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { User } from '../types.ts';
 
 interface PricingPageProps {
   onUpgradeClick: (plan: User['plan']) => void;

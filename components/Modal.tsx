@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { X } from './Icons';
+import { X } from './Icons.tsx';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
   if (!isOpen) return null;
 
   return (
@@ -33,6 +34,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         <main className="p-6 overflow-y-auto">
           {children}
         </main>
+        {footer && (
+          <footer className="flex items-center justify-end p-4 border-t border-slate-700 flex-shrink-0">
+            {footer}
+          </footer>
+        )}
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService';
-import Spinner from './Spinner';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
-import { useToast } from '../contexts/ToastContext';
+import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
+import Spinner from './Spinner.tsx';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { Tab } from '../types.ts';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 const loadingMessages = [
     "Kicking off the render...",
@@ -233,6 +233,37 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         }
     };
 
+    const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            setError("Failed to download video. Please try again.");
+            console.error(err);
+        }
+    };
+
+    const handleDownloadTranscript = () => {
+        if (!transcript) return;
+        const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `utrend_transcript_${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const handleCopyTranscript = () => {
         if (transcript) {
             navigator.clipboard.writeText(transcript);
@@ -377,6 +408,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     </video>
                     
                      <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={() => handleDownload(videoUrl, `utrend_video_${Date.now()}.mp4`)}
+                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                            >
+                               <Download className="w-5 h-5 mr-2" /> Download Video
+                            </button>
                              <button
                                 onClick={handleStartOver}
                                 className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
@@ -387,7 +424,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             <button
                                 onClick={handleGenerate}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
+                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
                                 title="Regenerate the video with the same prompt"
                             >
                                <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
@@ -437,8 +474,15 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                                     >
                                         <Copy className="w-4 h-4 text-slate-300" />
                                     </button>
+                                     <button 
+                                        onClick={handleDownloadTranscript}
+                                        className="p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 transition-colors"
+                                        title="Download transcript"
+                                    >
+                                        <Download className="w-4 h-4 text-slate-300" />
+                                    </button>
                                 </div>
-                                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans max-h-48 overflow-y-auto pr-24">
+                                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans max-h-48 overflow-y-auto pr-36">
                                     {transcript}
                                 </pre>
                             </div>

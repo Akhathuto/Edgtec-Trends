@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { generateAnimation, checkVideoStatus } from '../services/geminiService';
-import Spinner from './Spinner';
-import { Star, Clapperboard, RefreshCw } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { generateAnimation, checkVideoStatus } from '../services/geminiService.ts';
+import Spinner from './Spinner.tsx';
+import { Star, Clapperboard, RefreshCw, Download } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { Tab } from '../types.ts';
 
 const loadingMessages = [
     "Warming up the animation studio...",
@@ -109,7 +109,25 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         setOperation(null);
         setPrompt('');
         setAnimationStyle(animationStyles[0]);
-    }
+    };
+
+     const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            setError("Failed to download animation. Please try again.");
+            console.error(err);
+        }
+    };
 
     if (user?.plan !== 'pro') {
         return (
@@ -187,6 +205,12 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     </video>
                     
                      <div className="flex flex-col sm:flex-row gap-4">
+                        <button
+                            onClick={() => handleDownload(animationUrl, `utrend_animation_${Date.now()}.mp4`)}
+                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                        >
+                           <Download className="w-5 h-5 mr-2" /> Download Animation
+                        </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"

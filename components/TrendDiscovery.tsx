@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { findTrends, getTrendingContent } from '../services/geminiService';
-import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator } from '../types';
-import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video } from './Icons';
-import Spinner from './Spinner';
-import { useAuth } from '../contexts/AuthContext';
+import { findTrends, getTrendingContent } from '../services/geminiService.ts';
+import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator } from '../types.ts';
+import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video, Download } from './Icons.tsx';
+import Spinner from './Spinner.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 type TrendType = 'videos' | 'music' | 'creators';
 type Platform = 'YouTube' | 'TikTok';
@@ -204,6 +205,18 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
   
   const handleImageError = (index: number) => {
     setImageErrors(prev => ({ ...prev, [index]: true }));
+  };
+
+  const handleDownloadAnalysis = (analysis: string, topic: string) => {
+    const blob = new Blob([analysis], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trend_analysis_${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const formatTrends = (text: string) => {
@@ -428,7 +441,15 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
 
       {trends && (
         <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
-          <h3 className="text-2xl font-bold mb-2 text-slate-100">Trending Now for "{topic}" on {platform}</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-2xl font-bold text-slate-100">Trending Now for "{topic}" on {platform}</h3>
+            <button
+                onClick={() => handleDownloadAnalysis(trends, topic)}
+                className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+                <Download className="w-4 h-4" /> Download Analysis
+            </button>
+          </div>
           {(selectedCountry !== 'Worldwide' || selectedCategory !== 'All') && (
             <p className="text-slate-400 -mt-2 mb-4 text-sm">
               Filtered by: {

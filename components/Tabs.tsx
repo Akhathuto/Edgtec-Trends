@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Tab } from '../types';
-import { ChevronDown, Wand, FileText } from './Icons';
+import { Tab } from '../types.ts';
+import { ChevronDown, Wand, FileText } from './Icons.tsx';
 
 interface TabItem {
   id: Tab;

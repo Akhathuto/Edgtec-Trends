@@ -1,6 +1,7 @@
+
 import React from 'react';
-import { X, Star, CheckCircle } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
+import { X, Star, CheckCircle } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface UpgradeModalProps {
   isOpen: boolean;

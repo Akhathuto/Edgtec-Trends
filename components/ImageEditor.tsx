@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { editImage } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Edit, Star, UploadCloud, RefreshCw, FileText } from './Icons';
+import { Edit, Star, UploadCloud, RefreshCw, FileText, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 
@@ -100,6 +100,16 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     setEditedImage(null);
     setEditedText(null);
   };
+  
+  const handleDownloadImage = () => {
+    if (!editedImage) return;
+    const link = document.createElement('a');
+    link.href = editedImage.url; // The url is already a data URL
+    link.download = `utrend_edit_${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
    if (user?.plan !== 'pro') {
     return (
@@ -174,6 +184,13 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                      <button
+                        onClick={handleDownloadImage}
+                        disabled={!editedImage || loading}
+                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    >
+                        <Download className="w-5 h-5 mr-2" /> Download
+                    </button>
+                    <button
                         onClick={handleStartOver}
                         className="w-full sm:w-auto flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
                         title="Clear the current image and start over"
@@ -183,10 +200,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                     <button
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
-                        title="Generate the edited image"
+                        className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                        title="Regenerate the edited image"
                     >
-                        {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate</>}
+                       {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Regenerate</>}
                     </button>
                 </div>
             </div>

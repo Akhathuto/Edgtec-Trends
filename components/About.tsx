@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Info, Users } from './Icons';
+import { Info, Users } from './Icons.tsx';
 
 const DetailItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div>

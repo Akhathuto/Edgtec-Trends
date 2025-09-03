@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { getTickerTrends } from '../services/geminiService';
-import { TrendingUp, X } from './Icons';
+import { getTickerTrends } from '../services/geminiService.ts';
+import { TrendingUp, X } from './Icons.tsx';
 
 const TrendingTicker: React.FC = () => {
     const [trends, setTrends] = useState<string[]>([]);

@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { History, FileText, CheckCircle, Copy } from './Icons';
+import { History, FileText, CheckCircle, Copy, Download } from './Icons';
 import { HistoryItem, HistoryContentType } from '../types';
 import { format } from 'date-fns';
 import Modal from './Modal';
@@ -106,6 +107,7 @@ const HistoryModalContent: React.FC<{ item: HistoryItem | null }> = ({ item }) =
                 <div className="space-y-4">
                     <p className="text-slate-300"><strong>Prompt:</strong> {item.content.prompt}</p>
                     <p className="text-slate-300"><strong>Style:</strong> {item.content.style}</p>
+                    <p className="text-slate-300"><strong>Transparent Background:</strong> {item.content.transparentBg ? 'Yes' : 'No'}</p>
                     <div>
                         <h4 className="font-semibold text-center mb-2">Generated Logo</h4>
                         <img src={`data:image/png;base64,${item.content.logoBase64}`} alt="Generated Logo" className="rounded-lg w-48 h-48 mx-auto bg-slate-100 p-2" />
@@ -129,6 +131,112 @@ const ContentHistory: React.FC = () => {
         if (filter === 'All') return history;
         return history.filter(item => item.type === filter);
     }, [history, filter]);
+
+    const handleDownload = () => {
+        if (!selectedItem) return;
+
+        const { type, content } = selectedItem;
+        const filenameBase = `${type.replace(/\s+/g, '_')}_${Date.now()}`;
+
+        const downloadFile = (fileContent: string, filename: string, contentType: string) => {
+            const blob = new Blob([fileContent], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        const downloadBase64Image = (base64Data: string, filename: string, mimeType: string) => {
+            const link = document.createElement('a');
+            link.href = `data:${mimeType};base64,${base64Data}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        switch (type) {
+            case 'Content Idea': {
+                let textContent = `Title: ${content.title}\n\n`;
+                textContent += `Hook: ${content.hook}\n\n`;
+                textContent += `Script Outline:\n- ${content.script_outline.join('\n- ')}\n\n`;
+                textContent += `Hashtags: ${content.hashtags.join(', ')}`;
+                downloadFile(textContent, `${filenameBase}.txt`, 'text/plain;charset=utf-8');
+                break;
+            }
+            case 'Strategy Report': {
+                let mdContent = `# Content Strategy Report\n\n`;
+                mdContent += `## Trend Analysis\n${content.trendAnalysis}\n\n`;
+                mdContent += `## Content Ideas\n`;
+                content.contentIdeas.forEach((idea: any, index: number) => {
+                    mdContent += `### Idea ${index + 1}: ${idea.title}\n**Hook:** ${idea.hook}\n\n`;
+                });
+                mdContent += `## Monetization Strategies\n`;
+                content.monetizationStrategies.forEach((strategy: any) => {
+                    mdContent += `### ${strategy.strategy}\n**Description:** ${strategy.description}\n\n`;
+                });
+                downloadFile(mdContent, `${filenameBase}.md`, 'text/markdown;charset=utf-8');
+                break;
+            }
+            case 'Video Transcript': {
+                const textContent = `Prompt: ${content.prompt}\n\n---\n\nTranscript:\n${content.transcript}`;
+                downloadFile(textContent, `${filenameBase}.txt`, 'text/plain;charset=utf-8');
+                break;
+            }
+            case 'Generated Prompt': {
+                downloadFile(content.output, `${filenameBase}.txt`, 'text/plain;charset=utf-8');
+                break;
+            }
+            case 'Image Edit': {
+                downloadBase64Image(content.editedImageBase64, `${filenameBase}.png`, content.mimeType);
+                break;
+            }
+            case 'Keyword Analysis': {
+                downloadFile(JSON.stringify(content, null, 2), `${filenameBase}.json`, 'application/json');
+                break;
+            }
+            case 'Channel Growth Plan': {
+                let mdContent = `# Channel Growth Plan\n\n`;
+                Object.entries(content).forEach(([key, value]: [string, any]) => {
+                    const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    mdContent += `## ${title}\n\n**Analysis:**\n${value.analysis}\n\n**Recommendations:**\n${value.recommendations.map((rec: string) => `- ${rec}`).join('\n')}\n\n`;
+                });
+                downloadFile(mdContent, `${filenameBase}.md`, 'text/markdown;charset=utf-8');
+                break;
+            }
+            case 'Sponsorship Opportunities': {
+                const headers = "Brand Name,Industry,Relevance,Sponsor Match Score\n";
+                const csvContent = content.map((opp: any) => 
+                    `"${opp.brandName}","${opp.industry}","${opp.relevance.replace(/"/g, '""')}","${opp.sponsorMatchScore}"`
+                ).join('\n');
+                downloadFile(headers + csvContent, `${filenameBase}.csv`, 'text/csv;charset=utf-8');
+                break;
+            }
+            case 'Brand Pitch': {
+                const textContent = `Subject: ${content.pitch.subject}\n\n${content.pitch.body}`;
+                downloadFile(textContent, `${filenameBase}.txt`, 'text/plain;charset=utf-8');
+                break;
+            }
+            case 'Animation':
+            case 'GIF': {
+                const textContent = `Type: ${type}\nPrompt: ${content.prompt}\nStyle: ${content.style || 'N/A'}`;
+                downloadFile(textContent, `${filenameBase}_prompt.txt`, 'text/plain;charset=utf-8');
+                break;
+            }
+            case 'Logo': {
+                downloadBase64Image(content.logoBase64, `${filenameBase}.png`, 'image/png');
+                break;
+            }
+            default: {
+                downloadFile(JSON.stringify(content, null, 2), `${filenameBase}.json`, 'application/json');
+                break;
+            }
+        }
+    };
 
     return (
         <div className="animate-slide-in-up space-y-8">
@@ -180,7 +288,21 @@ const ContentHistory: React.FC = () => {
                 )}
             </div>
             
-            <Modal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem?.type || ''}>
+            <Modal
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                title={selectedItem?.type || ''}
+                footer={
+                    selectedItem && (
+                        <button
+                            onClick={handleDownload}
+                            className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                        >
+                            <Download className="w-4 h-4" /> Download
+                        </button>
+                    )
+                }
+            >
                 <HistoryModalContent item={selectedItem} />
             </Modal>
         </div>

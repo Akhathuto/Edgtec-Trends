@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { generateLogo } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Star, RefreshCw, PenTool } from './Icons';
+import { Star, RefreshCw, PenTool, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import GalleryModal from './GalleryModal';
 
 const logoStyles = ['Minimalist', 'Mascot', 'Abstract', 'Wordmark', 'Geometric', 'Vintage'];
 
@@ -15,9 +16,11 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [logoStyle, setLogoStyle] = useState(logoStyles[0]);
+    const [transparentBg, setTransparentBg] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [logoBase64, setLogoBase64] = useState<string | null>(null);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     
     const handleGenerate = useCallback(async () => {
         if (!prompt.trim()) {
@@ -29,12 +32,12 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
         setLogoBase64(null);
 
         try {
-            const result = await generateLogo(prompt, logoStyle);
+            const result = await generateLogo(prompt, logoStyle, transparentBg);
             setLogoBase64(result);
             addContentToHistory({
                 type: 'Logo',
                 summary: `Logo for "${prompt.substring(0, 30)}..."`,
-                content: { prompt, style: logoStyle, logoBase64: result }
+                content: { prompt, style: logoStyle, transparentBg, logoBase64: result }
             });
             logActivity(`generated a ${logoStyle} logo for "${prompt.substring(0, 30)}..."`, 'PenTool');
         } catch (e: any) {
@@ -42,13 +45,24 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
         } finally {
             setLoading(false);
         }
-    }, [prompt, logoStyle, addContentToHistory, logActivity]);
+    }, [prompt, logoStyle, transparentBg, addContentToHistory, logActivity]);
+
+    const handleDownloadLogo = () => {
+        if (!logoBase64) return;
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${logoBase64}`;
+        link.download = `utrend_logo_${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const handleStartOver = () => {
         setLogoBase64(null);
         setError(null);
         setPrompt('');
         setLogoStyle(logoStyles[0]);
+        setTransparentBg(true);
     }
 
     if (user?.plan !== 'pro') {
@@ -77,16 +91,30 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                 
                 {(!loading && !logoBase64) && (
                     <div className="space-y-4">
-                         <div>
-                             <label htmlFor="logo-style" className="block text-sm font-medium text-slate-300 mb-1">Logo Style</label>
-                             <select
-                                id="logo-style"
-                                value={logoStyle}
-                                onChange={(e) => setLogoStyle(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
-                             >
-                                {logoStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                             </select>
+                         <div className="grid grid-cols-2 gap-4">
+                             <div>
+                                 <label htmlFor="logo-style" className="block text-sm font-medium text-slate-300 mb-1">Logo Style</label>
+                                 <select
+                                    id="logo-style"
+                                    value={logoStyle}
+                                    onChange={(e) => setLogoStyle(e.target.value)}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                 >
+                                    {logoStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                 </select>
+                            </div>
+                            <div className="flex items-end pb-1.5">
+                                <div className="flex items-center">
+                                    <input
+                                        id="transparent-bg"
+                                        type="checkbox"
+                                        checked={transparentBg}
+                                        onChange={(e) => setTransparentBg(e.target.checked)}
+                                        className="w-4 h-4 text-violet-600 bg-slate-700 border-slate-500 rounded focus:ring-violet-500"
+                                    />
+                                    <label htmlFor="transparent-bg" className="ml-2 text-sm font-medium text-slate-300">Transparent Background</label>
+                                </div>
+                            </div>
                         </div>
                         <textarea
                             id="logo-prompt"
@@ -121,13 +149,25 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
                     <h3 className="text-2xl font-bold mb-4 text-center text-slate-100">Your Logo is Ready!</h3>
                     <div className="flex justify-center mb-4">
-                        <img 
-                            src={`data:image/png;base64,${logoBase64}`}
-                            alt="Generated Logo"
-                            className="w-64 h-64 rounded-lg bg-white shadow-lg p-2"
-                        />
+                        <button 
+                            onClick={() => setIsGalleryOpen(true)}
+                            className="w-64 h-64 rounded-lg bg-white shadow-lg p-2 group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-violet-500"
+                            aria-label="View generated logo in gallery"
+                        >
+                            <img 
+                                src={`data:image/png;base64,${logoBase64}`}
+                                alt="Generated Logo"
+                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                            />
+                        </button>
                     </div>
                      <div className="flex flex-col sm:flex-row gap-4">
+                        <button
+                            onClick={handleDownloadLogo}
+                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                        >
+                           <Download className="w-5 h-5 mr-2" /> Download
+                        </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
@@ -144,6 +184,12 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                     </div>
                 </div>
             )}
+             <GalleryModal 
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                imageUrl={logoBase64 ? `data:image/png;base64,${logoBase64}` : null}
+                altText="Generated Logo"
+            />
         </div>
     );
 };

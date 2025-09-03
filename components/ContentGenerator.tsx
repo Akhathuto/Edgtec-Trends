@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
-import { ContentIdea } from '../types';
-import Spinner from './Spinner';
-import { Lightbulb, CheckCircle, Star, FileText, Lock } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
+import { generateContentIdeas, generateVideoScript } from '../services/geminiService.ts';
+import { ContentIdea } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Lightbulb, CheckCircle, Star, FileText, Lock, Download } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface ContentGeneratorProps {
   onUpgradeClick: () => void;
@@ -61,6 +62,18 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
         console.error(e);
         setScriptData(prev => ({ ...prev, [index]: { loading: false, error: 'Failed to generate script.' } }));
     }
+  };
+
+  const handleDownloadScript = (script: string, title: string) => {
+    const blob = new Blob([script], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_script.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
   
   const isScriptLocked = user?.plan === 'free';
@@ -191,7 +204,15 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
                  {scriptData[index]?.error && <p className="text-red-400 text-xs text-center">{scriptData[index]?.error}</p>}
                  {idea.detailed_script && (
                      <div>
-                         <h4 className="font-semibold text-slate-200 mb-2">Generated Script:</h4>
+                        <div className="flex justify-between items-center mb-2">
+                             <h4 className="font-semibold text-slate-200">Generated Script:</h4>
+                             <button
+                                onClick={() => handleDownloadScript(idea.detailed_script!, idea.title)}
+                                className="flex items-center gap-2 text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 px-3 rounded-lg transition-colors"
+                            >
+                                <Download className="w-3 h-3" /> Download
+                            </button>
+                        </div>
                          <pre className="text-xs bg-slate-800/50 rounded-lg p-3 whitespace-pre-wrap font-mono text-slate-300 max-h-48 overflow-y-auto border border-slate-700">{idea.detailed_script}</pre>
                      </div>
                  )}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateGif, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Star, RefreshCw, Gif } from './Icons';
+import { Star, RefreshCw, Gif, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 
@@ -106,6 +106,24 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
         setOperation(null);
         setPrompt('');
     }
+    
+    const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            setError("Failed to download GIF. Please try again.");
+            console.error(err);
+        }
+    };
 
     if (user?.plan !== 'pro') {
         return (
@@ -166,12 +184,18 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
             {gifUrl && (
                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
                     <h3 className="text-2xl font-bold mb-4 text-center text-slate-100">Your GIF is Ready!</h3>
-                    <video controls autoPlay loop muted playsInline className="w-full rounded-lg mb-4 bg-black shadow-lg">
+                    <video controls autoPlay loop className="w-full rounded-lg mb-4 bg-black shadow-lg">
                         <source src={gifUrl} type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                     
-                     <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <button
+                            onClick={() => handleDownload(gifUrl, `utrend_gif_${Date.now()}.mp4`)}
+                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                        >
+                           <Download className="w-5 h-5 mr-2" /> Download GIF
+                        </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"

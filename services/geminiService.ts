@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse, Modality } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch } from '../types';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch } from '../types.ts';
 
 const API_KEY = process.env.API_KEY;
 
@@ -505,9 +505,12 @@ export const editImage = async (
     }
 };
 
-export const generateLogo = async (prompt: string, style: string): Promise<string> => {
+export const generateLogo = async (prompt: string, style: string, transparentBg: boolean): Promise<string> => {
     try {
-        const modifiedPrompt = `Generate a professional, vector-style logo for a brand described as: "${prompt}". The logo must be in a ${style} style. It should be simple, memorable, and suitable for a profile picture. Use a solid white or transparent background.`;
+        const backgroundInstruction = transparentBg
+            ? "The logo must have a transparent background."
+            : "The logo should have a solid, simple, non-distracting background.";
+        const modifiedPrompt = `Generate a professional, vector-style logo for a brand described as: "${prompt}". The logo must be in a ${style} style. It should be simple, memorable, and suitable for a profile picture. ${backgroundInstruction}`;
         const response = await ai.models.generateImages({
             model: 'imagen-4.0-generate-001',
             prompt: modifiedPrompt,
