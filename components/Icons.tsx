@@ -9,11 +9,29 @@ export const Activity: React.FC<IconProps> = (props) => (
   </svg>
 );
 
+export const ArrowLeft: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="m12 19-7-7 7-7"/>
+    <path d="M19 12H5"/>
+  </svg>
+);
+
 export const BarChart2: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <line x1="18" y1="20" x2="18" y2="10" />
     <line x1="12" y1="20" x2="12" y2="4" />
     <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
+
+export const Bot: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 8V4H8" />
+    <rect width="16" height="12" x="4" y="8" rx="2" />
+    <path d="M2 14h2" />
+    <path d="M20 14h2" />
+    <path d="M15 13v2" />
+    <path d="M9 13v2" />
   </svg>
 );
 
@@ -319,6 +337,16 @@ export const Save: React.FC<IconProps> = (props) => (
         <polyline points="17 21 17 13 7 13 7 21" />
         <polyline points="7 3 7 8 15 8" />
     </svg>
+);
+
+export const Scissors: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="6" cy="6" r="3" />
+    <circle cx="6" cy="18" r="3" />
+    <line x1="20" y1="4" x2="8.12" y2="15.88" />
+    <line x1="14.47" y1="14.48" x2="20" y2="20" />
+    <line x1="8.12" y1="8.12" x2="12" y2="12" />
+  </svg>
 );
 
 export const Trash2: React.FC<IconProps> = (props) => (

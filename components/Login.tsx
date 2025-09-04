@@ -40,7 +40,7 @@ const Login: React.FC = () => {
                      <p className="text-slate-400">Your AI-powered content assistant.</p>
                 </div>
                 
-                <div className="bg-brand-glass rounded-2xl p-8 shadow-glow-violet">
+                <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-8 shadow-glow-violet">
                     <h2 className="text-2xl font-bold text-center mb-6 text-glow">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
                     {error && <p className="bg-red-500/20 text-red-300 text-center text-sm p-3 rounded-lg mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-6">

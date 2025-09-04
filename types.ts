@@ -8,6 +8,7 @@ export enum Tab {
   Video = 'video',
   AnimationCreator = 'animation-creator',
   ImageEditor = 'image-editor',
+  VideoEditor = 'video-editor',
   Keywords = 'keywords',
   Chat = 'chat',
   Analytics = 'analytics',
@@ -26,6 +27,7 @@ export enum Tab {
   LogoCreator = 'logo-creator',
   VideoAnalyzer = 'video-analyzer',
   RepurposeContent = 'repurpose-content',
+  Agents = 'agents',
 }
 
 export interface Channel {

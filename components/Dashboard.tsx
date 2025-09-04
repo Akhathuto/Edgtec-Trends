@@ -65,12 +65,12 @@ const QuickCreateCard: React.FC<{ setActiveTab: (tab: Tab) => void }> = ({ setAc
 );
 
 const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
-    const iconBase = "w-4 h-4";
+    const iconBase = "w-5 h-5"; // Made icon slightly larger
     switch (trend) {
         case 'up': return <TrendingUp className={`${iconBase} text-green-400`} />;
         case 'down': return <TrendingDown className={`${iconBase} text-red-400`} />;
-        case 'stable': return <span className="font-bold text-slate-500 w-4 h-4 flex items-center justify-center">-</span>;
-        default: return null;
+        case 'stable': return <span className="font-bold text-slate-500 w-5 h-5 flex items-center justify-center">-</span>;
+        default: return <div className="w-5 h-5"></div>; // Placeholder for alignment
     }
 };
 
@@ -108,44 +108,44 @@ const YourChannelsCard: React.FC<{
             ) : enrichedChannels.length === 0 ? (
                  <p className="text-slate-400 text-sm">Connect your channels in your profile to see stats here.</p>
             ) : (
-                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
                     {enrichedChannels.map(channel => {
                         const growthValue = channel.weeklyViewGrowth ? parseFloat(channel.weeklyViewGrowth) : 0;
                         const growthColor = growthValue > 0 ? 'text-green-400' : growthValue < 0 ? 'text-red-400' : 'text-slate-400';
 
                         return (
-                            <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-violet-rich/20 p-4 rounded-lg transition-colors flex flex-col gap-3 border border-slate-700/50 hover:border-violet-light">
-                                <div className="flex items-start justify-between">
+                            <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-violet-rich/20 p-4 rounded-lg transition-colors border border-slate-700/50 hover:border-violet-light">
+                                <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                         {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500 flex-shrink-0" /> : <TikTok className="w-6 h-6 text-white flex-shrink-0" />}
                                         <span className="font-semibold truncate" title={channel.url}>{channel.url.split('/').pop() || channel.url}</span>
                                     </div>
-                                    {channel.weeklyViewGrowth && (
-                                        <div className="text-right flex-shrink-0">
-                                            <p className="text-xs text-slate-400">Weekly Growth</p>
-                                            <div className={`text-sm font-bold flex items-center justify-end gap-1 ${growthColor}`}>
-                                                {growthValue > 0 ? <TrendingUp className="w-4 h-4"/> : growthValue < 0 ? <TrendingDown className="w-4 h-4"/> : null}
-                                                {channel.weeklyViewGrowth}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                                <div className="flex items-center justify-around gap-4 text-sm pt-3 border-t border-slate-700/50">
-                                    <div className="text-center">
-                                        <p className="text-xs text-slate-400">Followers</p>
-                                        <div className="flex items-center justify-center gap-1.5 font-semibold text-slate-200">
+                                
+                                <div className="grid grid-cols-3 gap-4 text-center border-t border-b border-slate-700/50 py-4">
+                                     <div>
+                                        <p className="text-xs text-slate-400 mb-1">Followers</p>
+                                        <div className="flex items-center justify-center gap-1.5 font-bold text-slate-100 text-xl">
                                             {channel.followerCount || 'N/A'}
                                             {renderTrendIcon(channel.followerTrend)}
                                         </div>
                                     </div>
-                                    <div className="text-center">
-                                        <p className="text-xs text-slate-400">Total Views</p>
-                                        <div className="flex items-center justify-center gap-1.5 font-semibold text-slate-200">
+                                    <div>
+                                        <p className="text-xs text-slate-400 mb-1">Total Views</p>
+                                        <div className="flex items-center justify-center gap-1.5 font-bold text-slate-100 text-xl">
                                             {channel.totalViews || 'N/A'}
                                             {renderTrendIcon(channel.viewsTrend)}
                                         </div>
                                     </div>
+                                     <div className="border-l border-slate-700/50 pl-4">
+                                        <p className="text-xs text-slate-400 mb-1">7-Day Growth</p>
+                                        <div className={`text-xl font-bold flex items-center justify-center gap-1 ${growthColor}`}>
+                                            {growthValue > 0 ? <TrendingUp className="w-5 h-5"/> : growthValue < 0 ? <TrendingDown className="w-5 h-5"/> : null}
+                                            {channel.weeklyViewGrowth || 'N/A'}
+                                        </div>
+                                    </div>
                                 </div>
+                                <p className="text-center text-xs text-slate-500 pt-2">Click to view full analytics</p>
                             </button>
                         )
                     })}

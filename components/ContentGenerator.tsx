@@ -98,7 +98,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onUpgradeClick }) =
 
   return (
     <div className="animate-slide-in-up">
-      <div className="bg-brand-glass rounded-xl p-6 shadow-xl">
+      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl">
         <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow">Generate Viral Ideas</h2>
         <p className="text-center text-slate-400 mb-6">Let AI brainstorm your next hit video. {getLimitText()}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { findTrends, getTrendingContent } from '../services/geminiService.ts';
-import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator } from '../types.ts';
-import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video, Download } from './Icons.tsx';
+import { findTrends, getTrendingContent, getRealtimeTrends } from '../services/geminiService.ts';
+import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator, TrendingTopic, TrendingChannel } from '../types.ts';
+import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video, Download, TrendingUp, Sparkles } from './Icons.tsx';
 import Spinner from './Spinner.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
-type TrendType = 'videos' | 'music' | 'creators';
+type TrendType = 'videos' | 'music' | 'creators' | 'topics';
 type Platform = 'YouTube' | 'TikTok';
 
 interface TrendDiscoveryProps {
@@ -52,23 +52,23 @@ const VideoCard: React.FC<{ video: TrendingVideo; index: number; onImageError: (
     const [isClamped, setIsClamped] = useState(false);
 
     useEffect(() => {
+        const element = titleRef.current;
+        if (!element) return;
+        
         const checkClamping = () => {
-            if (titleRef.current) {
-                const isOverflowing = titleRef.current.scrollHeight > titleRef.current.clientHeight;
-                if (isOverflowing !== isClamped) {
-                    setIsClamped(isOverflowing);
-                }
-            }
+            const isOverflowing = element.scrollHeight > element.clientHeight;
+            setIsClamped(isOverflowing);
         };
 
-        const timer = setTimeout(checkClamping, 50);
-        window.addEventListener('resize', checkClamping);
+        checkClamping();
 
+        const resizeObserver = new ResizeObserver(checkClamping);
+        resizeObserver.observe(element);
+        
         return () => {
-            clearTimeout(timer);
-            window.removeEventListener('resize', checkClamping);
+            resizeObserver.disconnect();
         };
-    }, [isClamped, isExpanded, video.title]);
+    }, [isExpanded, video.title]);
 
     const toggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -138,6 +138,10 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
   const [realtimeTrends, setRealtimeTrends] = useState<any[]>([]);
   const [realtimeLoading, setRealtimeLoading] = useState(true);
   const [realtimeError, setRealtimeError] = useState<string | null>(null);
+
+  const [overview, setOverview] = useState<{ channels: TrendingChannel[], topics: TrendingTopic[] }>({ channels: [], topics: [] });
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
   
   const [platform, setPlatform] = useState<Platform>('YouTube');
   const [selectedCountry, setSelectedCountry] = useState('Worldwide');
@@ -168,9 +172,28 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
     }
   }, [user, selectedCountry, selectedCategory, activeTrendType, platform]);
 
+  const fetchOverviewTrends = useCallback(async () => {
+    if (!user) return;
+    try {
+        setOverviewLoading(true);
+        setOverviewError(null);
+        const result = await getRealtimeTrends(user.plan, selectedCountry);
+        setOverview(result);
+    } catch (e: any) {
+        setOverviewError(e.message || `Could not load trend overview.`);
+        console.error(e);
+    } finally {
+        setOverviewLoading(false);
+    }
+  }, [user, selectedCountry]);
+
   useEffect(() => {
     fetchRealtimeTrends();
   }, [fetchRealtimeTrends]);
+
+  useEffect(() => {
+    fetchOverviewTrends();
+  }, [fetchOverviewTrends]);
 
   const handleSearch = async () => {
     if (!topic.trim()) {
@@ -289,6 +312,63 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
     </div>
   );
   
+  const renderTopicCard = (topic: TrendingTopic, index: number) => (
+    <div key={`topic-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 flex flex-col">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-shrink-0 w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
+          <TrendingUp className="w-5 h-5 text-purple-300" />
+        </div>
+        <div className="min-w-0">
+          <h4 className="font-bold text-purple-300 truncate" title={topic.name}>{topic.name}</h4>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+              {topic.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500"/> : <TikTok className="w-4 h-4"/>}
+              <span>{topic.platform}</span>
+          </div>
+        </div>
+      </div>
+      <p className="text-sm text-slate-300 line-clamp-3 flex-grow">{topic.description}</p>
+    </div>
+  );
+
+  const renderOverviewChannelCard = (channel: TrendingChannel, index: number) => (
+    <a href={channel.channel_url} target="_blank" rel="noopener noreferrer" key={`channel-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group block">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0">
+          {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500"/> : <TikTok className="w-6 h-6"/>}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-bold text-violet-300 truncate" title={channel.name}>{channel.name}</h4>
+          <p className="text-sm text-slate-300 mt-1 line-clamp-2">{channel.description}</p>
+        </div>
+        <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-violet-300 transition-colors flex-shrink-0" />
+      </div>
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400">
+        <div className="flex items-center gap-1.5">
+          <Users className="w-3.5 h-3.5" />
+          <span>{channel.subscriber_count}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Eye className="w-3.5 h-3.5" />
+          <span>{channel.view_count}</span>
+        </div>
+      </div>
+    </a>
+  );
+  
+  const renderOverviewTopicCard = (topic: TrendingTopic, index: number) => (
+    <div key={`topic-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
+            <TrendingUp className="w-4 h-4 text-purple-300" />
+        </div>
+        <div className="min-w-0 flex-1">
+            <h4 className="font-bold text-purple-300 truncate" title={topic.name}>{topic.name}</h4>
+            <p className="text-sm text-slate-300 mt-1 line-clamp-2">{topic.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+  
   const renderContent = () => {
       if (realtimeLoading) {
           return (
@@ -306,7 +386,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
       }
       
       let gridClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4";
-      if (activeTrendType === 'music' || activeTrendType === 'creators') {
+      if (activeTrendType === 'music' || activeTrendType === 'creators' || activeTrendType === 'topics') {
           gridClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
       }
 
@@ -317,6 +397,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
                       case 'videos': return <VideoCard video={item as TrendingVideo} index={index} onImageError={handleImageError} imageErrors={imageErrors} key={`video-${index}`} />;
                       case 'music': return renderMusicCard(item as TrendingMusic, index);
                       case 'creators': return renderCreatorCard(item as TrendingCreator, index);
+                      case 'topics': return renderTopicCard(item as TrendingTopic, index);
                       default: return null;
                   }
               })}
@@ -326,10 +407,46 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
 
   return (
     <div className="animate-slide-in-up space-y-8">
-       {/* Real-time Trends Section */}
+      {/* Today's Trend Snapshot */}
       <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-3 mb-1"><Zap className="w-6 h-6 text-yellow-400"/>Real-time Trends</h2>
-        <p className="text-center text-slate-400 mb-6">Discover what's trending right now.</p>
+        <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-3 mb-6">
+            <Sparkles className="w-6 h-6 text-yellow-400"/>
+            Today's Trend Snapshot
+        </h2>
+        {overviewLoading ? (
+            <div className="text-center py-10"><Spinner /><p className="mt-2 text-sm text-slate-400">Fetching trend snapshot...</p></div>
+        ) : overviewError ? (
+            <p className="text-red-400 text-center py-10">{overviewError}</p>
+        ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+                <h3 className="text-xl font-bold text-violet-300 mb-4">Trending Channels</h3>
+                <div className="space-y-4">
+                {overview.channels.length > 0 ? (
+                    overview.channels.map((channel, index) => renderOverviewChannelCard(channel, index))
+                ) : (
+                    <p className="text-slate-500 text-sm">No trending channels found right now.</p>
+                )}
+                </div>
+            </div>
+            <div>
+                <h3 className="text-xl font-bold text-violet-300 mb-4">Trending Topics</h3>
+                <div className="space-y-4">
+                {overview.topics.length > 0 ? (
+                    overview.topics.map((topic, index) => renderOverviewTopicCard(topic, index))
+                ) : (
+                    <p className="text-slate-500 text-sm">No trending topics found right now.</p>
+                )}
+                </div>
+            </div>
+            </div>
+        )}
+      </div>
+
+       {/* Explore Trends by Category Section */}
+      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+        <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-3 mb-1"><Zap className="w-6 h-6 text-yellow-400"/>Explore Trends by Category</h2>
+        <p className="text-center text-slate-400 mb-6">Discover what's trending right now in specific categories.</p>
 
         {/* Platform Selector */}
         <div className="flex justify-center mb-6">
@@ -389,6 +506,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
             <button onClick={() => setActiveTrendType('videos')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'videos' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Videos</button>
             <button onClick={() => setActiveTrendType('music')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'music' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Music</button>
             <button onClick={() => setActiveTrendType('creators')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'creators' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Creators</button>
+            <button onClick={() => setActiveTrendType('topics')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'topics' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Topics</button>
         </div>
 
         {renderContent()}

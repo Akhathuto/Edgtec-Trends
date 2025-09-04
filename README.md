@@ -1,10 +1,17 @@
 <div align="center">
   <br />
-  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJ1dHJlbmQtZ3JhZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2E3OGJmYSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM3YzNhZWQiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTQgMjBWMTBDNCA2LjY4NjI5IDYuNjg2MjkgNCAxMCA0SDE0QzE3LjMxMzcgNCAyMCA2LjY4NjI5IDIwIDEwVjE0IiBzdHJva2U9InVybCgjdXRyZW5kLWdyYWQpIi8+PHBhdGggZD0iTTE1IDlMMjAgNEwyMCA5IiBzdHJva2U9InVybCgjdXRyZW5kLWdyYWQpIi8+PC9zdmc+" width="120" alt="utrend Logo">
-  <h1 style="font-size: 3em; font-weight: bold; margin-bottom: 0;">utrend</h1>
-  <p style="font-size: 1.2em;">Your AI Content Co-Pilot</p>
+  <img src="https://i.imgur.com/7w5y2f3.png" width="180" alt="EdgTec Logo">
+  <h1 style="font-size: 3em; font-weight: bold; margin-bottom: 0;">EdgTec</h1>
+  <p style="font-size: 1.2em;">The All-in-One AI Content Suite for Creators</p>
   <br />
 </div>
+
+<div align="center">
+  <h3>Showcase</h3>
+  <img src="https://i.imgur.com/u1vJ7rS.jpeg" width="80%" alt="EdgTec Application Showcase">
+</div>
+
+<br />
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
@@ -17,48 +24,63 @@
 
 ## About The App
 
-`utrend` is an all-in-one, AI-powered assistant designed to help YouTube and TikTok content creators ideate, strategize, and grow their channels. Powered by Google's Gemini API, `utrend` provides the tools and insights necessary to stay ahead of the curve and produce viral content. It's a strategic partner that helps you:
-- **Discover what's next:** Identify real-time trends on YouTube and TikTok, ensuring your content is always relevant.
-- **Generate viral ideas:** Overcome creative blocks with AI-powered video ideas, complete with hooks, outlines, and hashtags.
-- **Craft the perfect strategy:** Get personalized monetization strategies and full, in-depth content reports tailored to your channel's size and niche.
-- **Create with AI:** Generate entire videos from a simple text prompt, edit images with AI instructions, and craft the perfect prompt for any AI task.
-- **Analyze and Optimize:** Get live, AI-powered analytics for your YouTube channel and perform deep keyword research to optimize your content's reach.
+`EdgTec` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `EdgTec` provides a comprehensive toolkit and a team of AI experts to help you stay ahead of the curve. It's a strategic partner that helps you:
+- **Discover what's next:** Identify real-time trends on YouTube and TikTok to ensure your content is always relevant.
+- **Create with AI:** Go from idea to finished asset with a suite of AI tools, including idea generators, scriptwriters, video and image creators, and more.
+- **Develop winning strategies:** Get personalized monetization strategies, full content reports, and data-driven growth plans.
+- **Analyze and Optimize:** Get live, AI-powered analytics for your channels, perform deep keyword research, and analyze competitor videos to refine your approach.
+- **Collaborate with AI Agents:** Work with a team of specialized AI experts, each with a unique skill set to help you with any task.
 
 <details>
 <summary><strong>... See More</strong></summary>
 <br>
 
 ## ✨ What's New in the Current Update
-- **Revamped Admin Dashboard:** The dashboard now features a tabbed interface with a new "Overview" section displaying key user stats and a real-time, persistent activity feed showing key user actions across the platform.
+- **New Feature: AI Agents!** Meet your new creative team: Viral Visionary, Growth Hacker, Monetization Maven, and Creative Writer. Each agent is a specialized expert ready to assist you in their own dedicated chat interface.
+- **Complete Rebrand to EdgTec:** The application has been rebranded to `EdgTec`, reflecting its position as a cutting-edge, all-in-one content suite.
+- **New Comprehensive Help Center:** The old support page has been upgraded to a full-featured, interactive Help Center with detailed guides and direct links to every feature in the app.
+- **Persistent Sidebar Navigation:** The top navigation tabs have been replaced with a more organized and persistent sidebar, making it easier than ever to navigate the expanding suite of tools.
 - **Full User Management:** Administrators can now delete users directly from the "User Management" tab within the dashboard, with appropriate safety confirmations.
-- **Persistent Sidebar Navigation:** Replaced the top tabs with a more organized and persistent sidebar navigation for a better user experience.
 
 ## Key Features
 
-- **Real-time Trend Discovery:** Find out what's currently trending in any country or category on YouTube and TikTok.
-- **AI Content Idea Generation:** Generate unique and viral video ideas, complete with scripts.
-- **Monetization Guide:** Receive tailored strategies to monetize your content based on your follower count.
-- **Keyword Research Tool:** Analyze keyword search volume and competition to find untapped content opportunities.
-- **Live Channel Analytics:** Connect your YouTube channel for an AI-powered performance summary and analysis.
-- **AI Video & Image Generation:** Create video content and edit images using simple text prompts.
-- **AI Chat Assistant "Nolo":** Brainstorm ideas and get creative advice from a dedicated AI chat assistant.
-- **Full Strategy Reports:** A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report.
-- **Advanced Admin Dashboard:** A secure panel for administrators to manage users (update plans, roles, and delete users), view platform statistics, and monitor a live feed of user activity.
-- **Modern UI:** A clean, intuitive, and responsive interface with persistent sidebar navigation.
+- **Discovery & Analytics:**
+    - **Real-time Trend Discovery:** Find out what's currently trending in any country or category on YouTube and TikTok.
+    - **Live Channel Analytics:** Connect your channels for an AI-powered performance summary or analyze any competitor's channel.
+    - **Keyword Research Tool:** Analyze keyword search volume and competition to find untapped content opportunities.
+    - **Video Analyzer:** Get an AI-powered breakdown of any YouTube or TikTok video's strengths and weaknesses.
+
+- **AI Create Suite:**
+    - **Content Idea Generation:** Generate unique and viral video ideas, complete with hooks, outlines, and hashtags.
+    - **AI Video & Animation Generation:** Create video content and animations using simple text prompts.
+    - **AI Image & Logo Generation:** Create logos and edit images with natural language instructions.
+    - **AI Script Generation:** Turn any content idea into a production-ready script.
+
+- **Strategy & Growth:**
+    - **AI Agents:** A team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting.
+    - **Monetization Guide:** Receive tailored strategies to monetize your content based on your follower count.
+    - **Full Strategy Reports:** A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report.
+    - **Channel Growth Plan:** Get a custom, multi-point growth plan for your channel.
+    - **Brand Connect:** Find potential brand sponsors and generate professional pitch emails.
+
+- **Productivity & Management:**
+    - **AI Chat Assistant "Nolo":** Brainstorm ideas and get creative advice from a dedicated AI chat assistant.
+    - **Content History:** View and revisit all of your previously generated content in one place.
+    - **Advanced Admin Dashboard:** A secure panel for administrators to manage users, view platform statistics, and monitor a live feed of user activity.
 
 ## Key Outputs & Deliverables
 
-`utrend` is designed to produce tangible, actionable content and strategies that you can directly implement. Here are the key outputs you can generate:
+`EdgTec` is designed to produce tangible, actionable content and strategies that you can directly implement. Here are the key outputs you can generate:
 
--   **📈 In-Depth Trend Reports:** Get detailed analysis of what's currently trending for any topic on YouTube and TikTok, including viral challenges, popular sounds, and video formats.
--   **💡 Viral Content Blueprints:** Generate multiple content ideas complete with catchy titles, strong hooks (for the first 3 seconds), script outlines, and relevant hashtags.
--   **✍️ Production-Ready Scripts:** Turn a content idea into a complete, detailed video script with dialogue, visual cues, and calls to action.
--   **💰 Custom Monetization Plans:** Receive a list of suitable monetization strategies based on your platform and follower count, including requirements and earning potential.
--   **📄 Comprehensive Strategy Documents:** A Pro-exclusive feature that combines trend analysis, content ideas, and monetization strategies into a single, downloadable report for long-term planning.
--   **🎬 AI-Generated Videos:** Create short-form or long-form videos directly from a text prompt or by animating a static image.
--   **🖼️ AI-Edited Images:** Magically edit your images by simply telling the AI what changes to make (e.g., "add a hat," "change the background to a futuristic city").
--   **🔍 SEO Keyword Analysis:** Uncover valuable keywords with data on search volume, competition level, and related long-tail keywords to boost your video's visibility.
--   **📊 Live Channel Dashboards:** Get a real-time, AI-powered analytics report for your connected YouTube channel, summarizing performance and highlighting recent video stats.
+-   **📈 In-Depth Trend Reports:** Get detailed analysis of what's currently trending for any topic on YouTube and TikTok.
+-   **💡 Viral Content Blueprints:** Generate multiple content ideas complete with catchy titles, strong hooks, script outlines, and relevant hashtags.
+-   **✍️ Production-Ready Scripts:** Turn a content idea into a complete, detailed video script with dialogue and visual cues.
+-   **💰 Custom Monetization Plans:** Receive a list of suitable monetization strategies based on your platform and follower count.
+-   **📄 Comprehensive Strategy Documents:** A Pro-exclusive feature that combines trend analysis, content ideas, and monetization into a single, downloadable report.
+-   **🎬 AI-Generated Videos, Animations & GIFs:** Create short-form or long-form videos, animations, and GIFs directly from a text prompt.
+-   **🎨 AI-Generated Logos & Images:** Create a professional logo for your brand or edit any image with text prompts.
+-   **🔍 SEO Keyword Analysis:** Uncover valuable keywords with data on search volume, competition, and related long-tail keywords.
+-   **📊 Live Channel Dashboards:** Get a real-time, AI-powered analytics report for your connected channels.
 
 ## 🚀 Getting Started
 
@@ -92,7 +114,7 @@ Since this project is a modern frontend application, you can run it using any si
 
 2.  **Navigate to the project's root directory:**
     ```bash
-    cd path/to/your/utrend-folder
+    cd path/to/your/edgtec-folder
     ```
 
 3.  **Run the app using `npx` (this downloads and runs `serve` without a global installation):**
@@ -114,8 +136,8 @@ This application is built with a modern frontend stack, leveraging the power of 
 
 ## License and Intellectual Property
 
--   **Proprietary Property:** This software, including its source code, visual design, features, and the "utrend" name and logo, are the proprietary property and trademarks of EDGTEC. All rights are reserved.
--   **Limited License:** EDGTEC grants you a limited, non-exclusive, non-transferable, revocable license to use the `utrend` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
+-   **Proprietary Property:** This software, including its source code, visual design, features, and the "EdgTec" name and logo, are the proprietary property and trademarks of EDGTEC. All rights are reserved.
+-   **Limited License:** EDGTEC grants you a limited, non-exclusive, non-transferable, revocable license to use the `EdgTec` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
 -   **Restrictions:** Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of EDGTEC.
 
 **Copyright (c) 2024 EDGTEC. All Rights Reserved.**
@@ -126,11 +148,11 @@ This application is built with a modern frontend stack, leveraging the power of 
 
 **Last Updated: August 1, 2024**
 
-By using `utrend`, you agree to the following terms and conditions:
+By using `EdgTec`, you agree to the following terms and conditions:
 
 1.  **Acceptance of Terms:** Your access to and use of the application constitutes your binding agreement to these Terms of Use. If you do not agree to these terms, you must not use the application.
 
-2.  **Eligibility:** You must be at least 18 years of age to use this application. By using `utrend`, you represent and warrant that you meet this age requirement.
+2.  **Eligibility:** You must be at least 18 years of age to use this application. By using `EdgTec`, you represent and warrant that you meet this age requirement.
 
 3.  **User Accounts & Responsibility:** You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.
 
@@ -164,7 +186,7 @@ By using `utrend`, you agree to the following terms and conditions:
 
 ## Powered by EDGTEC
 
-`utrend` is proudly developed by **EDGTEC**, a forward-thinking technology company based in South Africa.
+`EdgTec` is proudly developed by **EDGTEC**, a forward-thinking technology company based in South Africa.
 
 **Our Mission:** To empower creators and businesses with innovative, accessible, and intelligent software solutions. We believe in leveraging the power of artificial intelligence to solve real-world challenges and unlock new creative potential.
 
@@ -179,7 +201,7 @@ By using `utrend`, you agree to the following terms and conditions:
 
 ### Ownership
 
-`utrend` is driven by the vision of its directors:
+`EdgTec` is driven by the vision of its directors:
 - **Ranthutu Lepheane** (r.lepheane@outlook.com)
 - **Siphosakhe Mathews Msimango** (siphosakhemsimanngo@gmail.com)
 </details>

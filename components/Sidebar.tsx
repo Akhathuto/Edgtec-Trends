@@ -27,7 +27,7 @@ const NavItem: React.FC<{
         title={item.title}
         className={`w-full flex items-center py-2.5 px-3 text-sm font-semibold rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-light focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
         isActive
-            ? 'bg-gradient-to-r from-violet-rich to-violet text-white shadow-lg shadow-violet/20'
+            ? 'bg-gradient-to-r from-violet-rich to-violet text-white shadow-glow-lg'
             : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
         }`}
     >

@@ -8,6 +8,7 @@ import StrategyReport from './StrategyReport.tsx';
 import VideoGenerator from './VideoGenerator.tsx';
 import AnimationCreator from './AnimationCreator.tsx';
 import ImageEditor from './ImageEditor.tsx';
+import VideoEditor from './VideoEditor.tsx';
 import AIChat from './AIChat.tsx';
 import About from './About.tsx';
 import UserProfile from './UserProfile.tsx';
@@ -27,9 +28,10 @@ import GifCreator from './GifCreator.tsx';
 import LogoCreator from './LogoCreator.tsx';
 import VideoAnalyzer from './VideoAnalyzer.tsx';
 import RepurposeContent from './RepurposeContent.tsx';
+import AIAgents from './AIAgents.tsx';
 import { Tab, User } from '../types.ts';
 import Sidebar from './Sidebar.tsx';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool, Film, RefreshCw } from './Icons.tsx';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool, Film, RefreshCw, Scissors, Bot } from './Icons.tsx';
 import TrendingTicker from './TrendingTicker.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
@@ -91,6 +93,8 @@ const AppLayout: React.FC = () => {
         return <LogoCreator setActiveTab={setActiveTab} />;
       case Tab.ImageEditor:
         return <ImageEditor setActiveTab={setActiveTab} />;
+      case Tab.VideoEditor:
+        return <VideoEditor setActiveTab={setActiveTab} />;
       case Tab.VideoAnalyzer:
         return <VideoAnalyzer setActiveTab={setActiveTab} />;
       case Tab.RepurposeContent:
@@ -107,6 +111,8 @@ const AppLayout: React.FC = () => {
         return <BrandConnect setActiveTab={setActiveTab} />;
       case Tab.ContentHistory:
         return <ContentHistory />;
+      case Tab.Agents:
+        return <AIAgents setActiveTab={setActiveTab} />;
       case Tab.Pricing:
         return <PricingPage onUpgradeClick={handleUpgradeClick} />;
       case Tab.About:
@@ -145,6 +151,7 @@ const AppLayout: React.FC = () => {
     { id: Tab.GifCreator, label: 'GIF Creator', icon: <Gif className="w-5 h-5 mr-3" />, title: "Generate GIFs" },
     { id: Tab.LogoCreator, label: 'Logo Creator', icon: <PenTool className="w-5 h-5 mr-3" />, title: "Generate a logo" },
     { id: Tab.ImageEditor, label: 'Image Editor', icon: <Edit className="w-5 h-5 mr-3" />, title: "Edit images with AI" },
+    { id: Tab.VideoEditor, label: 'Video Editor', icon: <Scissors className="w-5 h-5 mr-3" />, title: "Edit videos with AI" },
   ];
 
   const strategyTabs = [
@@ -154,12 +161,13 @@ const AppLayout: React.FC = () => {
     { id: Tab.VideoAnalyzer, label: 'Video Analyzer', icon: <Film className="w-5 h-5 mr-3" />, title: "Analyze a YouTube or TikTok video" },
     { id: Tab.RepurposeContent, label: 'Repurpose', icon: <RefreshCw className="w-5 h-5 mr-3" />, title: "Repurpose video content" },
     { id: Tab.BrandConnect, label: 'Brand Connect', icon: <Briefcase className="w-5 h-5 mr-3" />, title: "Find brand sponsorships" },
+    { id: Tab.Agents, label: 'AI Agents', icon: <Bot className="w-5 h-5 mr-3" />, title: "Chat with specialized AI Agents" },
   ];
 
   const userMenuTabs = [
       { id: Tab.Profile, label: 'Profile', icon: <UserIcon className="w-5 h-5 mr-2" />, title: "View your user profile" },
       { id: Tab.Pricing, label: 'Pricing', icon: <Star className="w-5 h-5 mr-2" />, title: "View plans and upgrade" },
-      { id: Tab.Support, label: 'Support', icon: <HelpCircle className="w-5 h-5 mr-2" />, title: "Get help and view FAQs" },
+      { id: Tab.Support, label: 'Help Center', icon: <HelpCircle className="w-5 h-5 mr-2" />, title: "Visit the Help Center" },
       { id: Tab.Contact, label: 'Contact', icon: <Mail className="w-5 h-5 mr-2" />, title: "Contact our support team" },
       { id: Tab.About, label: 'About', icon: <Info className="w-5 h-5 mr-2" />, title: "View company information" },
   ];
@@ -179,7 +187,7 @@ const AppLayout: React.FC = () => {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
         />
-        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-8 lg:p-10 overflow-y-auto">
           {renderContent()}
           <footer className="text-center py-6 text-slate-500 text-sm mt-12 space-y-2">
             <div className="space-x-4">

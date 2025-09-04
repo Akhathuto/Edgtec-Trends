@@ -24,8 +24,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`bg-slate-800/50 border rounded-xl p-8 flex flex-col transition-all duration-300 relative backdrop-blur-lg hover:-translate-y-2 ${
-              plan.isFeatured ? 'border-violet-500 shadow-glow-lg hover:shadow-violet-rich/40' : 'border-slate-700/50 hover:border-violet-500/50'
+            className={`interactive-card flex flex-col relative ${
+              plan.isFeatured ? '!border-violet-500 shadow-glow-lg hover:shadow-violet-rich/40' : 'border-slate-700/50'
             }`}
           >
             {plan.isFeatured && (
