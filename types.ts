@@ -1,4 +1,3 @@
-// FIX: Import React for type definitions.
 import type React from 'react';
 
 export type PlanName = 'free' | 'starter' | 'pro';
@@ -44,7 +43,7 @@ export interface HistoryItem {
     content: any;
 }
 
-export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Repurposed Content' | 'Thumbnail Idea';
+export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply';
 
 export interface AuthContextType {
   user: User | null;
@@ -261,6 +260,7 @@ export interface Agent {
   systemInstruction: string;
   color: string;
   starterPrompts: string[];
+  keywords: string[];
   externalTools?: {
     name: string;
     icon: React.FC<React.SVGProps<SVGSVGElement>>;

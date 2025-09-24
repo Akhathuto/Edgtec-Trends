@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab, Agent as AgentType, AgentSettings } from '../types.ts';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Send, Sparkles, Trash2, Bot, Zap, Sliders } from './Icons.tsx';
+import { Send, Sparkles, Trash2, Bot, Zap, Sliders, ChevronsRight, Search, X } from './Icons.tsx';
 import Spinner from './Spinner.tsx';
 import { agents } from '../data/agents.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
@@ -25,29 +25,52 @@ const TypingIndicator = () => (
     </div>
 );
 
-const ChatMessageContent: React.FC<{ content: string; onAction: (service: string, details: string) => void }> = ({ content, onAction }) => {
-    const actionRegex = /EXTERNAL_ACTION:\[(TWITTER|GMAIL|GDRIVE|SLACK),"([\s\S]+?)"\]/s;
-    const actionMatch = content.match(actionRegex);
-    const cleanContent = content.replace(actionRegex, '').trim();
-
+const ChatMessageContent: React.FC<{ 
+    content: string; 
+    onAction: (service: string, details: string) => void;
+    onHandoff: (agentId: string, prompt: string) => void;
+}> = ({ content, onAction, onHandoff }) => {
+    const externalActionRegex = /EXTERNAL_ACTION:\[(TWITTER|GMAIL|GDRIVE|SLACK),"([\s\S]+?)"\]/s;
+    const handoffActionRegex = /HANDOFF:\[(\w+),"([\s\S]+?)"\]/s;
+    
+    let currentContent = content;
     let actionButton = null;
-    if (actionMatch) {
-        const [, service, details] = actionMatch;
+
+    const externalMatch = currentContent.match(externalActionRegex);
+    if (externalMatch) {
+        currentContent = currentContent.replace(externalActionRegex, '').trim();
+        const [, service, details] = externalMatch;
         const serviceName = service.charAt(0) + service.slice(1).toLowerCase();
         actionButton = (
             <button
                 onClick={() => onAction(service, details)}
                 className="mt-3 w-full flex items-center justify-center text-sm bg-violet-600 hover:bg-violet-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             >
-                <Zap className="w-4 h-4 mr-2" />
-                Take Action: {serviceName}
+                <Zap className="w-4 h-4 mr-2" /> Take Action: {serviceName}
             </button>
         );
     }
 
+    const handoffMatch = currentContent.match(handoffActionRegex);
+    if (handoffMatch) {
+        currentContent = currentContent.replace(handoffActionRegex, '').trim();
+        const [, agentId, prompt] = handoffMatch;
+        const targetAgent = agents.find(a => a.id === agentId);
+        if (targetAgent) {
+            actionButton = (
+                <button
+                    onClick={() => onHandoff(agentId, prompt)}
+                    className="mt-3 w-full flex items-center justify-center text-sm bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                    <ChevronsRight className="w-4 h-4 mr-2" /> Ask {targetAgent.name}
+                </button>
+            );
+        }
+    }
+
     return (
         <>
-            <p>{cleanContent}</p>
+            <p>{currentContent}</p>
             {actionButton}
         </>
     );
@@ -65,6 +88,9 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   const [error, setError] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Agent Settings
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -105,18 +131,25 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
   }, []);
 
-  const switchAgent = useCallback((agent: AgentType) => {
+  const switchAgent = useCallback((agent: AgentType, initialPrompt?: string) => {
     setActiveAgent(agent);
     const storageKey = `utrend-agent-chat-history-${user?.id}-${agent.id}`;
     const storedHistory = localStorage.getItem(storageKey);
     let initialHistory: ChatMessage[] = [];
+
     if (storedHistory) {
       initialHistory = JSON.parse(storedHistory);
     } else {
       initialHistory = [{ role: 'model', content: `Hello! I am the ${agent.name}. How can I assist you with my expertise today?` }];
     }
+    
     setHistory(initialHistory);
     initializeChat(agent, agentSettings, initialHistory);
+
+    if (initialPrompt) {
+        handleSendMessage(initialPrompt, agent, initialHistory);
+    }
+
   }, [user?.id, initializeChat, agentSettings]);
 
   useEffect(() => {
@@ -148,24 +181,35 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
         localStorage.setItem(`utrend-agent-settings-${user.id}`, JSON.stringify(newSettings));
         showToast('Agent settings saved!');
         setIsSettingsModalOpen(false);
-        // Re-initialize the current chat with the new settings
         initializeChat(activeAgent, newSettings, history);
     }
   };
 
-  const handleSendMessage = async (message: string) => {
-    if (!message.trim() || loading || !chat) return;
+  const handleSendMessage = async (message: string, agentOverride?: AgentType, historyOverride?: ChatMessage[]) => {
+    const currentAgent = agentOverride || activeAgent;
+    const currentHistory = historyOverride || history;
+
+    if (!message.trim() || loading) return;
+
+    let chatInstance = chat;
+    if (agentOverride) { // Re-initialize chat if agent is changing
+        chatInstance = initializeChat(currentAgent, agentSettings, currentHistory);
+    }
+    if (!chatInstance) return;
+
 
     const newUserMessage: ChatMessage = { role: 'user', content: message };
-    setHistory(prev => [...prev, newUserMessage]);
+    const updatedHistory = [...currentHistory, newUserMessage];
+    setHistory(updatedHistory);
     setLoading(true);
     setInput('');
     
     let fullResponse = '';
     try {
-      logActivity(`chatted with ${activeAgent.name}: "${message.substring(0, 30)}..."`, 'Bot');
-      const stream = await chat.sendMessageStream({ message });
-      setHistory(prev => [...prev, { role: 'model', content: '' }]);
+      logActivity(`chatted with ${currentAgent.name}: "${message.substring(0, 30)}..."`, 'Bot');
+      const stream = await chatInstance.sendMessageStream({ message });
+      const finalHistoryWithPlaceholder = [...updatedHistory, { role: 'model', content: '' }];
+      setHistory(finalHistoryWithPlaceholder);
 
       for await (const chunk of stream) {
         fullResponse += chunk.text;
@@ -180,7 +224,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
       }
     } catch (e) {
       console.error("Error sending message to agent:", e);
-      setHistory(prev => [...prev, { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
+       setHistory(prev => [...prev.slice(0, -1), { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -200,7 +244,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   };
   
   const handleAction = (service: string, details: string) => {
-    console.log(`Action triggered for ${service} with details:`, details);
     let actionText = '';
     switch (service) {
         case 'TWITTER': actionText = 'Posted to X (Twitter)'; break;
@@ -211,6 +254,23 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
     showToast(`${actionText}! (Simulated)`);
   };
+
+  const handleHandoff = (agentId: string, prompt: string) => {
+    const targetAgent = agents.find(a => a.id === agentId);
+    if (targetAgent) {
+        switchAgent(targetAgent, prompt);
+    }
+  };
+  
+  const filteredAgents = useMemo(() => {
+    if (!searchTerm) return agents;
+    const lowercasedTerm = searchTerm.toLowerCase();
+    return agents.filter(agent => 
+        agent.name.toLowerCase().includes(lowercasedTerm) ||
+        agent.description.toLowerCase().includes(lowercasedTerm) ||
+        agent.keywords.some(kw => kw.toLowerCase().includes(lowercasedTerm))
+    );
+  }, [searchTerm]);
 
   return (
     <>
@@ -223,8 +283,19 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                   <Sliders className="w-5 h-5 text-slate-400"/>
               </button>
           </div>
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input 
+              type="text"
+              placeholder="Search agents..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-8"
+            />
+            {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2"><X className="w-4 h-4"/></button>}
+          </div>
           <div className="space-y-3 overflow-y-auto">
-            {agents.map(agent => (
+            {filteredAgents.map(agent => (
               <button
                 key={agent.id}
                 onClick={() => switchAgent(agent)}
@@ -253,6 +324,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                 </div>
               </button>
             ))}
+             {filteredAgents.length === 0 && <p className="text-center text-sm text-slate-400 p-4">No agents found.</p>}
           </div>
         </div>
 
@@ -281,7 +353,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                   </div>
                 )}
                 <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                  <ChatMessageContent content={msg.content} onAction={handleAction} />
+                  <ChatMessageContent content={msg.content} onAction={handleAction} onHandoff={handleHandoff} />
                 </div>
               </div>
             ))}
