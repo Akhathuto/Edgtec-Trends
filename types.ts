@@ -1,3 +1,6 @@
+// FIX: Import React for type definitions.
+import type React from 'react';
+
 export type PlanName = 'free' | 'starter' | 'pro';
 export type UserRole = 'user' | 'admin';
 
@@ -245,12 +248,21 @@ export interface ThumbnailIdea {
     imageGenPrompt: string;
 }
 
+export interface AgentSettings {
+  model: 'gemini-2.5-flash' | 'gemini-2.5-pro-latest';
+  temperature: number;
+}
+
 export interface Agent {
-    id: string;
+  id: string;
+  name: string;
+  description: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  systemInstruction: string;
+  color: string;
+  starterPrompts: string[];
+  externalTools?: {
     name: string;
-    description: string;
     icon: React.FC<React.SVGProps<SVGSVGElement>>;
-    systemInstruction: string;
-    color: string;
-    starterPrompts: string[];
+  }[];
 }

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, TrendingUp, Search, BarChart2, MessageSquare, Bot, History,
   Lightbulb, Video, DollarSign, FileText, Rocket, Briefcase, User as UserIcon, Star,
   HelpCircle, Mail, Info, Shield, Wand, Clapperboard, Gif, PenTool, Image, Scissors,
-  Type as TypeIcon, MessageSquare as CommentIcon
+  Type as TypeIcon, MessageSquare as CommentIcon, RefreshCw
 } from './Icons.tsx';
 
 import Dashboard from './Dashboard.tsx';
@@ -95,6 +95,7 @@ const AppLayout: React.FC = () => {
     { id: Tab.ChannelGrowth, label: 'Channel Growth Plan', icon: <Rocket className="w-5 h-5 mr-3" />, title: 'Get a personalized growth plan' },
     { id: Tab.BrandConnect, label: 'Brand Connect', icon: <Briefcase className="w-5 h-5 mr-3" />, title: 'Find sponsors and generate pitches' },
     { id: Tab.VideoAnalyzer, label: 'Video Analyzer', icon: <Video className="w-5 h-5 mr-3" />, title: 'AI breakdown of any video' },
+    // FIX: Imported the missing RefreshCw icon.
     { id: Tab.RepurposeContent, label: 'Repurpose Content', icon: <RefreshCw className="w-5 h-5 mr-3" />, title: 'Turn one video into many assets' },
   ];
 

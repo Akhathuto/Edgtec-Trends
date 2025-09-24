@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import Spinner from './Spinner.tsx';
 import { MessageSquare, RefreshCw, Copy, ThumbsUp, Heart, Sparkles } from './Icons.tsx';
@@ -16,6 +16,7 @@ const CommentResponder: React.FC = () => {
     const [response, setResponse] = useState<string | null>(null);
     const [ai, setAi] = useState<any>(null);
 
+    // FIX: Imported useEffect hook from React.
     // Lazy initialize GoogleGenAI
     useEffect(() => {
         async function initAi() {
