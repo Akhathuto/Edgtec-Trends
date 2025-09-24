@@ -125,7 +125,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your edited video...");
-                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
+                        // FIX: Switched to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -343,5 +343,4 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
         </div>
     );
 };
-// FIX: Added default export for VideoEditor component.
 export default VideoEditor;

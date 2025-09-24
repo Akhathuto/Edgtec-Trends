@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
@@ -124,7 +125,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
-                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
+                        // FIX: Switched to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);

@@ -49,7 +49,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your GIF...");
-                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
+                        // FIX: Switched to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -216,5 +216,4 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
         </div>
     );
 };
-// FIX: Added default export for GifCreator component.
 export default GifCreator;

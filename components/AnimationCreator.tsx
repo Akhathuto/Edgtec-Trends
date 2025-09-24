@@ -63,7 +63,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your animation...");
-                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
+                        // FIX: Switched to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -265,5 +265,4 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         </div>
     );
 };
-// FIX: Added default export for AnimationCreator component.
 export default AnimationCreator;

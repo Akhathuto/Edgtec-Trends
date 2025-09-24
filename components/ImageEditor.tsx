@@ -214,5 +214,4 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     </div>
   );
 };
-// FIX: Added default export for ImageEditor component.
 export default ImageEditor;
