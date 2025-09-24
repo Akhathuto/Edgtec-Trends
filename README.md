@@ -14,8 +14,8 @@
 </div>
 
 <div align="center">
-  <h3>Showcase</h3>
-  <img src="https://i.imgur.com/3Z3gY2M.png" width="80%" alt="utrend Application Showcase">
+  <h3>Application Showcase</h3>
+  <img src="https://i.imgur.com/v8kASgM.gif" width="80%" alt="utrend Application Showcase GIF">
 </div>
 
 ---
@@ -24,15 +24,16 @@
 
 - [About The App](#about-the-app)
 - [🚀 Getting Started](#-getting-started)
+- [✨ Key Features](#-key-features)
+- [🤖 Meet Your AI Agents](#-meet-your-ai-agents)
 - [💻 Technology Stack](#-technology-stack)
-- [Key Features](#-key-features)
 - [Legal & Company Information](#legal--company-information)
 
 ---
 
 ## About The App
 
-`utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to help you stay ahead of the curve, from discovering real-time trends to generating production-ready video scripts and assets.
+`utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to streamline your entire workflow, from discovering real-time trends to generating production-ready video scripts and assets.
 
 ## 🚀 Getting Started
 
@@ -46,9 +47,7 @@ This is a modern, no-build-step React application. You can run it directly in a 
 ### Setup & Running
 
 1.  **API Key Configuration:**
-    > **IMPORTANT:** This project requires an API key from Google AI Studio to interact with the Gemini API.
-    
-    The application is configured to read the API key from an environment variable named `API_KEY`. You must ensure this variable is set and accessible in the environment where you serve the application.
+    > **⚠️ IMPORTANT:** This project requires a Google Gemini API key. The application is configured to read the API key from an environment variable named `API_KEY`. You must ensure this variable is set and accessible in the environment where you serve the application. The key's availability is handled externally.
 
 2.  **Serve the project folder:**
     Open your terminal in the project's root directory and run the following command:
@@ -59,6 +58,58 @@ This is a modern, no-build-step React application. You can run it directly in a 
 3.  **Open in browser:**
     Open your browser and navigate to the local address provided by the server (e.g., `http://localhost:3000`). The application should now be running.
 
+## ✨ Key Features
+
+The `utrend` platform is organized into three powerful suites to cover every aspect of your content creation journey.
+
+<details>
+<summary><strong>📈 Discovery & Analytics Suite</strong></summary>
+<br>
+<ul>
+    <li><strong>Real-time Trend Discovery:</strong> Find out what's currently trending in any country or category on YouTube and TikTok. <em>Pinpoint viral opportunities before they peak.</em></li>
+    <li><strong>Live Channel Analytics:</strong> Connect your channels for an AI-powered performance summary or analyze any competitor's channel. <em>Benchmark your performance against anyone.</em></li>
+    <li><strong>Keyword Research Tool:</strong> Analyze keyword search volume and competition to find untapped content opportunities. <em>Own your niche with data-driven SEO.</em></li>
+    <li><strong>Video Analyzer:</strong> Get an AI-powered breakdown of any YouTube or TikTok video's strengths and weaknesses. <em>Learn from the best (and the rest).</em></li>
+</ul>
+</details>
+
+<details>
+<summary><strong>🎨 AI Create Suite</strong></summary>
+<br>
+<ul>
+    <li><strong>Content Idea Generation:</strong> Generate unique and viral video ideas, complete with hooks, outlines, and hashtags. <em>Never run out of inspiration.</em></li>
+    <li><strong>AI Script Generation:</strong> Turn any content idea into a production-ready script. <em>Go from concept to final draft instantly.</em></li>
+    <li><strong>Video & Animation Generation:</strong> Create video content and animations using simple text prompts. <em>Bring your imagination to life in seconds.</em></li>
+    <li><strong>Image & Logo Generation:</strong> Create logos and edit images with natural language instructions. <em>Build your brand's visual identity effortlessly.</em></li>
+    <li><strong>GIF Creator:</strong> Quickly generate looping GIFs for social media or promotional content.</li>
+    <li><strong>AI Comment Responder:</strong> Craft the perfect, on-brand replies to your audience's comments in seconds.</li>
+</ul>
+</details>
+
+<details>
+<summary><strong>🧠 Strategy & Growth Engine</strong></summary>
+<br>
+<ul>
+    <li><strong>AI Agents:</strong> A team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting. <em>Your personal team of channel managers, on demand.</em></li>
+    <li><strong>Monetization Guide:</strong> Receive tailored strategies to monetize your content based on your follower count. <em>Unlock your earning potential.</em></li>
+    <li><strong>Full Strategy Reports:</strong> A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report. <em>Get your complete roadmap to success.</em></li>
+    <li><strong>Channel Growth Plan:</strong> Get a custom, multi-point growth plan for your channel. <em>Receive actionable steps to grow faster.</em></li>
+    <li><strong>Brand Connect:</strong> Find potential brand sponsors and generate professional pitch emails. <em>Secure sponsorships with confidence.</em></li>
+    <li><strong>Content Repurposing:</strong> Turn a single video into a blog post, a Tweet thread, and a LinkedIn post automatically.</li>
+</ul>
+</details>
+
+## 🤖 Meet Your AI Agents
+
+Consult your personal team of AI experts, each with a unique specialty to guide your creative process.
+
+-   **✨ Viral Visionary:** Your go-to expert for brainstorming viral-worthy content ideas and spotting the next big trend.
+-   **📊 Growth Hacker:** A data-driven specialist for SEO, keyword research, and audience growth strategies.
+-   **💰 Monetization Maven:** Your expert on all things money-related, from sponsorships to diverse revenue streams.
+-   **✍️ Creative Writer:** The master wordsmith who can turn your rough ideas into compelling scripts and sharp copy.
+
+---
+
 ## 💻 Technology Stack
 
 - **Core Framework:** React (via CDN)
@@ -66,27 +117,6 @@ This is a modern, no-build-step React application. You can run it directly in a 
 - **AI Integration:** Google Gemini API (`@google/genai` via CDN)
 - **Styling:** Tailwind CSS (via JIT CDN)
 - **Date Handling:** `date-fns` (via CDN)
-
-## ✨ Key Features
-
-### Discovery & Analytics Suite 📈
-- **Real-time Trend Discovery:** Find out what's currently trending in any country or category on YouTube and TikTok. *Pinpoint viral opportunities before they peak.*
-- **Live Channel Analytics:** Connect your channels for an AI-powered performance summary or analyze any competitor's channel. *Benchmark your performance against anyone.*
-- **Keyword Research Tool:** Analyze keyword search volume and competition to find untapped content opportunities. *Own your niche with data-driven SEO.*
-- **Video Analyzer:** Get an AI-powered breakdown of any YouTube or TikTok video's strengths and weaknesses. *Learn from the best (and the rest).*
-
-### AI Create Suite 🎨
-- **Content Idea Generation:** Generate unique and viral video ideas, complete with hooks, outlines, and hashtags. *Never run out of inspiration.*
-- **AI Video & Animation Generation:** Create video content and animations using simple text prompts. *Bring your imagination to life in seconds.*
-- **AI Image & Logo Generation:** Create logos and edit images with natural language instructions. *Build your brand's visual identity effortlessly.*
-- **AI Script Generation:** Turn any content idea into a production-ready script. *Go from concept to final draft instantly.*
-
-### Strategy & Growth Engine 🧠
-- **AI Agents:** A team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting. *Your personal team of channel managers, on demand.*
-- **Monetization Guide:** Receive tailored strategies to monetize your content based on your follower count. *Unlock your earning potential.*
-- **Full Strategy Reports:** A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report. *Get your complete roadmap to success.*
-- **Channel Growth Plan:** Get a custom, multi-point growth plan for your channel. *Receive actionable steps to grow faster.*
-- **Brand Connect:** Find potential brand sponsors and generate professional pitch emails. *Secure sponsorships with confidence.*
 
 ---
 
