@@ -1,5 +1,7 @@
 {
   "name": "utrend",
   "description": "An AI-powered assistant from utrend to help content creators discover the latest trends on YouTube and TikTok, generate viral video ideas, and develop effective monetization strategies.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

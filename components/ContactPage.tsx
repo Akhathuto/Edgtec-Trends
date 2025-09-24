@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { Mail } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import Spinner from './Spinner';
+import { Mail } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
+import Spinner from './Spinner.tsx';
 
 const ContactPage: React.FC = () => {
   const { user } = useAuth();

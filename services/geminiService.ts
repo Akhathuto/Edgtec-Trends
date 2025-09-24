@@ -1,10 +1,12 @@
 import { GoogleGenAI, Type, GenerateContentResponse, Modality } from "@google/genai";
-import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent } from '../types.ts';
+import { ContentIdea, MonetizationStrategy, FullReport, TrendingChannel, TrendingTopic, User, TrendingVideo, TrendingMusic, TrendingCreator, KeywordAnalysis, ChannelAnalyticsData, ChannelGrowthPlan, Channel, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea } from '../types.ts';
 
+// FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
 const API_KEY = process.env.API_KEY;
 
 if (!API_KEY) {
-  throw new Error("API_KEY environment variable is not set");
+  // FIX: Updated error message to align with API key handling guidelines.
+  throw new Error("API_KEY environment variable is not set.");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -370,6 +372,41 @@ export const generateContentIdeas = async (topic: string, platform: 'YouTube' | 
     }
 };
 
+export const generateThumbnailIdeas = async (videoTitle: string): Promise<ThumbnailIdea[]> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Generate 3 distinct and compelling YouTube thumbnail ideas for a video titled "${videoTitle}". For each idea, provide a detailed visual description, the exact text for any overlay, a style description (e.g., 'High-Contrast', 'Minimalist', 'Cartoonish'), and a detailed, descriptive prompt that could be used in an AI image generator to create the thumbnail visual.`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            visualDescription: { type: Type.STRING },
+                            textOverlay: { type: Type.STRING },
+                            style: { type: Type.STRING },
+                            imageGenPrompt: { type: Type.STRING }
+                        }
+                    }
+                }
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const result = JSON.parse(jsonText);
+        return Array.isArray(result) ? result : [result];
+
+    } catch (error) {
+        console.error("Error generating thumbnail ideas:", error);
+        if (error instanceof Error && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429'))) {
+            throw new Error("API quota exceeded. Please try again later.");
+        }
+        throw new Error("Failed to generate thumbnail ideas from Gemini API.");
+    }
+};
+
 export const generateVideoScript = async (idea: Pick<ContentIdea, 'title' | 'hook' | 'script_outline'>): Promise<string> => {
     try {
         const response = await ai.models.generateContent({
@@ -525,7 +562,7 @@ export const generateTranscriptFromPrompt = async (prompt: string): Promise<stri
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the following video prompt, generate a suitable voiceover transcript. The transcript should be between 100 and 150 words. Be creative and engaging.\n\nVideo Prompt: "${prompt}"`,
+            contents: `Based on the following video prompt, generate a suitable voiceover transcript. The transcript should be between 100 and 150 words. Write it in a natural, conversational style that is easy for a text-to-speech engine to read aloud, using appropriate punctuation for pacing. Be creative and engaging.\n\nVideo Prompt: "${prompt}"`,
         });
         return response.text.trim();
     } catch (error) {
@@ -534,7 +571,7 @@ export const generateTranscriptFromPrompt = async (prompt: string): Promise<stri
     }
 };
 
-export const editImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null; text: string | null }> => {
+export const editImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null, text: string | null }> => {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image-preview',
@@ -553,156 +590,87 @@ export const editImage = async (base64ImageData: string, mimeType: string, promp
         let editedText: string | null = null;
 
         for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                editedImage = part.inlineData.data;
-            } else if (part.text) {
+            if (part.text) {
                 editedText = part.text;
+            } else if (part.inlineData) {
+                editedImage = part.inlineData.data;
             }
         }
         return { image: editedImage, text: editedText };
 
     } catch (error) {
         console.error("Error editing image:", error);
-        throw new Error("Failed to edit image using Gemini API.");
-    }
-};
-
-export const generateAnimation = async (prompt: string, style: string): Promise<any> => {
-    try {
-        const modifiedPrompt = `Create an animated video in a ${style} style. The scene should be: "${prompt}"`;
-        const operation = await ai.models.generateVideos({
-            model: 'veo-2.0-generate-001',
-            prompt: modifiedPrompt,
-            config: {
-                numberOfVideos: 1
-            }
-        });
-        return operation;
-    } catch (error) {
-        console.error("Error initiating animation generation:", error);
-        throw new Error("Failed to start animation generation.");
-    }
-};
-
-export const generateGif = async (prompt: string): Promise<any> => {
-    try {
-        const modifiedPrompt = `Create a short, looping, animated GIF based on this description: "${prompt}". The GIF should have no sound.`;
-        const operation = await ai.models.generateVideos({
-            model: 'veo-2.0-generate-001',
-            prompt: modifiedPrompt,
-            config: {
-                numberOfVideos: 1
-            }
-        });
-        return operation;
-    } catch (error) {
-        console.error("Error initiating GIF generation:", error);
-        throw new Error("Failed to start GIF generation.");
-    }
-};
-
-export const generateLogo = async (prompt: string, style: string, transparentBg: boolean): Promise<string> => {
-    try {
-        const modifiedPrompt = `Create a logo for a brand described as: "${prompt}". The style should be ${style}. ${transparentBg ? 'The logo must have a transparent background.' : 'The logo should have a simple, solid background.'}`;
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: modifiedPrompt,
-            config: {
-              numberOfImages: 1,
-              outputMimeType: 'image/png',
-              aspectRatio: '1:1',
-            },
-        });
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            return response.generatedImages[0].image.imageBytes;
-        }
-        throw new Error("No logo was generated.");
-    } catch (error) {
-        console.error("Error generating logo:", error);
-        throw new Error("Failed to generate logo from Gemini API.");
+        throw new Error("Failed to edit image with Gemini API.");
     }
 };
 
 export const generateContentPrompt = async (topic: string, audience: string, style: string, elements: string): Promise<string> => {
     try {
-        let prompt = `Generate an optimized, detailed, and creative prompt for an AI video generator. The core topic is "${topic}".`;
-        if (audience) prompt += ` The target audience is ${audience}.`;
-        if (style) prompt += ` The desired visual style is ${style}.`;
-        if (elements) prompt += ` Key elements to include are: ${elements}.`;
-        prompt += ` The final prompt should be a descriptive paragraph, focusing on visual details, camera angles, and atmosphere. Do not add any conversational text, just the prompt itself.`
-
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: prompt,
+            contents: `Generate a detailed and descriptive prompt for an AI video generator. The final prompt should be a single paragraph.
+            
+            Core Topic: ${topic}
+            Target Audience: ${audience || 'General audience'}
+            Visual Style: ${style || 'As described by the topic'}
+            Key Elements to Include: ${elements || 'None specified'}
+            
+            Based on this information, create a rich, imaginative prompt that clearly describes the desired video content.`,
         });
         return response.text.trim();
     } catch (error) {
-        console.error("Error generating prompt:", error);
+        console.error("Error generating content prompt:", error);
         throw new Error("Failed to generate prompt from Gemini API.");
     }
 };
-
-//
-// Channel & Growth Functions
-//
 
 export const getChannelAnalytics = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelAnalyticsData> => {
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Using real-time search data, analyze the ${platform} channel at ${channelUrl}. Respond in JSON with keys: "platform", "channelName", "followerCount", "followerTrend" ('up', 'down', 'stable'), "totalViews", "viewsTrend" ('up', 'down', 'stable'), "totalLikes" (for TikTok only, string), "aiSummary", and "recentVideos" (for YouTube only, array of {title, videoUrl, viewCount}).`,
-            config: {
-                tools: [{ googleSearch: {} }],
-            }
+            contents: `Analyze the ${platform} channel at ${channelUrl}. Your response must be in JSON. Provide the channel name, follower count (string), follower trend ('up', 'down', or 'stable'), total views (string), views trend ('up', 'down', or 'stable'), an AI-powered summary of the channel's content and performance (string, ~50 words), and a list of the 3 most recent videos with their title, URL, and view count. If it's a TikTok channel, also include total likes.`,
+            config: { tools: [{ googleSearch: {} }] },
         });
         const parsed = extractJson<ChannelAnalyticsData>(response.text);
         if (parsed) {
-            return parsed;
+            return { ...parsed, platform };
         }
-        throw new Error("Failed to parse analytics data from API response.");
+        throw new Error("Failed to parse analytics data from response.");
     } catch (error) {
-        console.error("Error fetching channel analytics:", error);
-        throw new Error("Failed to fetch channel analytics from Gemini API.");
+        console.error("Error getting channel analytics:", error);
+        throw new Error("Failed to get channel analytics from Gemini API.");
     }
 };
 
 export const generateChannelOpportunities = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<string[]> => {
-    try {
+     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the ${platform} channel at ${channelUrl}, identify 3 specific, actionable growth opportunities. Respond as a JSON array of strings.`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING }
-                }
-            }
+            contents: `Based on the public content of the ${platform} channel at ${channelUrl}, identify 3 specific, actionable growth opportunities. Present these as a JSON array of strings.`,
+            config: { tools: [{ googleSearch: {} }] },
         });
-        return JSON.parse(response.text.trim());
+        const parsed = extractJson<string[]>(response.text);
+        return parsed || [];
     } catch (error) {
         console.error("Error generating channel opportunities:", error);
         return [];
     }
 };
 
+
 export const generateChannelGrowthPlan = async (channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelGrowthPlan> => {
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Create a comprehensive channel growth plan for the ${platform} channel at ${channelUrl}. Analyze their content, SEO/discoverability, audience engagement, and thumbnails/covers. For each area, provide analysis and recommendations. Your response MUST be a single JSON object string that can be parsed directly. Do not include markdown formatting like \`\`\`json ... \`\`\`.`,
-            config: {
-                tools: [{ googleSearch: {} }],
-            }
+            contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Your response must be a single JSON object with these keys: "contentStrategy", "seoAndDiscoverability", "audienceEngagement", "thumbnailCritique". Each key should contain an object with "analysis" (string) and "recommendations" (array of strings).`,
+            config: { tools: [{ googleSearch: {} }] },
         });
-        const parsed = extractJson<ChannelGrowthPlan>(response.text);
-        if (parsed) {
-            return parsed;
-        }
-        throw new Error("Failed to parse growth plan data from API response.");
+         const parsed = extractJson<ChannelGrowthPlan>(response.text);
+        if (parsed) return parsed;
+        throw new Error("Failed to parse growth plan data.");
     } catch (error) {
         console.error("Error generating channel growth plan:", error);
-        throw new Error("Failed to generate growth plan from Gemini API.");
+        throw new Error("Failed to generate channel growth plan from Gemini API.");
     }
 };
 
@@ -710,10 +678,8 @@ export const findSponsorshipOpportunities = async (channelUrl: string, platform:
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the ${platform} channel at ${channelUrl}, identify 5 potential sponsorship opportunities. For each, provide the brand name, industry, relevance, and a sponsor match score (e.g., "95/100"). Respond as a JSON array of objects. Do not include markdown.`,
-            config: {
-                tools: [{ googleSearch: {} }],
-            }
+            contents: `Based on the content of the ${platform} channel at ${channelUrl}, identify 5 potential brand sponsorship opportunities. For each, provide the brand name, industry, a brief reason for its relevance, and a sponsor match score out of 100 (e.g., "95/100"). Respond in JSON array format.`,
+            config: { tools: [{ googleSearch: {} }] },
         });
         const parsed = extractJson<SponsorshipOpportunity[]>(response.text);
         return parsed || [];
@@ -727,9 +693,9 @@ export const generateBrandPitch = async (channelName: string, platform: 'YouTube
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Generate a professional sponsorship pitch email from ${channelName} (a ${platform} creator) to ${brandName} (in the ${industry} industry). Provide a subject line and body. Respond in JSON with keys "subject" and "body".`,
-            config: {
-                responseMimeType: "application/json",
+            contents: `Generate a professional sponsorship pitch email from a content creator. Creator's Channel Name: ${channelName}. Platform: ${platform}. Brand to pitch: ${brandName}. Industry: ${industry}. The response must be a JSON object with "subject" and "body" keys. The body should be a well-structured email with placeholders like [Contact Person] and [Your Name].`,
+            config: { 
+                responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -739,10 +705,11 @@ export const generateBrandPitch = async (channelName: string, platform: 'YouTube
                 }
             }
         });
-        return JSON.parse(response.text.trim());
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText) as BrandPitch;
     } catch (error) {
         console.error("Error generating brand pitch:", error);
-        throw new Error("Failed to generate brand pitch from Gemini API.");
+        throw new Error("Failed to generate brand pitch.");
     }
 };
 
@@ -750,25 +717,15 @@ export const analyzeVideoUrl = async (videoUrl: string): Promise<VideoAnalysis> 
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Analyze the YouTube or TikTok video at this URL: ${videoUrl}. Provide a comprehensive analysis. Respond in JSON with keys: "title", "aiSummary", "engagementAnalysis", "contentAnalysis", and "improvementSuggestions" (an array of strings).`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING },
-                        aiSummary: { type: Type.STRING },
-                        engagementAnalysis: { type: Type.STRING },
-                        contentAnalysis: { type: Type.STRING },
-                        improvementSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    }
-                }
-            }
+            contents: `Analyze the video at this URL: ${videoUrl}. Your response must be a JSON object with keys: "title", "aiSummary", "engagementAnalysis", "contentAnalysis", and "improvementSuggestions" (an array of strings).`,
+            config: { tools: [{ googleSearch: {} }] }
         });
-        return JSON.parse(response.text.trim());
+        const parsed = extractJson<VideoAnalysis>(response.text);
+        if (parsed) return parsed;
+        throw new Error("Failed to parse video analysis.");
     } catch (error) {
         console.error("Error analyzing video:", error);
-        throw new Error("Failed to analyze video from Gemini API.");
+        throw new Error("Failed to analyze video.");
     }
 };
 
@@ -776,22 +733,63 @@ export const repurposeVideoContent = async (videoUrl: string): Promise<Repurpose
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the video at ${videoUrl}, repurpose its content into a blog post, a tweet thread (array of strings), and a LinkedIn post. Respond in JSON with keys: "blogPost", "tweetThread", "linkedInPost".`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        blogPost: { type: Type.STRING },
-                        tweetThread: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        linkedInPost: { type: Type.STRING },
-                    }
-                }
-            }
+            contents: `Based on the content of the video at ${videoUrl}, repurpose it into three formats. Your response must be a JSON object with these keys: "blogPost" (a short, SEO-friendly blog post as a string), "tweetThread" (an array of 3-5 short tweets), and "linkedInPost" (a professional LinkedIn post as a string).`,
+            config: { tools: [{ googleSearch: {} }] }
         });
-        return JSON.parse(response.text.trim());
+        const parsed = extractJson<RepurposedContent>(response.text);
+        if (parsed) return parsed;
+        throw new Error("Failed to parse repurposed content.");
     } catch (error) {
         console.error("Error repurposing content:", error);
-        throw new Error("Failed to repurpose content from Gemini API.");
+        throw new Error("Failed to repurpose content.");
+    }
+};
+
+export const generateAnimation = async (prompt: string, style: string): Promise<any> => {
+    try {
+        const modifiedPrompt = `An animated clip in a ${style} style. The scene is: ${prompt}. The animation should be a short, looping video.`;
+        const operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: modifiedPrompt,
+            config: { numberOfVideos: 1 }
+        });
+        return operation;
+    } catch (error) {
+        console.error("Error generating animation:", error);
+        throw new Error("Failed to start animation generation.");
+    }
+};
+
+export const generateGif = async (prompt: string): Promise<any> => {
+     try {
+        const modifiedPrompt = `A short, seamlessly looping animated GIF. The scene is: ${prompt}.`;
+        const operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: modifiedPrompt,
+            config: { numberOfVideos: 1 }
+        });
+        return operation;
+    } catch (error) {
+        console.error("Error generating GIF:", error);
+        throw new Error("Failed to start GIF generation.");
+    }
+};
+
+export const generateLogo = async (prompt: string, style: string, transparentBg: boolean): Promise<string> => {
+     try {
+        const modifiedPrompt = `A professional logo for a brand or channel described as: "${prompt}". The style should be ${style}. ${transparentBg ? 'The logo must have a transparent background.' : 'The logo should have a solid, complementary background color.'}`;
+        const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: modifiedPrompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/png',
+                aspectRatio: '1:1',
+            },
+        });
+        return response.generatedImages[0].image.imageBytes;
+    } catch (error) {
+        console.error("Error generating logo:", error);
+        throw new Error("Failed to generate logo.");
     }
 };

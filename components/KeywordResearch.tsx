@@ -1,11 +1,11 @@
 
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getKeywordAnalysis } from '../services/geminiService';
-import { KeywordAnalysis, Tab } from '../types';
-import Spinner from './Spinner';
-import { Search, BarChart2, Users, Lightbulb, Star } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
+import { getKeywordAnalysis } from '../services/geminiService.ts';
+import { KeywordAnalysis, Tab } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Search, BarChart2, Users, Lightbulb, Star } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface KeywordResearchProps {
     onUpgradeClick: () => void;

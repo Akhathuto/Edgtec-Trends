@@ -20,7 +20,7 @@ const About: React.FC = () => {
         <section className="mb-8">
           <h3 className="text-xl font-bold text-violet-300 mb-4 border-b border-slate-700 pb-2">Company Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DetailItem label="Legal Name" value="EDGTEC" />
+            <DetailItem label="Legal Name" value="utrend" />
             <DetailItem label="Supplier Number" value="MAAA1626554" />
             <DetailItem label="Registration Number" value="2025/534716/07" />
             <DetailItem label="Country of Origin" value="South Africa" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from './Icons';
+import { X } from './Icons.tsx';
 
 interface GalleryModalProps {
   isOpen: boolean;

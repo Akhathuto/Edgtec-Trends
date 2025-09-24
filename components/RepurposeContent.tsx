@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { repurposeVideoContent } from '../services/geminiService';
-import { RepurposedContent, Tab } from '../types';
-import Spinner from './Spinner';
-import { Star, RefreshCw, Copy } from './Icons';
-import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { repurposeVideoContent } from '../services/geminiService.ts';
+import { RepurposedContent, Tab } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Star, RefreshCw, Copy } from './Icons.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 interface RepurposeContentProps {
   setActiveTab: (tab: Tab) => void;

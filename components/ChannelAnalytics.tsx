@@ -1,10 +1,11 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
-import { ChannelAnalyticsData, Tab, Channel } from '../types';
-import Spinner from './Spinner';
-import { Star, Link, BarChart2, TrendingUp, TrendingDown, Users, Eye, ExternalLink, Youtube, Info, Heart, TikTok, Sparkles, Search, X } from './Icons';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService.ts';
+import { ChannelAnalyticsData, Tab, Channel } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Star, Link, BarChart2, TrendingUp, TrendingDown, Users, Eye, ExternalLink, Youtube, Info, Heart, TikTok, Sparkles, Search, X } from './Icons.tsx';
 
 interface ChannelAnalyticsProps {
   setActiveTab: (tab: Tab) => void;

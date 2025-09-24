@@ -28,6 +28,7 @@ export enum Tab {
   VideoAnalyzer = 'video-analyzer',
   RepurposeContent = 'repurpose-content',
   Agents = 'agents',
+  ThumbnailGenerator = 'thumbnail-generator',
 }
 
 export interface Channel {
@@ -76,7 +77,8 @@ export type HistoryContentType =
   | 'Animation'
   | 'GIF'
   | 'Logo'
-  | 'Repurposed Content';
+  | 'Repurposed Content'
+  | 'Thumbnail Idea';
 
 export interface HistoryItem {
   id: string;
@@ -253,4 +255,11 @@ export interface RepurposedContent {
   blogPost: string;
   tweetThread: string[];
   linkedInPost: string;
+}
+
+export interface ThumbnailIdea {
+  visualDescription: string;
+  textOverlay: string;
+  style: string;
+  imageGenPrompt: string;
 }

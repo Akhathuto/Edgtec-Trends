@@ -1,7 +1,7 @@
 <div align="center">
   <br />
-  <img src="https://i.imgur.com/7w5y2f3.png" width="180" alt="EdgTec Logo">
-  <h1 style="font-size: 3em; font-weight: bold; margin-bottom: 0;">EdgTec</h1>
+  <img src="https://i.imgur.com/R23S5h9.png" width="180" alt="utrend Logo">
+  <h1 style="font-size: 3em; font-weight: bold; margin-bottom: 0;">utrend</h1>
   <p style="font-size: 1.2em;">The All-in-One AI Content Suite for Creators</p>
   <br />
 </div>
@@ -15,7 +15,7 @@
 
 <div align="center">
   <h3>Showcase</h3>
-  <img src="https://i.imgur.com/u1vJ7rS.jpeg" width="80%" alt="EdgTec Application Showcase">
+  <img src="https://i.imgur.com/3Z3gY2M.png" width="80%" alt="utrend Application Showcase">
 </div>
 
 ---
@@ -23,37 +23,51 @@
 ### 📋 Table of Contents
 
 - [About The App](#about-the-app)
-- [Our Vision](#our-vision)
-- [✨ What's New](#-whats-new-in-the-current-update)
-- [🚀 Key Features](#-key-features)
-- [🎬 Key Outputs & Deliverables](#-key-outputs--deliverables)
-- [▶️ Getting Started](#️-getting-started)
+- [🚀 Getting Started](#-getting-started)
 - [💻 Technology Stack](#-technology-stack)
+- [Key Features](#-key-features)
 - [Legal & Company Information](#legal--company-information)
 
 ---
 
 ## About The App
 
-`EdgTec` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `EdgTec` provides a comprehensive toolkit and a team of AI experts to help you stay ahead of the curve. It's a strategic partner that helps you:
-- **Discover what's next:** Identify real-time trends on YouTube and TikTok to ensure your content is always relevant.
-- **Create with AI:** Go from idea to finished asset with a suite of AI tools, including idea generators, scriptwriters, video and image creators, and more.
-- **Develop winning strategies:** Get personalized monetization strategies, full content reports, and data-driven growth plans.
-- **Analyze and Optimize:** Get live, AI-powered analytics for your channels, perform deep keyword research, and analyze competitor videos to refine your approach.
-- **Collaborate with AI Agents:** Work with a team of specialized AI experts, each with a unique skill set to help you with any task.
+`utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to help you stay ahead of the curve, from discovering real-time trends to generating production-ready video scripts and assets.
 
-## Our Vision
+## 🚀 Getting Started
 
-To be the indispensable AI partner for creators, transforming passion into profession by making cutting-edge content strategy and creation tools accessible to everyone.
+This is a modern, no-build-step React application. You can run it directly in a browser that supports ES modules and import maps.
 
-## ✨ What's New in the Current Update
-- **New Feature: AI Agents!** Meet your new creative team: Viral Visionary, Growth Hacker, Monetization Maven, and Creative Writer. Each agent is a specialized expert ready to assist you in their own dedicated chat interface.
-- **Complete Rebrand to EdgTec:** The application has been rebranded to `EdgTec`, reflecting its position as a cutting-edge, all-in-one content suite.
-- **New Comprehensive Help Center:** The old support page has been upgraded to a full-featured, interactive Help Center with detailed guides and direct links to every feature in the app.
-- **Persistent Sidebar Navigation:** The top navigation tabs have been replaced with a more organized and persistent sidebar, making it easier than ever to navigate the expanding suite of tools.
-- **Full User Management:** Administrators can now delete users directly from the "User Management" tab within the dashboard, with appropriate safety confirmations.
+### Prerequisites
 
-## 🚀 Key Features
+-   A modern web browser (like Chrome, Firefox, Edge).
+-   A local web server. If you don't have one, you can use `npx serve`.
+
+### Setup & Running
+
+1.  **API Key Configuration:**
+    > **IMPORTANT:** This project requires an API key from Google AI Studio to interact with the Gemini API.
+    
+    The application is configured to read the API key from an environment variable named `API_KEY`. You must ensure this variable is set and accessible in the environment where you serve the application.
+
+2.  **Serve the project folder:**
+    Open your terminal in the project's root directory and run the following command:
+    ```bash
+    npx serve
+    ```
+
+3.  **Open in browser:**
+    Open your browser and navigate to the local address provided by the server (e.g., `http://localhost:3000`). The application should now be running.
+
+## 💻 Technology Stack
+
+- **Core Framework:** React (via CDN)
+- **Language:** TypeScript (transpiled in-browser by the execution environment)
+- **AI Integration:** Google Gemini API (`@google/genai` via CDN)
+- **Styling:** Tailwind CSS (via JIT CDN)
+- **Date Handling:** `date-fns` (via CDN)
+
+## ✨ Key Features
 
 ### Discovery & Analytics Suite 📈
 - **Real-time Trend Discovery:** Find out what's currently trending in any country or category on YouTube and TikTok. *Pinpoint viral opportunities before they peak.*
@@ -74,77 +88,6 @@ To be the indispensable AI partner for creators, transforming passion into profe
 - **Channel Growth Plan:** Get a custom, multi-point growth plan for your channel. *Receive actionable steps to grow faster.*
 - **Brand Connect:** Find potential brand sponsors and generate professional pitch emails. *Secure sponsorships with confidence.*
 
-### Productivity & Management 🛠️
-- **AI Chat Assistant "Nolo":** Brainstorm ideas and get creative advice from a dedicated AI chat assistant. *Your creative co-pilot, always ready to help.*
-- **Content History:** View and revisit all of your previously generated content in one place. *Your creative archive, always accessible.*
-- **Advanced Admin Dashboard:** A secure panel for administrators to manage users, view platform statistics, and monitor a live feed of user activity. *Total control and oversight.*
-
-## 🎬 Key Outputs & Deliverables
-
-`EdgTec` is designed to produce tangible, actionable content and strategies that you can directly implement. Here are the key outputs you can generate:
-
-- **📈 In-Depth Trend Reports:** Get detailed analysis of what's currently trending for any topic.
-- **💡 Viral Content Blueprints:** Generate multiple content ideas complete with titles, hooks, outlines, and hashtags.
-- **✍️ Production-Ready Scripts:** Turn a content idea into a complete, detailed video script.
-- **💰 Custom Monetization Plans:** Receive a list of monetization strategies based on your platform and follower count.
-- **📄 Comprehensive Strategy Documents:** A Pro-exclusive feature combining trends, ideas, and monetization into one report.
-- **🎬 AI-Generated Videos, Animations & GIFs:** Create visual media directly from a text prompt.
-- **🎨 AI-Generated Logos & Images:** Create a professional logo or edit any image with text prompts.
-- **🔍 SEO Keyword Analysis:** Uncover valuable keywords with data on search volume and competition.
-- **📊 Live Channel Dashboards:** Get a real-time, AI-powered analytics report for your channels.
-
-## ▶️ Getting Started
-
-Follow these instructions to get the project running on your local machine.
-
-### Prerequisites
-
-You will need [Node.js](https://nodejs.org/) (which includes `npm`) installed on your computer.
-
-### Installation & Setup
-
-1.  **Download Project Files:**
-    Download and unzip all the application files into a single folder on your machine.
-
-2.  **Set Up Environment Variables:**
-    > **IMPORTANT:** This project requires an API key from Google AI Studio to interact with the Gemini API.
-    >
-    The application is configured to read `process.env.API_key` directly from the execution environment. For local development, you should:
-    - Create a new file named `.env` in the root of your project directory.
-    - Add your API key to this file:
-      ```
-      API_KEY=YOUR_GEMINI_API_KEY
-      ```
-
-3.  **Install Dependencies:**
-    This project uses a modern setup where dependencies are managed by the execution environment. **No `npm install` command is necessary.**
-
-### Running the Application
-
-This project is a modern frontend application and can be run with any simple local web server. The easiest way is using the `serve` package.
-
-1.  **Open your terminal** and navigate to the project's root directory:
-    ```bash
-    cd path/to/your/edgtec-folder
-    ```
-
-2.  **Run the app** using `npx` (this runs `serve` without a global installation):
-    ```bash
-    npx serve .
-    ```
-
-3.  Open your browser and navigate to the local address provided in the terminal (usually `http://localhost:3000`). The application should now be running.
-
-## 💻 Technology Stack
-
-This application is built with a modern frontend stack, leveraging the power of AI to deliver its core features.
-
-- **Core Framework:** React
-- **AI Integration:** Google Gemini API (`@google/genai`)
-- **Styling:** Tailwind CSS for a utility-first design system.
-- **Language:** TypeScript for type safety and improved developer experience.
-- **Date Handling:** `date-fns` for lightweight and reliable date formatting.
-
 ---
 
 ## Legal & Company Information
@@ -153,11 +96,11 @@ This application is built with a modern frontend stack, leveraging the power of 
 <summary><strong>License and Intellectual Property</strong></summary>
 <br>
 
--   **Proprietary Property:** This software, including its source code, visual design, features, and the "EdgTec" name and logo, are the proprietary property and trademarks of EDGTEC. All rights are reserved.
--   **Limited License:** EDGTEC grants you a limited, non-exclusive, non-transferable, revocable license to use the `EdgTec` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
--   **Restrictions:** Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of EDGTEC.
+-   **Proprietary Property:** This software, including its source code, visual design, features, and the "utrend" name and logo, are the proprietary property and trademarks of utrend. All rights are reserved.
+-   **Limited License:** utrend grants you a limited, non-exclusive, non-transferable, revocable license to use the `utrend` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
+-   **Restrictions:** Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of utrend.
 
-**Copyright (c) 2024 EDGTEC. All Rights Reserved.**
+**Copyright (c) 2024 utrend. All Rights Reserved.**
 </details>
 
 <details>
@@ -166,11 +109,11 @@ This application is built with a modern frontend stack, leveraging the power of 
 
 **Last Updated: August 1, 2024**
 
-By using `EdgTec`, you agree to the following terms and conditions:
+By using `utrend`, you agree to the following terms and conditions:
 
 1.  **Acceptance of Terms:** Your access to and use of the application constitutes your binding agreement to these Terms of Use. If you do not agree to these terms, you must not use the application.
 
-2.  **Eligibility:** You must be at least 18 years of age to use this application. By using `EdgTec`, you represent and warrant that you meet this age requirement.
+2.  **Eligibility:** You must be at least 18 years of age to use this application. By using `utrend`, you represent and warrant that you meet this age requirement.
 
 3.  **User Accounts & Responsibility:** You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.
 
@@ -184,7 +127,7 @@ By using `EdgTec`, you agree to the following terms and conditions:
 5.  **AI-Generated Content & User Responsibility:**
     -   **Ownership:** You retain all ownership rights to the content you generate using the application's AI tools ("User Content").
     -   **Responsibility:** You are solely responsible for the User Content you generate, publish, and use. You must review all AI-generated content for accuracy and appropriateness before use.
-    -   **Disclaimer:** AI-generated content may contain inaccuracies, errors, or reflect biases from its training data. EDGTEC makes no warranties regarding the accuracy, reliability, or suitability of AI-generated content. It is your responsibility to ensure your final content complies with all applicable platform policies (e.g., YouTube's Terms of Service).
+    -   **Disclaimer:** AI-generated content may contain inaccuracies, errors, or reflect biases from its training data. utrend makes no warranties regarding the accuracy, reliability, or suitability of AI-generated content. It is your responsibility to ensure your final content complies with all applicable platform policies (e.g., YouTube's Terms of Service).
 
 6.  **Subscription & Payments:** The application offers free and paid plans. By subscribing to a paid plan, you agree to pay the specified fees. All payments are processed through secure third-party gateways.
 
@@ -194,9 +137,9 @@ By using `EdgTec`, you agree to the following terms and conditions:
 
 9.  **Third-Party Services:** This application utilizes third-party services, including the Google Gemini API. Your use of these features is also subject to their respective terms and conditions.
 
-10. **Indemnification:** You agree to indemnify and hold harmless EDGTEC, its directors, and employees from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your access to or use of the application or your violation of these Terms.
+10. **Indemnification:** You agree to indemnify and hold harmless utrend, its directors, and employees from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your access to or use of the application or your violation of these Terms.
 
-11. **Disclaimer of Warranties & Limitation of Liability:** The application is provided on an "as is" and "as available" basis, without any warranties of any kind. In no event shall EDGTEC be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the application.
+11. **Disclaimer of Warranties & Limitation of Liability:** The application is provided on an "as is" and "as available" basis, without any warranties of any kind. In no event shall utrend be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the application.
 
 12. **Governing Law & Dispute Resolution:** These Terms shall be governed and construed in accordance with the laws of South Africa, without regard to its conflict of law provisions. Any disputes will be resolved in the courts of Gauteng, South Africa.
 
@@ -204,16 +147,16 @@ By using `EdgTec`, you agree to the following terms and conditions:
 </details>
 
 <details>
-<summary><strong>Powered by EDGTEC</strong></summary>
+<summary><strong>Powered by utrend</strong></summary>
 <br>
 
-`EdgTec` is proudly developed by **EDGTEC**, a forward-thinking technology company based in South Africa.
+`utrend` is proudly developed by **utrend**, a forward-thinking technology company based in South Africa.
 
 **Our Mission:** To empower creators and businesses with innovative, accessible, and intelligent software solutions. We believe in leveraging the power of artificial intelligence to solve real-world challenges and unlock new creative potential.
 
 ### Company Details
 
-- **Legal Name:** EDGTEC
+- **Legal Name:** utrend
 - **Business Status:** In Business
 - **Country of Origin:** South Africa
 - **Registration Number:** 2025/534716/07
@@ -222,7 +165,7 @@ By using `EdgTec`, you agree to the following terms and conditions:
 
 ### Ownership
 
-`EdgTec` is driven by the vision of its directors:
+`utrend` is driven by the vision of its directors:
 - **Ranthutu Lepheane** (r.lepheane@outlook.com)
 - **Siphosakhe Mathews Msimango** (siphosakhemsimanngo@gmail.com)
 </details>

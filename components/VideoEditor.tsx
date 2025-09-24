@@ -125,6 +125,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your edited video...");
+                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -314,7 +315,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-700/50">
                             <button
-                                onClick={() => handleDownload(editedVideoUrl!, `utrend_edit_${Date.now()}.mp4`)}
+                                onClick={() => handleDownload(editedVideoUrl!, `edgtec_edit_${Date.now()}.mp4`)}
                                 disabled={!editedVideoUrl || loading}
                                 className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
                             >
@@ -342,5 +343,5 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
         </div>
     );
 };
-
+// FIX: Added default export for VideoEditor component.
 export default VideoEditor;

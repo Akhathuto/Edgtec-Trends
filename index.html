@@ -1,39 +1,61 @@
-<script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
-    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
-  }
-}
-</script>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
-    <meta name="msvalidate.01" content="YOUR_MICROSOFT_VERIFICATION_CODE" />
-    <!-- Apple verification is typically done by hosting a file at /.well-known/apple-app-site-association -->
-    <title>utrend - AI Content Assistant</title>
+    <title>utrend - AI Content Suite for Creators</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "vite": "https://aistudiocdn.com/vite@^7.1.7",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3"
+  }
+}
+</script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'violet': '#8B5CF6',
+              'violet-dark': '#7C3AED',
+              'violet-light': '#A78BFA',
+              'violet-rich': '#6D28D9',
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-in-out forwards',
+              'scale-in': 'scale-in 0.4s ease-out forwards',
+              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
+              'ticker': 'ticker 120s linear infinite',
+              'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
+            },
+            keyframes: {
+              'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+              'slide-in-up': { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+              'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' } }
+            },
+            boxShadow: {
+              'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',
+              'glow-lg': '0 0 25px rgba(167, 139, 250, 0.3)',
+              'glow-violet': '0 0 40px rgba(139, 92, 246, 0.3)',
+            }
+          }
+        }
       }
+    </script>
+    <style>
       body {
         font-family: 'Inter', sans-serif;
         background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617, #4c1d95);
@@ -46,33 +68,6 @@
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
       }
-      @keyframes ticker {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-      }
-      .animate-ticker {
-        animation: ticker 120s linear infinite;
-      }
-      @keyframes logo-pulse {
-        50% { filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.5)); }
-      }
-      .animate-logo-pulse {
-        animation: logo-pulse 4s ease-in-out infinite;
-      }
-      @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes scale-in {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-      }
-      @keyframes slide-in-up {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Custom utility classes for the new design */
       .text-glow {
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 20px rgba(167, 139, 250, 0.2);
       }
@@ -96,54 +91,7 @@
         box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -4px rgba(139, 92, 246, 0.1);
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'violet': '#8B5CF6',
-              'violet-dark': '#7C3AED',
-              'violet-light': '#A78BFA',
-              'violet-rich': '#6D28D9',
-            },
-            animation: {
-              'fade-in': 'fade-in 0.5s ease-in-out forwards',
-              'scale-in': 'scale-in 0.4s ease-out forwards',
-              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
-              'ticker': 'ticker 120s linear infinite',
-              'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
-            },
-            keyframes: {
-              'fade-in': {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              'scale-in': {
-                '0%': { opacity: '0', transform: 'scale(0.95)' },
-                '100%': { opacity: '1', transform: 'scale(1)' },
-              },
-              'slide-in-up': {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              'ticker': {
-                '0%': { transform: 'translateX(0)' },
-                '100%': { transform: 'translateX(-50%)' },
-              },
-               'logo-pulse': {
-                '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' },
-              }
-            },
-            boxShadow: {
-              'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',
-              'glow-lg': '0 0 25px rgba(167, 139, 250, 0.3)',
-              'glow-violet': '0 0 40px rgba(139, 92, 246, 0.3)',
-            }
-          }
-        }
-      }
-    </script>
-  </head>
+</head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>

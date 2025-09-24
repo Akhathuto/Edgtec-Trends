@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { Tab } from '../types.ts';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif } from './Icons';
-import Spinner from './Spinner';
+import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif, Mic } from './Icons.tsx';
+import Spinner from './Spinner.tsx';
+
+declare global {
+    interface Window {
+        SpeechRecognition: any;
+        webkitSpeechRecognition: any;
+    }
+}
 
 interface AIChatProps {
   setActiveTab: (tab: Tab) => void;
@@ -59,6 +66,8 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const [error, setError] = useState<string | null>(null);
   const [isTtsEnabled, setIsTtsEnabled] = useState(false);
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -80,10 +89,48 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     utterance.lang = 'en-US';
     window.speechSynthesis.speak(utterance);
   }, []);
+  
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        console.warn("Speech Recognition API is not supported in this browser.");
+        return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            }
+        }
+        if (finalTranscript) {
+            setInput(prevInput => prevInput.trim() ? prevInput + ' ' + finalTranscript : finalTranscript);
+        }
+    };
+
+    recognition.onend = () => {
+        setIsRecording(false);
+    };
+    
+    recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setError(`Speech recognition error: ${event.error}`);
+        setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+}, []);
+
 
   const initializeChat = useCallback((historyToRestore?: ChatMessage[]) => {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chatInstance = ai.chats.create({
         model: 'gemini-2.5-flash',
         history: historyToRestore?.map((msg) => ({
@@ -91,7 +138,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
           parts: [{ text: msg.gifUrl ? '[User sent a GIF]' : msg.content }],
         })),
         config: {
-          systemInstruction: `You are Nolo, an expert AI content co-pilot. Your personality is helpful, creative, and proactive. Your goal is to assist content creators. If a user's request could lead to using another tool in the app, suggest it using the format ACTION:[TOOL_NAME,"parameter"]. For example: 'That's a great topic! I can create a full strategy report for you. ACTION:[REPORT,"Keto Recipes"]'. Valid tools are: REPORT, TRENDS, IDEAS, KEYWORDS. Always be encouraging and provide actionable advice.`
+          systemInstruction: `You are Nolo, an expert AI content co-pilot. Your personality is helpful, creative, and proactive. Your goal is to assist content creators. If a user's request could lead to using another tool in the app, suggest it using the format ACTION:[TOOL_NAME,"parameter"]. For example: 'That's a great topic! I can create a full strategy report for you. ACTION:[REPORT,"Keto Recipes"]'. Valid tools are: REPORT, TRENDS, IDEAS, KEYWORDS. Always be encouraging and provide actionable advice. Write your responses in a natural, spoken style, using conversational phrasing and punctuation suitable for a text-to-speech engine to read aloud.`
         }
       });
       setChat(chatInstance);
@@ -121,11 +168,12 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
   useEffect(() => {
     if (user?.plan === 'pro') {
-      const storedHistory = localStorage.getItem('utrend-chat-history');
+      const storageKey = `utrend-chat-history-${user.id}`;
+      const storedHistory = localStorage.getItem(storageKey);
       let initialHistory: ChatMessage[] = [];
       if (storedHistory) {
         try {
-          initialHistory = JSON.parse(storedHistory);
+          initialHistory = JSON.parse(storedHistory) as ChatMessage[];
         } catch (e) {
             initialHistory = [];
         }
@@ -138,15 +186,17 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
       setHistory(initialHistory);
       initializeChat(initialHistory);
     }
-  }, [user?.plan, initializeChat]);
+  }, [user?.plan, user?.id, initializeChat]);
 
   useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem('utrend-chat-history', JSON.stringify(history));
-    } else {
-      localStorage.removeItem('utrend-chat-history');
+    if (user && history.length > 0) {
+      const storageKey = `utrend-chat-history-${user.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(history));
+    } else if (user) {
+      const storageKey = `utrend-chat-history-${user.id}`;
+      localStorage.removeItem(storageKey);
     }
-  }, [history]);
+  }, [history, user]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -168,7 +218,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
     let currentChat = chat;
     if (!currentChat) {
-      const storedHistory = JSON.parse(localStorage.getItem('utrend-chat-history') || '[]');
+      const storedHistory = user ? JSON.parse(localStorage.getItem(`utrend-chat-history-${user.id}`) || '[]') : [];
       currentChat = initializeChat(storedHistory);
       if (!currentChat) {
         setError("Chat service is not available. Please refresh.");
@@ -208,7 +258,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         speak(fullResponse);
       }
     }
-  }, [loading, chat, isTtsEnabled, speak, logActivity, initializeChat]);
+  }, [loading, chat, isTtsEnabled, speak, logActivity, initializeChat, user]);
 
   const handleUserMessageSend = (message: string, gifUrl?: string) => {
     if (loading) return;
@@ -248,8 +298,11 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     const freshHistory: ChatMessage[] = [{ role: 'model', content: "Hello again! Let's start fresh. What's on your mind?" }];
     setHistory(freshHistory);
     initializeChat(freshHistory);
-    localStorage.removeItem('utrend-chat-history');
-  }, [initializeChat]);
+    if (user) {
+        const storageKey = `utrend-chat-history-${user.id}`;
+        localStorage.removeItem(storageKey);
+    }
+  }, [initializeChat, user]);
   
   const handleActionClick = (tool: string, param: string) => {
     const toolMap: { [key: string]: Tab } = {
@@ -262,6 +315,20 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     if (targetTab) {
         console.log(`Navigating to ${targetTab} with param: ${param}`);
         setActiveTab(targetTab);
+    }
+  };
+
+  const handleMicClick = () => {
+    if (!recognitionRef.current) {
+        setError("Speech recognition is not supported on this browser.");
+        return;
+    }
+
+    if (isRecording) {
+        recognitionRef.current.stop();
+    } else {
+        recognitionRef.current.start();
+        setIsRecording(true);
     }
   };
 
@@ -397,30 +464,39 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about content creation..."
             disabled={loading}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-24 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none overflow-y-hidden shadow-inner"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none overflow-y-hidden shadow-inner"
             rows={1}
             style={{ maxHeight: '120px' }}
           />
-           <button 
-              onClick={() => setIsGifPickerOpen(prev => !prev)}
-              disabled={loading}
-              className="absolute right-[3.25rem] top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50"
-              title="Send GIF"
-          >
-              <Gif className="w-5 h-5 text-slate-400" />
-          </button>
-          <button
-            onClick={handleFormSubmit}
-            disabled={loading || !input.trim()}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Send Message"
-          >
-            {loading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button 
+                  onClick={handleMicClick}
+                  disabled={loading}
+                  className={`p-2 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50 ${isRecording ? 'bg-red-500/20 animate-pulse' : ''}`}
+                  title={isRecording ? "Stop recording" : "Start voice input"}
+              >
+                  <Mic className={`w-5 h-5 ${isRecording ? 'text-red-400' : 'text-slate-400'}`} />
+              </button>
+              <button 
+                  onClick={() => setIsGifPickerOpen(prev => !prev)}
+                  disabled={loading}
+                  className="p-2 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50"
+                  title="Send GIF"
+              >
+                  <Gif className="w-5 h-5 text-slate-400" />
+              </button>
+              <button
+                onClick={handleFormSubmit}
+                disabled={loading || !input.trim()}
+                className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Send Message"
+              >
+                {loading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
+              </button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
 export default AIChat;

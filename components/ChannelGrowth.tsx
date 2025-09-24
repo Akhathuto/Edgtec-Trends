@@ -1,10 +1,11 @@
 
+
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { generateChannelGrowthPlan } from '../services/geminiService';
-import { ChannelGrowthPlan, Tab } from '../types';
-import Spinner from './Spinner';
-import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { generateChannelGrowthPlan } from '../services/geminiService.ts';
+import { ChannelGrowthPlan, Tab } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons.tsx';
 
 interface ChannelGrowthProps {
   setActiveTab: (tab: Tab) => void;

@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { editImage } from '../services/geminiService';
-import Spinner from './Spinner';
-import { Edit, Star, UploadCloud, RefreshCw, FileText, Download } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { editImage } from '../services/geminiService.ts';
+import Spinner from './Spinner.tsx';
+import { Edit, Star, UploadCloud, RefreshCw, FileText, Download } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { Tab } from '../types.ts';
 
 interface ImageEditorProps {
   setActiveTab: (tab: Tab) => void;
@@ -214,5 +214,5 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     </div>
   );
 };
-
+// FIX: Added default export for ImageEditor component.
 export default ImageEditor;

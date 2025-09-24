@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { History, FileText, CheckCircle, Copy, Download } from './Icons';
-import { HistoryItem, HistoryContentType } from '../types';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { History, FileText, CheckCircle, Copy, Download } from './Icons.tsx';
+import { HistoryItem, HistoryContentType } from '../types.ts';
 import { format } from 'date-fns';
-import Modal from './Modal';
-import { useToast } from '../contexts/ToastContext';
+import Modal from './Modal.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 const contentTypes: HistoryContentType[] = [
     'Content Idea',
@@ -17,9 +16,12 @@ const contentTypes: HistoryContentType[] = [
     'Channel Growth Plan',
     'Sponsorship Opportunities',
     'Brand Pitch',
+    'Video Analysis',
     'Animation',
     'GIF',
     'Logo',
+    'Repurposed Content',
+    'Thumbnail Idea',
 ];
 
 const HistoryModalContent: React.FC<{ item: HistoryItem | null }> = ({ item }) => {
@@ -111,6 +113,19 @@ const HistoryModalContent: React.FC<{ item: HistoryItem | null }> = ({ item }) =
                     <div>
                         <h4 className="font-semibold text-center mb-2">Generated Logo</h4>
                         <img src={`data:image/png;base64,${item.content.logoBase64}`} alt="Generated Logo" className="rounded-lg w-48 h-48 mx-auto bg-slate-100 p-2" />
+                    </div>
+                </div>
+            );
+        case 'Thumbnail Idea':
+            return (
+                <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-violet-300">Thumbnail for: {item.content.title}</h3>
+                    <p className="text-slate-300"><strong>Style:</strong> {item.content.style}</p>
+                    <p className="text-slate-300"><strong>Text Overlay:</strong> {item.content.textOverlay}</p>
+                    <p className="text-slate-300"><strong>Visual Description:</strong> {item.content.visualDescription}</p>
+                    <div>
+                        <h4 className="font-semibold text-slate-200 mb-2">AI Image Prompt</h4>
+                        <pre className="text-sm bg-slate-800/50 rounded-lg p-3 whitespace-pre-wrap font-mono text-slate-300 border border-slate-700">{item.content.imageGenPrompt}</pre>
                     </div>
                 </div>
             );
@@ -229,6 +244,11 @@ const ContentHistory: React.FC = () => {
             }
             case 'Logo': {
                 downloadBase64Image(content.logoBase64, `${filenameBase}.png`, 'image/png');
+                break;
+            }
+            case 'Thumbnail Idea': {
+                const textContent = `Title: ${content.title}\n\nStyle: ${content.style}\nText Overlay: ${content.textOverlay}\nVisual Description: ${content.visualDescription}\n\nImage Generator Prompt:\n${content.imageGenPrompt}`;
+                downloadFile(textContent, `${filenameBase}.txt`, 'text/plain;charset=utf-8');
                 break;
             }
             default: {

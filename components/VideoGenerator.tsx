@@ -1,9 +1,8 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download } from './Icons.tsx';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
@@ -25,7 +24,8 @@ const videoTemplates: { name: string; prompt: string; recommendedPlatform?: 'You
   { name: 'Product Demo', prompt: `// Goal: Showcase the product's key features and benefits in a visually appealing way.\n// Structure:\n// 1. Beauty shot of the product.\n// 2. Show the product in use, solving a specific problem.\n// 3. Highlight 2-3 key features with close-ups and text callouts.\n// 4. End with a strong call to action and where to buy.\n\n// Your prompt:\nA sleek and modern product demo for [YOUR PRODUCT]. Show it in a real-world setting, using slow-motion shots to highlight its design.`, recommendedPlatform: 'YouTube' },
 ];
 
-const styleFilters = ['Cinematic', 'Vintage', 'Grayscale', 'Vibrant', 'Anime', 'Documentary', '8-bit', 'Noir'];
+const videoStyles = ['Cinematic', 'Vintage Film', 'Anime', 'Documentary', 'Hyperlapse', 'Claymation', 'Black and White', 'Vibrant Colors'];
+const cameraMotions = ['Panning Shot', 'Tilting Shot', 'Drone Shot', 'Dolly Zoom', 'Handheld shaky cam', 'Static tripod shot'];
 
 interface VideoGeneratorProps {
   setActiveTab: (tab: Tab) => void;
@@ -46,10 +46,9 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     const [operation, setOperation] = useState<any | null>(null);
     const [selectedTemplate, setSelectedTemplate] = useState(videoTemplates[0].name);
 
-    // AI Editing State
-    const [editText, setEditText] = useState('');
-    const [editFilter, setEditFilter] = useState('');
-    const [duration, setDuration] = useState<number>(0);
+    // AI Prompt Enhancers
+    const [selectedStyle, setSelectedStyle] = useState('');
+    const [selectedCamera, setSelectedCamera] = useState('');
     
     // Transcript and TTS State
     const [transcript, setTranscript] = useState<string | null>(null);
@@ -60,20 +59,17 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Effect to update the final prompt when quick edits are used
+    // Effect to update the final prompt when enhancers are used
     useEffect(() => {
         let finalPrompt = basePrompt;
-        if (duration > 0) {
-            finalPrompt += ` The final video should be approximately ${duration} seconds long.`
+        if (selectedStyle) {
+            finalPrompt += ` The visual style should be ${selectedStyle.toLowerCase()}.`;
         }
-        if (editText) {
-            finalPrompt += ` Add a text overlay that says: "${editText}".`;
-        }
-        if (editFilter) {
-            finalPrompt += ` Apply a ${editFilter.toLowerCase()} visual style to the video.`;
+        if (selectedCamera) {
+            finalPrompt += ` Use a ${selectedCamera.toLowerCase()}.`;
         }
         setPrompt(finalPrompt.trim());
-    }, [basePrompt, editText, editFilter, duration]);
+    }, [basePrompt, selectedStyle, selectedCamera]);
 
 
     const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string }> => {
@@ -128,6 +124,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
+                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -183,9 +180,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         const template = videoTemplates.find(t => t.name === templateName);
         if (template) {
             setBasePrompt(template.prompt);
-            setEditText('');
-            setEditFilter('');
-            setDuration(0);
+            setSelectedStyle('');
+            setSelectedCamera('');
             if (template.recommendedPlatform) {
                 setPlatform(template.recommendedPlatform);
             }
@@ -201,9 +197,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setImageFile(null);
         setImageBase64(null);
         setSelectedTemplate(videoTemplates[0].name);
-        setEditText('');
-        setEditFilter('');
-        setDuration(0);
+        setSelectedStyle('');
+        setSelectedCamera('');
         setTranscript(null);
         setTranscriptLoading(false);
         setTranscriptError(null);
@@ -365,6 +360,27 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             title="Describe the video you want to create."
                         />
                         
+                        {/* AI Toolkit */}
+                        <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
+                            <h4 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2"><Sliders className="w-5 h-5 text-violet-400" /> AI Toolkit - Prompt Enhancers</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
+                                    <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                        <option value="">Default</option>
+                                        {videoStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="camera-select" className="block text-sm font-medium text-slate-300 mb-1">Camera Motion</label>
+                                    <select id="camera-select" value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                        <option value="">Default</option>
+                                        {cameraMotions.map(motion => <option key={motion} value={motion}>{motion}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex items-center justify-center w-full">
                            <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">

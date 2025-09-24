@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs }) => {
   return (
     <header className="sticky top-0 z-30 py-3 px-4 sm:px-6 bg-slate-950/60 backdrop-blur-lg border-b border-slate-800/50">
       <div className="container mx-auto flex items-center justify-between">
-        <div title="utrend: Your AI-powered content strategy assistant">
+        <div title="utrend: Your AI-powered content suite for creators">
             <UtrendLogo className="h-10" />
         </div>
 

@@ -1,11 +1,12 @@
 
+
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { findSponsorshipOpportunities, generateBrandPitch } from '../services/geminiService';
-import { Tab, SponsorshipOpportunity, BrandPitch } from '../types';
-import Spinner from './Spinner';
-import { Star, Link, Briefcase, ChevronDown, Copy, FileText, Send } from './Icons';
-import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { findSponsorshipOpportunities, generateBrandPitch } from '../services/geminiService.ts';
+import { Tab, SponsorshipOpportunity, BrandPitch } from '../types.ts';
+import Spinner from './Spinner.tsx';
+import { Star, Link, Briefcase, ChevronDown, Copy, FileText, Send } from './Icons.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 interface BrandConnectProps {
   setActiveTab: (tab: Tab) => void;

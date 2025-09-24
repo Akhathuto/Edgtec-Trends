@@ -37,7 +37,7 @@ const Login: React.FC = () => {
                 <div className="text-center mb-8">
                      <UtrendLogo className="h-16 inline-block" />
                      <h1 className="text-3xl font-bold mt-2 text-glow">Welcome to utrend</h1>
-                     <p className="text-slate-400">Your AI-powered content assistant.</p>
+                     <p className="text-slate-400">Your AI-powered content suite for creators.</p>
                 </div>
                 
                 <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-8 shadow-glow-violet">

@@ -15,6 +15,16 @@ const loadingMessages = [
 
 const animationStyles = ['2D Cartoon', '3D Render', 'Claymation', 'Anime Style', 'Stop Motion'];
 
+const animationTemplates: { name: string; prompt: string; }[] = [
+  { name: 'Select a Template...', prompt: '' },
+  { name: 'Explainer Video', prompt: 'A simple, animated explainer video about [YOUR TOPIC] using clean graphics and on-screen text.' },
+  { name: 'Logo Reveal', prompt: 'A dynamic logo reveal for a brand named [BRAND NAME]. It should feature particles and light effects.' },
+  { name: 'Character Action', prompt: 'A character animation of a [CHARACTER DESCRIPTION] performing a [SPECIFIC ACTION].' },
+  { name: 'Abstract Loop', prompt: 'A seamlessly looping abstract animation with geometric shapes morphing and changing colors.' },
+  { name: 'Product Demo', prompt: 'An animated showcase of a [PRODUCT], highlighting its key features with callouts.'},
+];
+
+
 interface AnimationCreatorProps {
   setActiveTab: (tab: Tab) => void;
 }
@@ -28,6 +38,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
     const [error, setError] = useState<string | null>(null);
     const [animationUrl, setAnimationUrl] = useState<string | null>(null);
     const [operation, setOperation] = useState<any | null>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState(animationTemplates[0].name);
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,6 +63,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your animation...");
+                        // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -109,6 +121,16 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         setOperation(null);
         setPrompt('');
         setAnimationStyle(animationStyles[0]);
+        setSelectedTemplate(animationTemplates[0].name);
+    };
+    
+    const handleTemplateChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const templateName = event.target.value;
+        setSelectedTemplate(templateName);
+        const template = animationTemplates.find(t => t.name === templateName);
+        if (template) {
+            setPrompt(template.prompt);
+        }
     };
 
      const handleDownload = async (url: string, filename: string) => {
@@ -155,16 +177,29 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                 
                 {(!loading && !animationUrl) && (
                     <div className="space-y-4">
-                        <div>
-                             <label htmlFor="animation-style" className="block text-sm font-medium text-slate-300 mb-1">Animation Style</label>
-                             <select
-                                id="animation-style"
-                                value={animationStyle}
-                                onChange={(e) => setAnimationStyle(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
-                             >
-                                {animationStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                             </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="animation-template" className="block text-sm font-medium text-slate-300 mb-1">Animation Template (Optional)</label>
+                                <select
+                                    id="animation-template"
+                                    value={selectedTemplate}
+                                    onChange={handleTemplateChange}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                >
+                                    {animationTemplates.map(template => <option key={template.name} value={template.name}>{template.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                 <label htmlFor="animation-style" className="block text-sm font-medium text-slate-300 mb-1">Animation Style</label>
+                                 <select
+                                    id="animation-style"
+                                    value={animationStyle}
+                                    onChange={(e) => setAnimationStyle(e.target.value)}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                 >
+                                    {animationStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                 </select>
+                            </div>
                         </div>
                         <textarea
                             id="animation-prompt"
@@ -230,5 +265,5 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         </div>
     );
 };
-
+// FIX: Added default export for AnimationCreator component.
 export default AnimationCreator;

@@ -29,9 +29,10 @@ import LogoCreator from './LogoCreator.tsx';
 import VideoAnalyzer from './VideoAnalyzer.tsx';
 import RepurposeContent from './RepurposeContent.tsx';
 import AIAgents from './AIAgents.tsx';
+import ThumbnailGenerator from './ThumbnailGenerator.tsx';
 import { Tab, User } from '../types.ts';
 import Sidebar from './Sidebar.tsx';
-import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool, Film, RefreshCw, Scissors, Bot } from './Icons.tsx';
+import { TrendingUp, Lightbulb, DollarSign, FileText, Video, Info, User as UserIcon, Sliders, Star, HelpCircle, Mail, Wand, Edit, Search, MessageSquare, BarChart2, LayoutDashboard, Rocket, Briefcase, History, Clapperboard, Gif, PenTool, Film, RefreshCw, Scissors, Bot, Image } from './Icons.tsx';
 import TrendingTicker from './TrendingTicker.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
@@ -83,6 +84,8 @@ const AppLayout: React.FC = () => {
         return <StrategyReport setActiveTab={setActiveTab} />;
       case Tab.Prompt:
         return <PromptGenerator />;
+      case Tab.ThumbnailGenerator:
+        return <ThumbnailGenerator />;
       case Tab.Video:
         return <VideoGenerator setActiveTab={setActiveTab} />;
       case Tab.AnimationCreator:
@@ -146,6 +149,7 @@ const AppLayout: React.FC = () => {
   const createTabs = [
     { id: Tab.Ideas, label: 'Ideas', icon: <Lightbulb className="w-5 h-5 mr-3" />, title: "Generate viral video ideas" },
     { id: Tab.Prompt, label: 'Prompt Generator', icon: <Wand className="w-5 h-5 mr-3" />, title: "Generate optimized prompts" },
+    { id: Tab.ThumbnailGenerator, label: 'Thumbnail Ideas', icon: <Image className="w-5 h-5 mr-3" />, title: "Generate thumbnail ideas" },
     { id: Tab.Video, label: 'Video Generator', icon: <Video className="w-5 h-5 mr-3" />, title: "Generate video content" },
     { id: Tab.AnimationCreator, label: 'Animation Creator', icon: <Clapperboard className="w-5 h-5 mr-3" />, title: "Generate animations" },
     { id: Tab.GifCreator, label: 'GIF Creator', icon: <Gif className="w-5 h-5 mr-3" />, title: "Generate GIFs" },
@@ -195,7 +199,7 @@ const AppLayout: React.FC = () => {
                 <span className="text-slate-600">&bull;</span>
                 <button onClick={() => setActiveTab(Tab.License)} className="hover:text-slate-300 transition-colors">License</button>
             </div>
-            <p>Copyright © {new Date().getFullYear()} EDGTEC. All Rights Reserved. Powered by Gemini API.</p>
+            <p>Copyright © {new Date().getFullYear()} utrend. All Rights Reserved. Powered by Gemini API.</p>
           </footer>
         </main>
       </div>

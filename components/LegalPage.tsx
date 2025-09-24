@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, FileText } from './Icons';
+import { Shield, FileText } from './Icons.tsx';
 import { format } from 'date-fns';
 
 interface LegalPageProps {
@@ -35,7 +35,7 @@ const termsContent = (
                 <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
                     <li><strong>Ownership:</strong> You retain all ownership rights to the content you generate using the application's AI tools ("User Content").</li>
                     <li><strong>Responsibility:</strong> You are solely responsible for the User Content you generate, publish, and use. You must review all AI-generated content for accuracy and appropriateness before use.</li>
-                    <li><strong>Disclaimer:</strong> AI-generated content may contain inaccuracies, errors, or reflect biases from its training data. EDGTEC makes no warranties regarding the accuracy, reliability, or suitability of AI-generated content. It is your responsibility to ensure your final content complies with all applicable platform policies (e.g., YouTube's Terms of Service).</li>
+                    <li><strong>Disclaimer:</strong> AI-generated content may contain inaccuracies, errors, or reflect biases from its training data. utrend makes no warranties regarding the accuracy, reliability, or suitability of AI-generated content. It is your responsibility to ensure your final content complies with all applicable platform policies (e.g., YouTube's Terms of Service).</li>
                 </ul>
             </li>
             <li>
@@ -51,10 +51,10 @@ const termsContent = (
                 <strong>Third-Party Services:</strong> This application utilizes third-party services, including the Google Gemini API. Your use of these features is also subject to their respective terms and conditions.
             </li>
             <li>
-                <strong>Indemnification:</strong> You agree to indemnify and hold harmless EDGTEC, its directors, and employees from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your access to or use of the application or your violation of these Terms.
+                <strong>Indemnification:</strong> You agree to indemnify and hold harmless utrend, its directors, and employees from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your access to or use of the application or your violation of these Terms.
             </li>
             <li>
-                <strong>Disclaimer of Warranties & Limitation of Liability:</strong> The application is provided on an "as is" and "as available" basis, without any warranties of any kind. In no event shall EDGTEC be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the application.
+                <strong>Disclaimer of Warranties & Limitation of Liability:</strong> The application is provided on an "as is" and "as available" basis, without any warranties of any kind. In no event shall utrend be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the application.
             </li>
             <li>
                 <strong>Governing Law & Dispute Resolution:</strong> These Terms shall be governed and construed in accordance with the laws of South Africa, without regard to its conflict of law provisions. Any disputes will be resolved in the courts of Gauteng, South Africa.
@@ -69,15 +69,15 @@ const termsContent = (
 const licenseContent = (
     <>
         <p className="mb-4">
-            <strong>Proprietary Property:</strong> This software, including its source code, visual design, features, and the "utrend" name and logo, are the proprietary property and trademarks of EDGTEC. All rights are reserved.
+            <strong>Proprietary Property:</strong> This software, including its source code, visual design, features, and the "utrend" name and logo, are the proprietary property and trademarks of utrend. All rights are reserved.
         </p>
         <p className="mb-4">
-             <strong>Limited License:</strong> EDGTEC grants you a limited, non-exclusive, non-transferable, revocable license to use the `utrend` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
+             <strong>Limited License:</strong> utrend grants you a limited, non-exclusive, non-transferable, revocable license to use the `utrend` application for your personal or internal business purposes, strictly in accordance with these Terms of Use.
         </p>
          <p className="mb-4">
-            <strong>Restrictions:</strong> Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of EDGTEC.
+            <strong>Restrictions:</strong> Unauthorized copying, distribution, modification, or use of this software, or any portion of it, is strictly prohibited without the express written permission of utrend.
         </p>
-        <p className="font-bold">Copyright (c) 2024 EDGTEC. All Rights Reserved.</p>
+        <p className="font-bold">Copyright (c) 2024 utrend. All Rights Reserved.</p>
     </>
 );
 

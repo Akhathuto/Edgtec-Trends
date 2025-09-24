@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import Spinner from './Spinner';
-import { Wand, FileText, Trash2, Copy } from './Icons';
-import { useToast } from '../contexts/ToastContext';
-import { generateContentPrompt } from '../services/geminiService';
-import { useAuth } from '../contexts/AuthContext';
+import Spinner from './Spinner.tsx';
+import { Wand, FileText, Trash2, Copy } from './Icons.tsx';
+import { useToast } from '../contexts/ToastContext.tsx';
+import { generateContentPrompt } from '../services/geminiService.ts';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 const PromptGenerator: React.FC = () => {
   const { addContentToHistory } = useAuth();
