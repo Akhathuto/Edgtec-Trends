@@ -1,604 +1,261 @@
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { findTrends, getTrendingContent, getRealtimeTrends } from '../services/geminiService.ts';
-import { GroundingSource, TrendingVideo, TrendingMusic, TrendingCreator, TrendingTopic, TrendingChannel } from '../types.ts';
-import { Search, Link as LinkIcon, Zap, Youtube, ExternalLink, Users, Eye, Lock, ChevronDown, Music, ThumbsUp, TikTok, Video, Download, TrendingUp, Sparkles } from './Icons.tsx';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService.ts';
+import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types.ts';
 import Spinner from './Spinner.tsx';
+import { TrendingUp, Youtube, TikTok, Search, ExternalLink, Music, Users, Video as VideoIcon } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
+import UpgradeModal from './UpgradeModal.tsx';
 
-type TrendType = 'videos' | 'music' | 'creators' | 'topics';
-type Platform = 'YouTube' | 'TikTok';
+const countryOptions = ["Worldwide", "USA", "UK", "Canada", "Australia", "India", "South Africa"];
+const categoryOptions = ["All", "Gaming", "Music", "Entertainment", "Comedy", "Education", "Tech", "Beauty & Fashion", "Food"];
+const platformOptions: ('YouTube' | 'TikTok')[] = ['YouTube', 'TikTok'];
+
+type ContentType = 'videos' | 'music' | 'creators' | 'topics';
 
 interface TrendDiscoveryProps {
-  onUpgradeClick: () => void;
+  initialInput?: string | null;
 }
 
-const countries = [
-  'Worldwide', 'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Armenia', 
-  'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium', 
-  'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 
-  'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 
-  'Central African Republic', 'Chad', 'Chile', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 
-  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominican Republic', 
-  'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 
-  'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Guatemala', 'Guinea', 
-  'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 
-  'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 
-  'Kenya', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 
-  'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 
-  'Mali', 'Malta', 'Mauritania', 'Mauritius', 'Mexico', 'Moldova', 'Monaco', 'Mongolia', 
-  'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nepal', 'Netherlands', 'New Zealand', 
-  'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 
-  'Palestine', 'Panama', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 
-  'Romania', 'Russia', 'Rwanda', 'San Marino', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 
-  'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Somalia', 'South Africa', 'South Korea', 
-  'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 
-  'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 
-  'Turkmenistan', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 
-  'Uruguay', 'Uzbekistan', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
-];
+const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
+    const { user } = useAuth();
+    const [channels, setChannels] = useState<TrendingChannel[]>([]);
+    const [topics, setTopics] = useState<TrendingTopic[]>([]);
+    const [loadingSnapshot, setLoadingSnapshot] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-const youtubeCategories = [
-    'All', 'Music', 'Gaming', 'Entertainment', 'Comedy', 'Film & Animation', 'Howto & Style', 'Science & Technology', 'News & Politics', 'Pets & Animals', 'Sports'
-];
+    // Filters
+    const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [country, setCountry] = useState('Worldwide');
+    const [category, setCategory] = useState('All');
+    const [contentType, setContentType] = useState<ContentType>('videos');
+    const [content, setContent] = useState<any[]>([]);
+    const [loadingContent, setLoadingContent] = useState(false);
+    
+    // Search
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResult, setSearchResult] = useState<{ text: string, sources: GroundingSource[] } | null>(null);
+    const [loadingSearch, setLoadingSearch] = useState(false);
+    
+    // Modal
+    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+    
+    const fetchSnapshot = useCallback(async () => {
+        if (!user) return;
+        setLoadingSnapshot(true);
+        setError(null);
+        try {
+            const data = await getRealtimeTrends(user.plan, 'Worldwide');
+            setChannels(data.channels);
+            setTopics(data.topics);
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setLoadingSnapshot(false);
+        }
+    }, [user]);
 
-const tiktokCategories = [
-    'All', 'Trending', 'Comedy', 'Dance', 'Education', 'DIY', 'Fashion', 'Food', 'Gaming', 'Lifehacks', 'Music', 'Sports', 'Tech', 'Animals'
-];
-
-const VideoCard: React.FC<{ video: TrendingVideo; index: number; onImageError: (index: number) => void; imageErrors: Record<number, boolean> }> = ({ video, index, onImageError, imageErrors }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const titleRef = useRef<HTMLHeadingElement>(null);
-    const [isClamped, setIsClamped] = useState(false);
+    const fetchContent = useCallback(async () => {
+        if (!user) return;
+        setLoadingContent(true);
+        try {
+            const data = await getTrendingContent(contentType, user.plan, country, category, platform);
+            setContent(data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingContent(false);
+        }
+    }, [user, contentType, country, category, platform]);
+    
+    const handleSearch = useCallback(async (term?: string) => {
+        const termToSearch = term || searchTerm;
+        if (!termToSearch.trim()) return;
+        if (user?.plan === 'free') {
+            setIsUpgradeModalOpen(true);
+            return;
+        }
+        setLoadingSearch(true);
+        setSearchResult(null);
+        try {
+            const response = await findTrends(termToSearch, platform, country, category);
+            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => c.web) || [];
+            setSearchResult({ text: response.text, sources });
+        } catch (e: any) {
+             setError(e.message);
+        } finally {
+            setLoadingSearch(false);
+        }
+    }, [searchTerm, user?.plan, platform, country, category]);
+    
+    useEffect(() => {
+        if (initialInput) {
+            setSearchTerm(initialInput);
+            handleSearch(initialInput);
+        }
+    }, [initialInput, handleSearch]);
 
     useEffect(() => {
-        const element = titleRef.current;
-        if (!element) return;
-        
-        const checkClamping = () => {
-            const isOverflowing = element.scrollHeight > element.clientHeight;
-            setIsClamped(isOverflowing);
-        };
+        fetchSnapshot();
+    }, [fetchSnapshot]);
 
-        checkClamping();
+    useEffect(() => {
+        fetchContent();
+    }, [fetchContent]);
 
-        const resizeObserver = new ResizeObserver(checkClamping);
-        resizeObserver.observe(element);
-        
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [isExpanded, video.title]);
-
-    const toggleExpand = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsExpanded(!isExpanded);
-    };
-
-    const showPlaceholder = !video.thumbnailUrl || imageErrors[index];
-
+    const renderContentCards = () => {
+        switch (contentType) {
+            case 'videos':
+                return (content as TrendingVideo[]).map((v, i) => (
+                    <a href={v.videoUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col group">
+                        <div className="overflow-hidden rounded-lg mb-3">
+                           <img src={v.thumbnailUrl} alt={v.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                        <h4 className="font-bold text-white flex-grow line-clamp-2">{v.title}</h4>
+                        <p className="text-sm text-slate-400 mt-1">{v.channelName}</p>
+                        <div className="flex justify-between items-center mt-2 text-xs text-slate-500">
+                            <span>{v.viewCount}</span>
+                            <span>{v.publishedTime}</span>
+                        </div>
+                    </a>
+                ));
+            case 'music':
+                return (content as TrendingMusic[]).map((m, i) => (
+                    <div key={i} className="interactive-card flex flex-col justify-between">
+                         <div>
+                            <h4 className="font-bold text-white text-lg">{m.trackTitle}</h4>
+                            <p className="text-sm text-slate-400">{m.artistName}</p>
+                             <p className="text-xs text-slate-300 mt-2">{m.reason}</p>
+                        </div>
+                        <p className="text-violet-300 font-bold text-right mt-2">{m.videosUsingSound}</p>
+                    </div>
+                ));
+            case 'creators':
+                 return (content as TrendingCreator[]).map((c, i) => (
+                    <a href={c.channelUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col justify-between group">
+                         <div>
+                            <h4 className="font-bold text-white text-lg group-hover:text-violet-300 transition-colors">{c.name}</h4>
+                            <p className="text-sm text-slate-400">{c.category}</p>
+                             <p className="text-xs text-slate-300 mt-2">{c.reason}</p>
+                        </div>
+                        <p className="text-violet-300 font-bold text-right mt-2">{c.subscriberCount}</p>
+                    </a>
+                ));
+            case 'topics':
+                 return (content as TrendingTopic[]).map((t, i) => (
+                    <div key={i} className="interactive-card">
+                        <h4 className="font-bold text-white text-lg">{t.name}</h4>
+                        <p className="text-sm text-slate-400">{t.description}</p>
+                    </div>
+                ));
+            default: return null;
+        }
+    }
+    
     return (
-        <a 
-            href={video.videoUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group flex flex-col"
-        >
-            <div className="aspect-video bg-black rounded-md mb-3 flex items-center justify-center overflow-hidden">
-                {showPlaceholder ? (
-                    <Video className="w-10 h-10 text-slate-600" />
-                ) : (
-                    <img 
-                        src={video.thumbnailUrl} 
-                        alt={video.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={() => onImageError(index)}
-                    />
-                )}
+        <div className="animate-slide-in-up space-y-8">
+            <div className="text-center">
+                <h2 className="text-3xl font-bold text-white text-glow">Trend Discovery</h2>
+                <p className="text-slate-400 mt-1">Stay ahead of the curve with real-time social media trends.</p>
             </div>
             
-            <div className="flex flex-col flex-grow">
-                <h4 ref={titleRef} className={`font-bold text-violet-300 text-sm leading-snug ${!isExpanded ? 'line-clamp-1' : ''}`}>{video.title}</h4>
-                
-                {(isClamped || (isExpanded && isClamped)) && (
-                    <button onClick={toggleExpand} className="text-xs text-slate-400 hover:text-white self-start mt-1 focus:outline-none bg-transparent border-none p-0 cursor-pointer">
-                        {isExpanded ? 'See Less' : '...See More'}
-                    </button>
-                )}
-
-                <div className="flex-grow"></div>
-
-                <div className="pt-1">
-                    <p className="text-xs text-slate-400 mt-1 truncate">{video.channelName}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                        <div className="flex items-center gap-1.5">
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>{video.viewCount}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <ThumbsUp className="w-3.5 h-3.5" />
-                            <span>{video.publishedTime}</span>
-                        </div>
+             <section>
+                <h3 className="text-xl font-bold mb-4 text-slate-200">Today's Snapshot</h3>
+                 {loadingSnapshot && <div className="flex justify-center"><Spinner /></div>}
+                 {error && <p className="text-red-400 text-center">{error}</p>}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-brand-glass p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Trending Channels</h4>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                            {channels.map((c, i) => (
+                                <li key={i} className="flex items-center justify-between text-sm p-2 bg-slate-800/50 rounded">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        {c.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500 flex-shrink-0"/> : <TikTok className="w-4 h-4 text-white flex-shrink-0"/>}
+                                        <span className="truncate">{c.name}</span>
+                                    </div>
+                                    <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline flex-shrink-0 ml-2">View</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                     <div className="bg-brand-glass p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Trending Topics</h4>
+                         <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                            {topics.map((t, i) => (
+                                <li key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded">
+                                    {t.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500 flex-shrink-0"/> : <TikTok className="w-4 h-4 text-white flex-shrink-0"/>}
+                                    <span className="truncate">{t.name}</span>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </div>
-            </div>
-        </a>
+            </section>
+            
+            <section>
+                <h3 className="text-xl font-bold mb-4 text-slate-200">Explore Trends</h3>
+                <div className="bg-brand-glass p-4 rounded-lg mb-4">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <select onChange={(e) => setPlatform(e.target.value as any)} value={platform} className="form-select">
+                            {platformOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                        <select onChange={(e) => setCountry(e.target.value)} value={country} className="form-select">
+                            {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <select onChange={(e) => setCategory(e.target.value)} value={category} className="form-select">
+                            {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex justify-center flex-wrap gap-2 mt-4">
+                        <button onClick={() => setContentType('videos')} className={`tab-button ${contentType === 'videos' ? 'active' : ''}`}><VideoIcon className="w-4 h-4 mr-2"/> Videos</button>
+                        <button onClick={() => setContentType('music')} className={`tab-button ${contentType === 'music' ? 'active' : ''}`}><Music className="w-4 h-4 mr-2"/> Music</button>
+                        <button onClick={() => setContentType('creators')} className={`tab-button ${contentType === 'creators' ? 'active' : ''}`}><Users className="w-4 h-4 mr-2"/> Creators</button>
+                    </div>
+                </div>
+                {loadingContent ? <div className="flex justify-center p-8"><Spinner size="lg" /></div> : 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {renderContentCards()}
+                    </div>
+                }
+            </section>
+
+             <section>
+                <h3 className="text-xl font-bold mb-4 text-slate-200">Analyze Any Trend</h3>
+                <div className="bg-brand-glass p-4 rounded-lg">
+                    <div className="flex gap-4">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            placeholder="e.g., 'AI in video editing'"
+                            className="form-input flex-grow"
+                        />
+                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="button-primary">
+                            {loadingSearch ? <Spinner size="sm"/> : <Search className="w-5 h-5"/>}
+                        </button>
+                    </div>
+                </div>
+                {searchResult && (
+                    <div className="mt-4 bg-brand-glass p-4 rounded-lg animate-fade-in">
+                        <div className="prose prose-invert max-w-none prose-p:text-slate-300" dangerouslySetInnerHTML={{ __html: searchResult.text.replace(/\n/g, '<br/>') }}></div>
+                        {searchResult.sources.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-slate-700">
+                                <h4 className="font-semibold text-sm mb-2 text-slate-300">Sources:</h4>
+                                <ul className="flex flex-wrap gap-2">
+                                    {searchResult.sources.map((s, i) => (
+                                        s && s.uri && <li key={i}><a href={s.uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded text-blue-400">
+                                            {s.title} <ExternalLink className="w-3 h-3"/>
+                                        </a></li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
+            
+            <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />
+        </div>
     );
-};
-
-const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onUpgradeClick }) => {
-  const { user } = useAuth();
-  const [topic, setTopic] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [trends, setTrends] = useState<string | null>(null);
-  const [sources, setSources] = useState<GroundingSource[]>([]);
-
-  const [realtimeTrends, setRealtimeTrends] = useState<any[]>([]);
-  const [realtimeLoading, setRealtimeLoading] = useState(true);
-  const [realtimeError, setRealtimeError] = useState<string | null>(null);
-
-  const [overview, setOverview] = useState<{ channels: TrendingChannel[], topics: TrendingTopic[] }>({ channels: [], topics: [] });
-  const [overviewLoading, setOverviewLoading] = useState(true);
-  const [overviewError, setOverviewError] = useState<string | null>(null);
-  
-  const [platform, setPlatform] = useState<Platform>('YouTube');
-  const [selectedCountry, setSelectedCountry] = useState('Worldwide');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeTrendType, setActiveTrendType] = useState<TrendType>('videos');
-  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
-
-  const categories = platform === 'TikTok' ? tiktokCategories : youtubeCategories;
-
-  useEffect(() => {
-    setSelectedCategory('All');
-  }, [platform]);
-
-  const fetchRealtimeTrends = useCallback(async () => {
-    if (!user) return;
-    try {
-      setRealtimeLoading(true);
-      setRealtimeError(null);
-      setRealtimeTrends([]);
-      setImageErrors({});
-      const result = await getTrendingContent(activeTrendType, user.plan, selectedCountry, selectedCategory, platform);
-      setRealtimeTrends(result);
-    } catch (e: any) {
-      setRealtimeError(e.message || `Could not load trends for ${selectedCountry}.`);
-      console.error(e);
-    } finally {
-      setRealtimeLoading(false);
-    }
-  }, [user, selectedCountry, selectedCategory, activeTrendType, platform]);
-
-  const fetchOverviewTrends = useCallback(async () => {
-    if (!user) return;
-    try {
-        setOverviewLoading(true);
-        setOverviewError(null);
-        const result = await getRealtimeTrends(user.plan, selectedCountry);
-        setOverview(result);
-    } catch (e: any) {
-        setOverviewError(e.message || `Could not load trend overview.`);
-        console.error(e);
-    } finally {
-        setOverviewLoading(false);
-    }
-  }, [user, selectedCountry]);
-
-  useEffect(() => {
-    fetchRealtimeTrends();
-  }, [fetchRealtimeTrends]);
-
-  useEffect(() => {
-    fetchOverviewTrends();
-  }, [fetchOverviewTrends]);
-
-  const handleSearch = async () => {
-    if (!topic.trim()) {
-      setError('Please enter a topic to search for trends.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setTrends(null);
-    setSources([]);
-
-    try {
-      const response = await findTrends(topic, platform, selectedCountry, selectedCategory);
-      setTrends(response.text);
-      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-      if (groundingMetadata?.groundingChunks) {
-        const extractedSources = groundingMetadata.groundingChunks
-            .map((chunk: any) => ({
-                uri: chunk.web?.uri || '',
-                title: chunk.web?.title || 'Untitled',
-            }))
-            .filter((source: GroundingSource) => source.uri);
-        setSources(extractedSources);
-      }
-    } catch (e: any) {
-      setError(e.message || 'An error occurred while fetching trends. Please try again.');
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleImageError = (index: number) => {
-    setImageErrors(prev => ({ ...prev, [index]: true }));
-  };
-
-  const handleDownloadAnalysis = (analysis: string, topic: string) => {
-    const blob = new Blob([analysis], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `trend_analysis_${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const formatTrends = (text: string) => {
-    const lines = text.split('\n');
-    const elements: React.ReactNode[] = [];
-    let currentListItems: React.ReactNode[] = [];
-
-    const flushListItems = () => {
-      if (currentListItems.length > 0) {
-        elements.push(
-          <ul key={`ul-${elements.length}`} className="list-disc ml-5 space-y-1 my-2">
-            {currentListItems}
-          </ul>
-        );
-        currentListItems = [];
-      }
-    };
-
-    lines.forEach((line, i) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('* ')) {
-        currentListItems.push(<li key={i}>{trimmedLine.substring(2)}</li>);
-      } else {
-        flushListItems();
-        if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          elements.push(
-            <h3 key={i} className="text-xl font-bold text-violet-300 mt-4 mb-2">
-              {trimmedLine.replace(/\*\*/g, '')}
-            </h3>
-          );
-        } else if (trimmedLine) {
-          elements.push(<p key={i} className="mb-2">{trimmedLine}</p>);
-        }
-      }
-    });
-
-    flushListItems(); // Flush any remaining list items at the end
-    return elements;
-  };
-
-  const renderMusicCard = (music: TrendingMusic, index: number) => (
-    <div key={`music-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 flex items-center">
-      <div className="flex-shrink-0 w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mr-4 border border-blue-500/20">
-        <Music className="w-6 h-6 text-blue-300" />
-      </div>
-      <div className="min-w-0">
-        <h4 className="font-bold text-blue-300 truncate">{music.trackTitle}</h4>
-        <p className="text-sm text-slate-300 truncate">{music.artistName}</p>
-        <p className="text-xs text-slate-400 mt-1">{music.videosUsingSound} videos</p>
-      </div>
-    </div>
-  );
-
-  const renderCreatorCard = (creator: TrendingCreator, index: number) => (
-    <div key={`creator-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group">
-      <div className="flex justify-between items-start">
-        <div className="flex-1 min-w-0">
-          <h4 className="font-bold text-green-300 truncate">{creator.name}</h4>
-          <p className="text-xs text-slate-400 mt-1">{creator.category}</p>
-        </div>
-        <a href={creator.channelUrl} target="_blank" rel="noopener noreferrer" className="p-1 -mr-1 -mt-1 rounded-full hover:bg-slate-700/50" title={`Visit ${creator.name}'s channel`}>
-          <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-green-300 transition-colors" />
-        </a>
-      </div>
-      <p className="text-sm text-slate-300 mt-2 line-clamp-2 flex-grow">{creator.reason}</p>
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700/50 text-sm">
-        <Users className="w-4 h-4 text-slate-500" />
-        <span className="font-semibold text-slate-300">{creator.subscriberCount}</span>
-      </div>
-    </div>
-  );
-  
-  const renderTopicCard = (topic: TrendingTopic, index: number) => (
-    <div key={`topic-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 flex flex-col">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex-shrink-0 w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
-          <TrendingUp className="w-5 h-5 text-purple-300" />
-        </div>
-        <div className="min-w-0">
-          <h4 className="font-bold text-purple-300 truncate" title={topic.name}>{topic.name}</h4>
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
-              {topic.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500"/> : <TikTok className="w-4 h-4"/>}
-              <span>{topic.platform}</span>
-          </div>
-        </div>
-      </div>
-      <p className="text-sm text-slate-300 line-clamp-3 flex-grow">{topic.description}</p>
-    </div>
-  );
-
-  const renderOverviewChannelCard = (channel: TrendingChannel, index: number) => (
-    <a href={channel.channel_url} target="_blank" rel="noopener noreferrer" key={`channel-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 group block">
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0">
-          {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500"/> : <TikTok className="w-6 h-6"/>}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h4 className="font-bold text-violet-300 truncate" title={channel.name}>{channel.name}</h4>
-          <p className="text-sm text-slate-300 mt-1 line-clamp-2">{channel.description}</p>
-        </div>
-        <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-violet-300 transition-colors flex-shrink-0" />
-      </div>
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5" />
-          <span>{channel.subscriber_count}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Eye className="w-3.5 h-3.5" />
-          <span>{channel.view_count}</span>
-        </div>
-      </div>
-    </a>
-  );
-  
-  const renderOverviewTopicCard = (topic: TrendingTopic, index: number) => (
-    <div key={`topic-${index}`} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1">
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
-            <TrendingUp className="w-4 h-4 text-purple-300" />
-        </div>
-        <div className="min-w-0 flex-1">
-            <h4 className="font-bold text-purple-300 truncate" title={topic.name}>{topic.name}</h4>
-            <p className="text-sm text-slate-300 mt-1 line-clamp-2">{topic.description}</p>
-        </div>
-      </div>
-    </div>
-  );
-  
-  const renderContent = () => {
-      if (realtimeLoading) {
-          return (
-            <div className="text-center py-10">
-                <Spinner />
-                <p className="mt-2 text-sm text-slate-400">Fetching live trends...</p>
-            </div>
-          );
-      }
-      if (realtimeError) {
-          return <p className="text-red-400 text-center py-10">{realtimeError}</p>;
-      }
-      if (realtimeTrends.length === 0) {
-          return <p className="text-slate-400 text-center py-10">No trending {activeTrendType} found for the selected filters.</p>;
-      }
-      
-      let gridClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4";
-      if (activeTrendType === 'music' || activeTrendType === 'creators' || activeTrendType === 'topics') {
-          gridClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
-      }
-
-      return (
-          <div className={gridClass}>
-              {realtimeTrends.map((item, index) => {
-                  switch(activeTrendType) {
-                      case 'videos': return <VideoCard video={item as TrendingVideo} index={index} onImageError={handleImageError} imageErrors={imageErrors} key={`video-${index}`} />;
-                      case 'music': return renderMusicCard(item as TrendingMusic, index);
-                      case 'creators': return renderCreatorCard(item as TrendingCreator, index);
-                      case 'topics': return renderTopicCard(item as TrendingTopic, index);
-                      default: return null;
-                  }
-              })}
-          </div>
-      );
-  }
-
-  return (
-    <div className="animate-slide-in-up space-y-8">
-      {/* Today's Trend Snapshot */}
-      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-3 mb-6">
-            <Sparkles className="w-6 h-6 text-yellow-400"/>
-            Today's Trend Snapshot
-        </h2>
-        {overviewLoading ? (
-            <div className="text-center py-10"><Spinner /><p className="mt-2 text-sm text-slate-400">Fetching trend snapshot...</p></div>
-        ) : overviewError ? (
-            <p className="text-red-400 text-center py-10">{overviewError}</p>
-        ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-                <h3 className="text-xl font-bold text-violet-300 mb-4">Trending Channels</h3>
-                <div className="space-y-4">
-                {overview.channels.length > 0 ? (
-                    overview.channels.map((channel, index) => renderOverviewChannelCard(channel, index))
-                ) : (
-                    <p className="text-slate-500 text-sm">No trending channels found right now.</p>
-                )}
-                </div>
-            </div>
-            <div>
-                <h3 className="text-xl font-bold text-violet-300 mb-4">Trending Topics</h3>
-                <div className="space-y-4">
-                {overview.topics.length > 0 ? (
-                    overview.topics.map((topic, index) => renderOverviewTopicCard(topic, index))
-                ) : (
-                    <p className="text-slate-500 text-sm">No trending topics found right now.</p>
-                )}
-                </div>
-            </div>
-            </div>
-        )}
-      </div>
-
-       {/* Explore Trends by Category Section */}
-      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-3 mb-1"><Zap className="w-6 h-6 text-yellow-400"/>Explore Trends by Category</h2>
-        <p className="text-center text-slate-400 mb-6">Discover what's trending right now in specific categories.</p>
-
-        {/* Platform Selector */}
-        <div className="flex justify-center mb-6">
-          <div className="flex bg-slate-800/60 p-1.5 rounded-full border border-slate-700/50">
-            <button
-                onClick={() => setPlatform('YouTube')}
-                className={`flex items-center justify-center gap-2 py-2 px-6 text-sm font-semibold rounded-full transition-colors ${platform === 'YouTube' ? 'bg-violet text-white shadow-md' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
-            >
-                <Youtube className="w-5 h-5" /> YouTube
-            </button>
-            <button
-                onClick={() => setPlatform('TikTok')}
-                className={`flex items-center justify-center gap-2 py-2 px-6 text-sm font-semibold rounded-full transition-colors ${platform === 'TikTok' ? 'bg-violet text-white shadow-md' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
-            >
-                <TikTok className="w-5 h-5" /> TikTok
-            </button>
-          </div>
-        </div>
-
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 p-4 bg-slate-900/30 rounded-lg">
-          <div className="relative w-full sm:w-auto">
-              <label htmlFor="country-select" className="sr-only">Select Country</label>
-              <select
-                  id="country-select"
-                  value={selectedCountry}
-                  onChange={(e) => setSelectedCountry(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all appearance-none"
-                  title="Filter trends by country"
-              >
-                  {countries.map(country => (
-                      <option key={country} value={country}>{country}</option>
-                  ))}
-              </select>
-              <ChevronDown className="w-5 h-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-          <div className="relative w-full sm:w-auto">
-              <label htmlFor="category-select" className="sr-only">Select Category</label>
-              <select
-                  id="category-select"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all appearance-none"
-                  title="Filter trends by category"
-              >
-                  {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                  ))}
-              </select>
-              <ChevronDown className="w-5 h-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Trend Type Tabs */}
-        <div className="flex items-center justify-center space-x-2 bg-slate-800/60 p-1.5 rounded-full mb-6">
-            <button onClick={() => setActiveTrendType('videos')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'videos' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Videos</button>
-            <button onClick={() => setActiveTrendType('music')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'music' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Music</button>
-            <button onClick={() => setActiveTrendType('creators')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'creators' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Creators</button>
-            <button onClick={() => setActiveTrendType('topics')} className={`w-full py-2 px-4 text-sm font-semibold rounded-full transition-colors ${activeTrendType === 'topics' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>Topics</button>
-        </div>
-
-        {renderContent()}
-
-        {user?.plan === 'free' && (
-            <div className="mt-6 bg-yellow-400/10 border border-yellow-400/20 text-yellow-300 text-sm p-3 rounded-lg flex items-center justify-center gap-3">
-                <Lock className="w-4 h-4" />
-                You are viewing the top 8 trends. <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">Upgrade</button> to see all 48.
-            </div>
-        )}
-
-      </div>
-
-      {/* Topic Search Section */}
-      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Discover What's Next</h2>
-        <p className="text-center text-slate-400 mb-6">Enter a topic to find the latest trends on your selected platform.</p>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-grow">
-            <label htmlFor="topic-search" className="sr-only">Search by topic</label>
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              id="topic-search"
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., 'AI video tools', 'Fall recipes', 'Indie games'"
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
-              title="Enter a keyword, niche, or topic you're interested in."
-            />
-          </div>
-          <button
-            onClick={handleSearch}
-            disabled={loading}
-            className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
-            title="Search for the latest trends related to your topic."
-          >
-            {loading ? <Spinner /> : 'Search Trends'}
-          </button>
-        </div>
-        {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
-      </div>
-
-      {loading && (
-        <div className="text-center py-10">
-          <Spinner size="lg" />
-          <p className="mt-4 text-slate-300">Analyzing trends...</p>
-        </div>
-      )}
-
-      {trends && (
-        <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-2xl font-bold text-slate-100">Trending Now for "{topic}" on {platform}</h3>
-            <button
-                onClick={() => handleDownloadAnalysis(trends, topic)}
-                className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            >
-                <Download className="w-4 h-4" /> Download Analysis
-            </button>
-          </div>
-          {(selectedCountry !== 'Worldwide' || selectedCategory !== 'All') && (
-            <p className="text-slate-400 -mt-2 mb-4 text-sm">
-              Filtered by: {
-                [selectedCategory !== 'All' ? selectedCategory : null, selectedCountry !== 'Worldwide' ? selectedCountry : null]
-                  .filter(Boolean)
-                  .join(' & ')
-              }
-            </p>
-          )}
-          <div className="prose prose-invert text-slate-300 max-w-none prose-h3:text-violet-300">{formatTrends(trends)}</div>
-           {sources.length > 0 && (
-            <div className="mt-6 border-t border-slate-700 pt-4">
-                <h4 className="text-lg font-semibold mb-2 flex items-center text-slate-200">
-                    <LinkIcon className="w-5 h-5 mr-2"/>
-                    Sources
-                </h4>
-                <ul className="space-y-1">
-                    {sources.map((source, index) => (
-                        <li key={index}>
-                            <a href={source.uri} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm">
-                                {source.title}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-           )}
-        </div>
-      )}
-    </div>
-  );
 };
 
 export default TrendDiscovery;

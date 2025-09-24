@@ -1,138 +1,119 @@
-import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import React, { useState, useCallback, useEffect } from 'react';
 import { analyzeVideoUrl } from '../services/geminiService.ts';
-import { VideoAnalysis, Tab } from '../types.ts';
+import { VideoAnalysis } from '../types.ts';
 import Spinner from './Spinner.tsx';
-import { Star, Film, Lightbulb, CheckCircle, BarChart2 } from './Icons.tsx';
+import { Film, Search, Sparkles, ThumbsUp, Lightbulb, CheckCircle } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface VideoAnalyzerProps {
-  setActiveTab: (tab: Tab) => void;
+  initialInput?: string | null;
 }
 
-const AnalysisSection: React.FC<{ title: string; icon: React.ReactNode; content: string | string[] }> = ({ title, icon, content }) => (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <h3 className="text-xl font-bold text-violet-300 mb-3 flex items-center">{icon} {title}</h3>
-        {Array.isArray(content) ? (
-            <ul className="space-y-2">
-                {content.map((item, index) => (
-                    <li key={index} className="flex items-start text-sm">
-                        <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-green-400 flex-shrink-0" />
-                        <span className="text-slate-300">{item}</span>
-                    </li>
-                ))}
-            </ul>
-        ) : (
-            <p className="text-slate-300 text-sm leading-relaxed">{content}</p>
-        )}
-    </div>
-);
-
-const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ setActiveTab }) => {
-    const { user, logActivity, addContentToHistory } = useAuth();
-    const [videoUrl, setVideoUrl] = useState('');
+const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ initialInput }) => {
+    const { logActivity, addContentToHistory } = useAuth();
+    const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<VideoAnalysis | null>(null);
 
-    const handleAnalyze = useCallback(async () => {
-        if (!videoUrl.trim().toLowerCase().startsWith('http')) {
-            setError("Please enter a valid video URL.");
+    const handleAnalyze = useCallback(async (urlOverride?: string) => {
+        const urlToAnalyze = urlOverride || url;
+        if (!urlToAnalyze.trim().toLowerCase().startsWith('http')) {
+            setError('Please enter a valid video URL (e.g., from YouTube or TikTok).');
             return;
         }
-
         setLoading(true);
         setError(null);
         setAnalysis(null);
         try {
-            const result = await analyzeVideoUrl(videoUrl);
+            const result = await analyzeVideoUrl(urlToAnalyze);
             setAnalysis(result);
-            logActivity(`analyzed video: "${videoUrl}"`, 'Film');
+            logActivity(`analyzed video: ${urlToAnalyze}`, 'Film');
             addContentToHistory({
                 type: 'Video Analysis',
-                summary: `Analysis for video: "${result.title}"`,
+                summary: `Analysis for video: ${result.title}`,
                 content: result
             });
         } catch (e: any) {
-            setError(e.message || 'Failed to analyze video.');
+            setError(e.message || 'An error occurred while analyzing the video.');
+            console.error(e);
         } finally {
             setLoading(false);
         }
-    }, [videoUrl, logActivity, addContentToHistory]);
+    }, [url, logActivity, addContentToHistory]);
 
-    if (user?.plan !== 'pro') {
-        return (
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
-                <Star className="w-12 h-12 text-yellow-400 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the Video Analyzer</h2>
-                <p className="text-slate-400 mb-6 max-w-md">Get in-depth AI analysis of any YouTube or TikTok video to understand what makes it successful.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
-                    View Plans
-                </button>
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (initialInput) {
+            setUrl(initialInput);
+            handleAnalyze(initialInput);
+        }
+    }, [initialInput, handleAnalyze]);
 
     return (
-        <div className="animate-slide-in-up space-y-8">
+        <div className="animate-slide-in-up">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <Film className="w-6 h-6 text-violet-400" /> Video Analyzer
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
+                    <Film className="w-6 h-6 text-violet-400" /> AI Video Analyzer
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Enter a YouTube or TikTok video URL to get an AI-powered breakdown.</p>
-                
-                <div className="max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
+                <p className="text-center text-slate-400 mb-6">Get an AI breakdown of any video's performance and content.</p>
+                <div className="flex flex-col sm:flex-row gap-4">
                     <input
                         type="url"
-                        value={videoUrl}
-                        onChange={(e) => setVideoUrl(e.target.value)}
-                        placeholder="Paste video URL here..."
-                        className="flex-grow w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="Paste a YouTube or TikTok video URL..."
+                        className="form-input flex-grow"
                     />
                     <button
-                        onClick={handleAnalyze}
+                        onClick={() => handleAnalyze()}
                         disabled={loading}
-                        className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="button-primary flex items-center justify-center"
                     >
-                        {loading ? <Spinner /> : 'Analyze Video'}
+                        {loading ? <Spinner /> : <><Search className="w-5 h-5 mr-2" /> Analyze Video</>}
                     </button>
                 </div>
-
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
             </div>
 
             {loading && (
                 <div className="text-center py-10">
                     <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">AI is watching the video... this might take a moment.</p>
+                    <p className="mt-4 text-slate-300">AI is watching the video and taking notes...</p>
                 </div>
             )}
-
+            
             {analysis && (
-                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl animate-fade-in space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-white -mb-2">{analysis.title}</h2>
-                    <AnalysisSection 
-                        title="AI Summary"
-                        icon={<Lightbulb className="w-5 h-5 mr-2" />}
-                        content={analysis.aiSummary}
-                    />
-                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <AnalysisSection 
-                            title="Content Analysis"
-                            icon={<Film className="w-5 h-5 mr-2" />}
-                            content={analysis.contentAnalysis}
-                        />
-                         <AnalysisSection 
-                            title="Engagement Analysis"
-                            icon={<BarChart2 className="w-5 h-5 mr-2" />}
-                            content={analysis.engagementAnalysis}
-                        />
+                <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in space-y-6">
+                    <h3 className="text-2xl font-bold text-white text-glow">{analysis.title}</h3>
+                    
+                    <div className="interactive-card-nested">
+                        <h4 className="card-title"><Sparkles className="w-5 h-5 text-violet-300" /> AI Summary</h4>
+                        <p className="card-content">{analysis.aiSummary}</p>
                     </div>
-                     <AnalysisSection 
-                        title="Improvement Suggestions"
-                        icon={<Star className="w-5 h-5 mr-2" />}
-                        content={analysis.improvementSuggestions}
-                    />
-                 </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="interactive-card-nested">
+                            <h4 className="card-title"><ThumbsUp className="w-5 h-5 text-blue-300" /> Engagement Analysis</h4>
+                            <p className="card-content">{analysis.engagementAnalysis}</p>
+                        </div>
+                        <div className="interactive-card-nested">
+                            <h4 className="card-title"><Lightbulb className="w-5 h-5 text-yellow-300" /> Content Analysis</h4>
+                            <p className="card-content">{analysis.contentAnalysis}</p>
+                        </div>
+                    </div>
+
+                    <div className="interactive-card-nested">
+                        <h4 className="card-title"><CheckCircle className="w-5 h-5 text-green-300" /> Improvement Suggestions</h4>
+                        <ul className="space-y-2">
+                            {analysis.improvementSuggestions.map((suggestion, i) => (
+                                <li key={i} className="flex items-start text-sm">
+                                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-3 mt-1.5 flex-shrink-0"></div>
+                                    <span className="text-slate-300">{suggestion}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -315,7 +315,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-700/50">
                             <button
-                                onClick={() => handleDownload(editedVideoUrl!, `edgtec_edit_${Date.now()}.mp4`)}
+                                onClick={() => handleDownload(editedVideoUrl!, `utrend_edit_${Date.now()}.mp4`)}
                                 disabled={!editedVideoUrl || loading}
                                 className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
                             >

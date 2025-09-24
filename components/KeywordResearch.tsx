@@ -1,185 +1,142 @@
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService.ts';
-import { KeywordAnalysis, Tab } from '../types.ts';
+import { KeywordAnalysis } from '../types.ts';
 import Spinner from './Spinner.tsx';
-import { Search, BarChart2, Users, Lightbulb, Star } from './Icons.tsx';
+import { Search, Lightbulb, TrendingUp } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface KeywordResearchProps {
-    onUpgradeClick: () => void;
+  initialInput?: string | null;
 }
 
-const KeywordResearch: React.FC<KeywordResearchProps> = ({ onUpgradeClick }) => {
-    const { user, logActivity, getKeywordUsage, logKeywordAnalysis, addContentToHistory } = useAuth();
+const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
+    const { getKeywordUsage, logKeywordAnalysis } = useAuth();
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<KeywordAnalysis | null>(null);
     const [usage, setUsage] = useState({ remaining: 0, limit: 0 as number | 'unlimited' });
 
-    const refreshUsage = useCallback(() => {
-        if (user) {
-            setUsage(getKeywordUsage());
-        }
-    }, [user, getKeywordUsage]);
-
     useEffect(() => {
-        refreshUsage();
-    }, [refreshUsage]);
+        setUsage(getKeywordUsage());
+    }, [getKeywordUsage]);
 
-    const handleSearch = async () => {
-        if (!keyword.trim()) {
+    const handleAnalyze = useCallback(async (keywordOverride?: string) => {
+        const keywordToAnalyze = keywordOverride || keyword;
+        if (!keywordToAnalyze.trim()) {
             setError('Please enter a keyword to analyze.');
             return;
         }
-
-        if (usage.limit !== 'unlimited' && usage.remaining <= 0) {
-            return; // Button is disabled, so this is a safeguard
+        const currentUsage = getKeywordUsage();
+        if (currentUsage.remaining <= 0 && currentUsage.limit !== 'unlimited') {
+            setError('You have reached your monthly limit for keyword analysis. Upgrade your plan for more.');
+            return;
         }
 
         setLoading(true);
         setError(null);
         setAnalysis(null);
         try {
-            const result = await getKeywordAnalysis(keyword);
+            const result = await getKeywordAnalysis(keywordToAnalyze);
             setAnalysis(result);
             logKeywordAnalysis();
-            logActivity(`analyzed keyword: "${keyword}"`, 'Search');
-            addContentToHistory({
-                type: 'Keyword Analysis',
-                summary: `Analysis for keyword: "${keyword}"`,
-                content: result
-            });
-            refreshUsage();
+            setUsage(getKeywordUsage()); // Refresh usage after analysis
         } catch (e: any) {
-            setError(e.message || 'An error occurred while analyzing the keyword. Please try again.');
+            setError(e.message || 'An error occurred while analyzing the keyword.');
             console.error(e);
         } finally {
             setLoading(false);
         }
-    };
-
-    const getMetricProps = (metric: 'High' | 'Medium' | 'Low' | 'Very High' | 'Very Low' | undefined): { barColor: string; width: string; textColor: string } => {
-        switch (metric) {
+    }, [keyword, getKeywordUsage, logKeywordAnalysis]);
+    
+    useEffect(() => {
+        if (initialInput) {
+            setKeyword(initialInput);
+            handleAnalyze(initialInput);
+        }
+    }, [initialInput, handleAnalyze]);
+    
+    const getPillColor = (value: 'High' | 'Medium' | 'Low' | 'Very High' | 'Very Low') => {
+        switch (value) {
             case 'Very High':
-                return { barColor: 'bg-red-500', width: 'w-full', textColor: 'text-red-400' };
             case 'High':
-                return { barColor: 'bg-red-500', width: 'w-4/5', textColor: 'text-red-400' };
+                return 'bg-red-500/20 text-red-300';
             case 'Medium':
-                return { barColor: 'bg-yellow-400', width: 'w-3/5', textColor: 'text-yellow-400' };
+                return 'bg-yellow-500/20 text-yellow-300';
             case 'Low':
-                return { barColor: 'bg-green-500', width: 'w-2/5', textColor: 'text-green-400' };
             case 'Very Low':
-                return { barColor: 'bg-green-500', width: 'w-1/5', textColor: 'text-green-400' };
+                return 'bg-green-500/20 text-green-300';
             default:
-                return { barColor: 'bg-slate-600', width: 'w-0', textColor: 'text-slate-400' };
+                return 'bg-slate-700 text-slate-300';
         }
     };
 
-    const hasReachedLimit = usage.limit !== 'unlimited' && usage.remaining <= 0;
-
     return (
-        <div className="animate-slide-in-up space-y-8">
+        <div className="animate-slide-in-up">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <Search className="w-6 h-6 text-violet-400" /> Keyword Research Tool
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
+                    <Search className="w-6 h-6 text-violet-400" /> Keyword Research
                 </h2>
-                <p className="text-center text-slate-400 mb-2">Unlock insights into any topic or keyword.</p>
-                {user?.plan !== 'pro' && (
-                    <p className="text-center text-slate-500 mb-6 text-sm">
-                        You have {usage.remaining} of {String(usage.limit)} analyses remaining this month.
-                    </p>
-                )}
+                <p className="text-center text-slate-400 mb-6">Analyze keywords to find your next video topic.</p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-grow">
-                        <label htmlFor="keyword-search" className="sr-only">Search by keyword</label>
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                            id="keyword-search"
-                            type="text"
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                            placeholder="e.g., 'sustainable living', 'retro gaming'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
-                            title="Enter a keyword to analyze."
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="Enter keyword..."
+                        className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+                    />
                     <button
-                        onClick={handleSearch}
-                        disabled={loading || hasReachedLimit}
+                        onClick={() => handleAnalyze()}
+                        disabled={loading}
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
-                        title={hasReachedLimit ? "You have reached your monthly analysis limit" : "Analyze Keyword"}
                     >
-                        {loading ? <Spinner /> : 'Analyze Keyword'}
+                        {loading ? <Spinner /> : <><Search className="w-5 h-5 mr-2" /> Analyze</>}
                     </button>
                 </div>
+                 <p className="text-center text-xs text-slate-500 mt-2">
+                    {usage.limit === 'unlimited' ? 'Unlimited analyses remaining' : `${usage.remaining} / ${usage.limit} analyses remaining this month.`}
+                </p>
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
-                {hasReachedLimit && (
-                    <p className="text-center text-yellow-300 mt-4 text-sm">
-                        You've used all your keyword analyses for this month. Please <button onClick={onUpgradeClick} className="font-bold underline hover:text-yellow-200">upgrade</button> to continue.
-                    </p>
-                )}
             </div>
 
             {loading && (
                 <div className="text-center py-10">
                     <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">Performing AI analysis on "{keyword}"...</p>
+                    <p className="mt-4 text-slate-300">Analyzing keyword potential...</p>
                 </div>
             )}
-
+            
             {analysis && (
-                <div className="animate-fade-in space-y-6">
-                    {(() => {
-                        const volumeProps = getMetricProps(analysis.searchVolume);
-                        const competitionProps = getMetricProps(analysis.competition);
-
-                        return (
-                            <>
-                                {/* Metrics */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl">
-                                        <h3 className="flex items-center gap-2 font-bold text-lg text-slate-200 mb-2"><BarChart2 className="w-5 h-5 text-violet-400" /> Search Volume</h3>
-                                        <p className={`text-3xl font-bold ${volumeProps.textColor}`}>{analysis.searchVolume}</p>
-                                        <div className="w-full bg-slate-700/50 rounded-full h-2.5 mt-2">
-                                            <div className={`${volumeProps.barColor} ${volumeProps.width} h-2.5 rounded-full transition-all duration-500 ease-out`}></div>
-                                        </div>
-                                        <p className="text-sm text-slate-400 mt-2">Estimated interest in this topic on YouTube.</p>
-                                    </div>
-                                    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl">
-                                        <h3 className="flex items-center gap-2 font-bold text-lg text-slate-200 mb-2"><Users className="w-5 h-5 text-violet-400" /> Competition</h3>
-                                        <p className={`text-3xl font-bold ${competitionProps.textColor}`}>{analysis.competition}</p>
-                                        <div className="w-full bg-slate-700/50 rounded-full h-2.5 mt-2">
-                                            <div className={`${competitionProps.barColor} ${competitionProps.width} h-2.5 rounded-full transition-all duration-500 ease-out`}></div>
-                                        </div>
-                                        <p className="text-sm text-slate-400 mt-2">The number of creators making videos on this topic.</p>
-                                    </div>
-                                </div>
-
-                                {/* Related Keywords & Content Ideas */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl">
-                                        <h3 className="flex items-center gap-2 font-bold text-lg text-slate-200 mb-3"><Star className="w-5 h-5 text-violet-400" /> Related Keywords</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {analysis.relatedKeywords.map((kw, i) => (
-                                                <span key={i} className="bg-slate-700 text-violet-300 text-sm font-medium px-3 py-1.5 rounded-full">{kw}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl">
-                                        <h3 className="flex items-center gap-2 font-bold text-lg text-slate-200 mb-3"><Lightbulb className="w-5 h-5 text-violet-400" /> Content Ideas</h3>
-                                        <ul className="space-y-2">
-                                            {analysis.contentIdeas.map((idea, i) => (
-                                                <li key={i} className="bg-slate-800/50 p-3 rounded-md text-slate-300 text-sm border border-slate-700">{idea}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </>
-                        );
-                    })()}
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="interactive-card">
+                            <h3 className="text-lg font-bold text-violet-300 mb-2">Search Volume</h3>
+                            <span className={`font-bold text-sm px-3 py-1 rounded-full ${getPillColor(analysis.searchVolume)}`}>{analysis.searchVolume}</span>
+                        </div>
+                         <div className="interactive-card">
+                            <h3 className="text-lg font-bold text-violet-300 mb-2">Competition</h3>
+                            <span className={`font-bold text-sm px-3 py-1 rounded-full ${getPillColor(analysis.competition)}`}>{analysis.competition}</span>
+                        </div>
+                    </div>
+                     <div className="lg:col-span-2 space-y-6">
+                         <div className="interactive-card">
+                            <h3 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Related Keywords</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {analysis.relatedKeywords.map((kw, i) => (
+                                    <span key={i} className="text-sm bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full">{kw}</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="interactive-card">
+                            <h3 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2"><Lightbulb className="w-5 h-5"/> Content Ideas</h3>
+                            <ul className="space-y-2">
+                                {analysis.contentIdeas.map((idea, i) => (
+                                    <li key={i} className="text-slate-300 bg-slate-800/50 p-2 rounded-md">{idea}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

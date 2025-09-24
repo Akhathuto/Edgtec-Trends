@@ -1,273 +1,191 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { generateFullReport } from '../services/geminiService.ts';
 import { FullReport, Tab } from '../types.ts';
 import Spinner from './Spinner.tsx';
-import { Lightbulb, DollarSign, Users, Target, CheckCircle, TrendingUp, FileText, Star, Download } from './Icons.tsx';
+import { FileText, Star, Download, Sparkles, Lightbulb, DollarSign } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
 interface StrategyReportProps {
   setActiveTab: (tab: Tab) => void;
+  initialInput?: string | null;
 }
 
-const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab }) => {
-  const { user, addContentToHistory } = useAuth();
-  const [topic, setTopic] = useState('');
-  const [followers, setFollowers] = useState(10000);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<FullReport | null>(null);
+const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialInput }) => {
+    const { user, logActivity, addContentToHistory } = useAuth();
+    const [topic, setTopic] = useState('');
+    const [followers, setFollowers] = useState(10000);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [report, setReport] = useState<FullReport | null>(null);
 
-  const handleGenerate = async () => {
-    if (!topic.trim()) {
-      setError('Please enter a topic to generate a report.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setReport(null);
-    try {
-      const result = await generateFullReport(topic, followers);
-      setReport(result);
-      addContentToHistory({
-        type: 'Strategy Report',
-        summary: `Full report for topic: "${topic}"`,
-        content: result
-      });
-    } catch (e) {
-      setError('An error occurred while generating the report. Please try again.');
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleDownloadReport = (report: FullReport, topic: string) => {
-    let content = `# Content Strategy Report for "${topic}"\n\n`;
+    const handleGenerate = useCallback(async (topicOverride?: string) => {
+        const topicToReport = topicOverride || topic;
+        if (!topicToReport.trim()) {
+            setError('Please enter a topic for the report.');
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        setReport(null);
+        try {
+            const result = await generateFullReport(topicToReport, followers);
+            setReport(result);
+            logActivity(`generated a strategy report for "${topicToReport}"`, 'FileText');
+            addContentToHistory({
+                type: 'Strategy Report',
+                summary: `Report for topic: ${topicToReport}`,
+                content: result
+            });
+        } catch (e: any) {
+            setError(e.message || 'An error occurred while generating the report.');
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, [topic, followers, logActivity, addContentToHistory]);
 
-    content += `## Trend Analysis\n${report.trendAnalysis.replace(/\*\*/g, '**')}\n\n`;
+    useEffect(() => {
+        if (initialInput) {
+            setTopic(initialInput);
+            handleGenerate(initialInput);
+        }
+    }, [initialInput, handleGenerate]);
 
-    content += `## Content Ideas\n`;
-    report.contentIdeas.forEach((idea, index) => {
-        content += `### Idea ${index + 1}: ${idea.title}\n`;
-        content += `**Hook:** ${idea.hook}\n`;
-        content += `**Outline:**\n`;
-        idea.script_outline.forEach(step => {
-            content += `- ${step}\n`;
-        });
-        content += `**Hashtags:** ${idea.hashtags.join(', ')}\n\n`;
-    });
-
-    content += `## Monetization Strategies\n`;
-    report.monetizationStrategies.forEach(strategy => {
-        content += `### ${strategy.strategy}\n`;
-        content += `**Description:** ${strategy.description}\n`;
-        content += `**Requirements:** ${strategy.requirements}\n`;
-        content += `**Potential:** ${strategy.potential}\n\n`;
-    });
-
-    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `utrend_report_${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const formatFollowers = (num: number) => {
+    const formatFollowers = (num: number) => {
       if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-      if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+      if (num >= 1000) return `${(num/1000).toFixed(0)}K`;
       return num;
-  }
-
-  const formatTrends = (text: string) => {
-    const lines = text.split('\n');
-    const elements: React.ReactNode[] = [];
-    let currentListItems: React.ReactNode[] = [];
-
-    const flushListItems = () => {
-      if (currentListItems.length > 0) {
-        elements.push(
-          <ul key={`ul-${elements.length}`} className="list-disc ml-5 space-y-1 my-2">
-            {currentListItems}
-          </ul>
-        );
-        currentListItems = [];
-      }
+    };
+    
+    const handleDownload = () => {
+        if (!report) return;
+        let mdContent = `# Content Strategy Report for "${topic}"\n\n`;
+        mdContent += `## Trend Analysis\n${report.trendAnalysis}\n\n`;
+        mdContent += `## Content Ideas\n`;
+        report.contentIdeas.forEach((idea, index) => {
+            mdContent += `### Idea ${index + 1}: ${idea.title}\n`;
+            mdContent += `**Hook:** ${idea.hook}\n`;
+            mdContent += `**Outline:**\n- ${idea.script_outline.join('\n- ')}\n`;
+            mdContent += `**Hashtags:** ${idea.hashtags.join(', ')}\n\n`;
+        });
+        mdContent += `## Monetization Strategies\n`;
+        report.monetizationStrategies.forEach(strategy => {
+            mdContent += `### ${strategy.strategy}\n`;
+            mdContent += `**Description:** ${strategy.description}\n`;
+            mdContent += `**Requirements:** ${strategy.requirements}\n`;
+            mdContent += `**Potential:** ${strategy.potential}\n\n`;
+        });
+        
+        const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `utrend_report_${topic.replace(/\s+/g, '_')}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
-    lines.forEach((line, i) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('* ')) {
-        currentListItems.push(<li key={i}>{trimmedLine.substring(2)}</li>);
-      } else {
-        flushListItems();
-        if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-          elements.push(
-            <h4 key={i} className="text-xl font-bold text-violet-300 mt-4 mb-2">
-              {trimmedLine.replace(/\*\*/g, '')}
-            </h4>
-          );
-        } else if (trimmedLine) {
-          elements.push(<p key={i} className="mb-2">{trimmedLine}</p>);
-        }
-      }
-    });
-
-    flushListItems();
-    return elements;
-  };
-
-  if (user?.plan !== 'pro') {
-    return (
-        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
-            <Star className="w-12 h-12 text-yellow-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
-            <p className="text-slate-400 mb-6 max-w-md">Get a complete, AI-generated content strategy with in-depth trend analysis, content ideas, and monetization plans.</p>
-            <button
-                onClick={() => setActiveTab(Tab.Pricing)}
-                className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
-            >
-                View Plans
-            </button>
-        </div>
-    )
-  }
-
-  return (
-    <div className="animate-slide-in-up">
-      <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-        <h2 className="text-2xl font-bold text-center mb-1 text-slate-100">Generate Full Strategy Report</h2>
-        <p className="text-center text-slate-400 mb-6">Get a complete content strategy with trends, ideas, and monetization plans.</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="relative">
-                <label htmlFor="report-topic" className="sr-only">Video Topic for Report</label>
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                 <input
-                  id="report-topic"
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="Enter a video topic..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
-                  title="Enter the core topic for your comprehensive strategy report."
-                />
-            </div>
-            <div>
-                 <label htmlFor="followers-report" className="font-semibold text-slate-300 mb-2 block flex justify-between">
-                  Target Audience Size <span>{formatFollowers(followers)}</span>
-                </label>
-                <input
-                  id="followers-report"
-                  type="range"
-                  min="0"
-                  max="5000000"
-                  step="1000"
-                  value={followers}
-                  onChange={(e) => setFollowers(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet"
-                  title="Set your target audience size or current follower count."
-                />
-            </div>
-        </div>
-        
-        <button
-          onClick={handleGenerate}
-          disabled={loading}
-          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
-          title="Generate an all-in-one report including trends, ideas, and monetization."
-        >
-          {loading ? <Spinner /> : <><FileText className="w-5 h-5 mr-2" /> Generate Report</>}
-        </button>
-        {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
-      </div>
-
-      {loading && (
-        <div className="text-center py-10">
-          <Spinner size="lg" />
-          <p className="mt-4 text-slate-300">Generating your comprehensive report...</p>
-        </div>
-      )}
-
-      {report && (
-        <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl animate-fade-in space-y-8">
-            <div className="flex justify-between items-center -mb-2">
-                <h2 className="text-3xl font-bold text-white">Your Strategy Report</h2>
-                <button
-                    onClick={() => handleDownloadReport(report, topic)}
-                    className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                    <Download className="w-4 h-4" /> Download Report
+    if (user?.plan !== 'pro') {
+        return (
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+                <Star className="w-12 h-12 text-yellow-400 mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
+                <p className="text-slate-400 mb-6 max-w-md">Get a comprehensive, AI-powered content strategy document combining trend analysis, content ideas, and monetization strategies.</p>
+                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                    View Plans
                 </button>
             </div>
-            {/* Trend Analysis Section */}
-            <section>
-                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><TrendingUp className="w-6 h-6 mr-3 text-violet-400"/> Trend Analysis</h3>
-                <div className="prose prose-invert text-slate-300 max-w-none prose-h4:text-violet-300">{formatTrends(report.trendAnalysis)}</div>
-            </section>
+        )
+    }
 
-            {/* Content Ideas Section */}
-            <section>
-                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><Lightbulb className="w-6 h-6 mr-3 text-violet-400"/> Content Ideas</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 {report.contentIdeas.map((idea, index) => (
-                    <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex flex-col">
-                      <h4 className="text-lg font-bold text-violet-300 mb-2">{idea.title}</h4>
-                      <p className="text-slate-300 mb-3 text-sm italic">"{idea.hook}"</p>
-                      <div className="mb-3">
-                        <h5 className="font-semibold text-slate-200 mb-2 text-sm">Script Outline:</h5>
-                        <ul className="space-y-1.5 text-slate-400 text-sm">
-                            {idea.script_outline.map((step, i) => (
-                                <li key={i} className="flex items-start">
-                                   <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-green-400 flex-shrink-0" />
-                                   <span>{step}</span>
-                                </li>
-                            ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h5 className="font-semibold text-slate-200 mb-2 text-sm">Hashtags:</h5>
-                        <div className="flex flex-wrap gap-1.5">
-                          {idea.hashtags.map((tag, i) => (
-                            <span key={i} className="bg-slate-700 text-violet-300 text-xs font-medium px-2 py-0.5 rounded-full">#{tag}</span>
-                          ))}
-                        </div>
-                      </div>
+    return (
+        <div className="animate-slide-in-up">
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
+                    <FileText className="w-6 h-6 text-violet-400" /> Full Strategy Report
+                </h2>
+                <p className="text-center text-slate-400 mb-6">Generate an all-in-one strategy document for any topic.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input
+                        type="text"
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                        placeholder="Enter your topic..."
+                        className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner md:col-span-2"
+                    />
+                    <div>
+                         <label htmlFor="followers" className="font-semibold text-slate-300 mb-2 block flex justify-between">
+                          Target Follower Count <span>{formatFollowers(followers)}</span>
+                        </label>
+                        <input
+                          id="followers" type="range" min="0" max="5000000" step="1000"
+                          value={followers} onChange={(e) => setFollowers(Number(e.target.value))}
+                          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet"
+                        />
                     </div>
-                  ))}
+                     <div className="flex items-end">
+                        <button
+                          onClick={() => handleGenerate()}
+                          disabled={loading}
+                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                        >
+                          {loading ? <Spinner /> : 'Generate Report'}
+                        </button>
+                    </div>
                 </div>
-            </section>
+                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+            </div>
 
-             {/* Monetization Strategies Section */}
-             <section>
-                <h3 className="text-2xl font-bold mb-4 text-slate-100 flex items-center"><DollarSign className="w-6 h-6 mr-3 text-violet-400"/> Monetization Strategies</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {report.monetizationStrategies.map((strategy, index) => (
-                    <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-                      <h4 className="text-lg font-bold text-violet-300 mb-2 flex items-center">{strategy.strategy}</h4>
-                      <p className="text-slate-300 mb-3 text-sm">{strategy.description}</p>
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-start">
-                            <Target className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0"/>
-                            <div><strong className="text-slate-200">Requirements:</strong> {strategy.requirements}</div>
-                        </div>
-                        <div className="flex items-start">
-                            <Users className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0"/>
-                            <div><strong className="text-slate-200">Potential:</strong> {strategy.potential}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {loading && (
+                <div className="text-center py-10">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-slate-300">Compiling your comprehensive report...</p>
                 </div>
-             </section>
+            )}
+            
+            {report && (
+                <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-2xl font-bold text-white text-glow">Your Report for "{topic}"</h3>
+                        <button onClick={handleDownload} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                            <Download className="w-4 h-4" /> Download Report
+                        </button>
+                    </div>
+                    <div className="space-y-6">
+                        <section>
+                            <h4 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5"/> Trend Analysis</h4>
+                            <div className="prose prose-invert max-w-none text-slate-300" dangerouslySetInnerHTML={{ __html: report.trendAnalysis.replace(/\n/g, '<br/>') }}></div>
+                        </section>
+                         <section>
+                            <h4 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Lightbulb className="w-5 h-5"/> Content Ideas</h4>
+                            <div className="space-y-4">
+                                {report.contentIdeas.map((idea, i) => (
+                                    <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <h5 className="font-bold text-slate-100">{idea.title}</h5>
+                                        <p className="text-sm text-slate-300 italic"><strong>Hook:</strong> {idea.hook}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                         <section>
+                            <h4 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><DollarSign className="w-5 h-5"/> Monetization Strategies</h4>
+                            <div className="space-y-4">
+                               {report.monetizationStrategies.map((s, i) => (
+                                    <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <h5 className="font-bold text-slate-100">{s.strategy}</h5>
+                                        <p className="text-sm text-slate-300">{s.description}</p>
+                                        <p className="text-xs mt-2 text-slate-400"><strong>Potential:</strong> {s.potential}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default StrategyReport;

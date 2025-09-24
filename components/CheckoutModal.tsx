@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { X, Star, CreditCard } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
@@ -54,7 +53,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, plan }) 
       e.preventDefault();
       setError('');
 
-      if (!cardName.trim() || cardNumber.replace(/\s/g, '').length !== 16 || !/^(0[1-9]|1[0-2])\s?\/\s?\d{2}$/.test(cardExpiry) || !/^\d{3,4}$/.test(cardCvc)) {
+      // Using RegExp constructor to avoid potential browser parsing issues with escaped slashes in literals.
+      const expiryRegex = new RegExp("^(0[1-9]|1[0-2])\\s?\/\\s?\\d{2}$");
+
+      if (!cardName.trim() || cardNumber.replace(/\s/g, '').length !== 16 || !expiryRegex.test(cardExpiry) || !/^\d{3,4}$/.test(cardCvc)) {
         setError('Please fill in all card details correctly.');
         return;
       }

@@ -120,7 +120,13 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     
     recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
-        setError(`Speech recognition error: ${event.error}`);
+        let errorMessage = `Speech recognition error: ${event.error}`;
+        if (event.error === 'no-speech') {
+            errorMessage = "I didn't hear anything. Please try again.";
+        } else if (event.error === 'not-allowed') {
+            errorMessage = "Microphone access was denied. Please allow microphone access in your browser settings.";
+        }
+        setError(errorMessage);
         setIsRecording(false);
     };
 
@@ -173,13 +179,19 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
       let initialHistory: ChatMessage[] = [];
       if (storedHistory) {
         try {
-          initialHistory = JSON.parse(storedHistory) as ChatMessage[];
+          const parsed = JSON.parse(storedHistory);
+          if (Array.isArray(parsed) && (parsed.length === 0 || (typeof parsed[0] === 'object' && parsed[0] !== null && 'role' in parsed[0] && 'content' in parsed[0]))) {
+            initialHistory = parsed;
+          } else {
+            console.warn("Malformed chat history in localStorage. Starting fresh.");
+          }
         } catch (e) {
-            initialHistory = [];
+          console.error("Failed to parse chat history from localStorage:", e);
+          initialHistory = [];
         }
       }
       
-      if(initialHistory.length === 0) {
+      if (initialHistory.length === 0) {
            initialHistory = [{ role: 'model', content: "Hello! I'm Nolo, your AI Co-pilot. How can I help you brainstorm your next viral video today?" }];
       }
       
@@ -192,9 +204,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     if (user && history.length > 0) {
       const storageKey = `utrend-chat-history-${user.id}`;
       localStorage.setItem(storageKey, JSON.stringify(history));
-    } else if (user) {
-      const storageKey = `utrend-chat-history-${user.id}`;
-      localStorage.removeItem(storageKey);
     }
   }, [history, user]);
 
@@ -298,11 +307,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     const freshHistory: ChatMessage[] = [{ role: 'model', content: "Hello again! Let's start fresh. What's on your mind?" }];
     setHistory(freshHistory);
     initializeChat(freshHistory);
-    if (user) {
-        const storageKey = `utrend-chat-history-${user.id}`;
-        localStorage.removeItem(storageKey);
-    }
-  }, [initializeChat, user]);
+  }, [initializeChat]);
   
   const handleActionClick = (tool: string, param: string) => {
     const toolMap: { [key: string]: Tab } = {

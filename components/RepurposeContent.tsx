@@ -1,135 +1,130 @@
-import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import React, { useState, useCallback, useEffect } from 'react';
 import { repurposeVideoContent } from '../services/geminiService.ts';
-import { RepurposedContent, Tab } from '../types.ts';
+import { RepurposedContent } from '../types.ts';
 import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, Copy } from './Icons.tsx';
+import { RefreshCw, Search, FileText, Copy } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
 import { useToast } from '../contexts/ToastContext.tsx';
 
 interface RepurposeContentProps {
-  setActiveTab: (tab: Tab) => void;
+  initialInput?: string | null;
 }
 
-const ResultCard: React.FC<{ title: string; children: React.ReactNode; onCopy: () => void }> = ({ title, children, onCopy }) => (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 relative">
-        <button 
-            onClick={onCopy}
-            className="absolute top-4 right-4 flex items-center gap-2 text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1.5 px-3 rounded-lg transition-colors"
-            title={`Copy ${title}`}
-        >
-            <Copy className="w-3 h-3" /> Copy
-        </button>
-        <h3 className="text-xl font-bold text-violet-300 mb-3">{title}</h3>
-        <div className="prose prose-sm prose-invert max-w-none text-slate-300">
-            {children}
-        </div>
-    </div>
-);
-
-const RepurposeContent: React.FC<RepurposeContentProps> = ({ setActiveTab }) => {
-    const { user, logActivity, addContentToHistory } = useAuth();
+const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => {
+    const { logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
-    const [videoUrl, setVideoUrl] = useState('');
+    const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [content, setContent] = useState<RepurposedContent | null>(null);
 
-    const handleRepurpose = useCallback(async () => {
-        if (!videoUrl.trim().toLowerCase().startsWith('http')) {
-            setError("Please enter a valid video URL.");
+    const handleRepurpose = useCallback(async (urlOverride?: string) => {
+        const urlToRepurpose = urlOverride || url;
+        if (!urlToRepurpose.trim().toLowerCase().startsWith('http')) {
+            setError('Please enter a valid video URL (e.g., from YouTube or TikTok).');
             return;
         }
-
         setLoading(true);
         setError(null);
         setContent(null);
         try {
-            const result = await repurposeVideoContent(videoUrl);
+            const result = await repurposeVideoContent(urlToRepurpose);
             setContent(result);
-            logActivity(`repurposed video: "${videoUrl}"`, 'RefreshCw');
+            logActivity(`repurposed content from: ${urlToRepurpose}`, 'RefreshCw');
             addContentToHistory({
                 type: 'Repurposed Content',
-                summary: `Repurposed content from video: ${videoUrl}`,
+                summary: `Repurposed content from video URL`,
                 content: result
             });
         } catch (e: any) {
-            setError(e.message || 'Failed to repurpose video.');
+            setError(e.message || 'An error occurred while repurposing content.');
+            console.error(e);
         } finally {
             setLoading(false);
         }
-    }, [videoUrl, logActivity, addContentToHistory]);
+    }, [url, logActivity, addContentToHistory]);
+
+    useEffect(() => {
+        if (initialInput) {
+            setUrl(initialInput);
+            handleRepurpose(initialInput);
+        }
+    }, [initialInput, handleRepurpose]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
-        showToast("Content copied to clipboard!");
+        showToast('Content copied to clipboard!');
     };
 
-    if (user?.plan !== 'pro') {
-        return (
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
-                <Star className="w-12 h-12 text-yellow-400 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Upgrade to Pro to Repurpose Content</h2>
-                <p className="text-slate-400 mb-6 max-w-md">Automatically convert your videos into blog posts, tweet threads, and LinkedIn updates with AI.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
-                    View Plans
-                </button>
-            </div>
-        );
-    }
-
     return (
-        <div className="animate-slide-in-up space-y-8">
+        <div className="animate-slide-in-up">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <RefreshCw className="w-6 h-6 text-violet-400" /> Repurpose Content
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
+                    <RefreshCw className="w-6 h-6 text-violet-400" /> AI Content Repurposer
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Turn one video into multiple pieces of content instantly.</p>
-                
-                <div className="max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
+                <p className="text-center text-slate-400 mb-6">Turn one video into a blog post, tweet thread, and LinkedIn post.</p>
+                <div className="flex flex-col sm:flex-row gap-4">
                     <input
                         type="url"
-                        value={videoUrl}
-                        onChange={(e) => setVideoUrl(e.target.value)}
-                        placeholder="Paste YouTube or TikTok URL..."
-                        className="flex-grow w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="Paste a YouTube or TikTok video URL..."
+                        className="form-input flex-grow"
                     />
                     <button
-                        onClick={handleRepurpose}
+                        onClick={() => handleRepurpose()}
                         disabled={loading}
-                        className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="button-primary flex items-center justify-center"
                     >
-                        {loading ? <Spinner /> : 'Repurpose'}
+                        {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Repurpose</>}
                     </button>
                 </div>
-
                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
             </div>
 
             {loading && (
                 <div className="text-center py-10">
                     <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">AI is repurposing your content...</p>
+                    <p className="mt-4 text-slate-300">AI is creating new content formats for you...</p>
                 </div>
             )}
-
+            
             {content && (
-                 <div className="mt-8 animate-fade-in space-y-6">
-                    <ResultCard title="Blog Post" onCopy={() => handleCopy(content.blogPost)}>
-                        <div dangerouslySetInnerHTML={{ __html: content.blogPost.replace(/\n/g, '<br />').replace(/## (.*)/g, '<h3>$1</h3>') }} />
-                    </ResultCard>
-                    <ResultCard title="Tweet Thread" onCopy={() => handleCopy(content.tweetThread.join('\n\n'))}>
-                         <div className="space-y-4">
-                            {content.tweetThread.map((tweet, index) => (
-                                <p key={index} className="p-3 bg-slate-900/50 rounded-md border border-slate-700">
-                                    {index + 1}/{content.tweetThread.length}: {tweet}
-                                </p>
-                            ))}
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                    {/* Blog Post */}
+                    <div className="interactive-card lg:col-span-2">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="card-title"><FileText className="w-5 h-5 text-violet-300" /> Blog Post</h3>
+                            <button onClick={() => handleCopy(content.blogPost)} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
                         </div>
-                    </ResultCard>
-                    <ResultCard title="LinkedIn Post" onCopy={() => handleCopy(content.linkedInPost)}>
-                        <div dangerouslySetInnerHTML={{ __html: content.linkedInPost.replace(/\n/g, '<br />') }} />
-                    </ResultCard>
-                 </div>
+                        <div className="prose prose-sm prose-invert max-w-none text-slate-300 bg-slate-800/50 p-3 rounded-md border border-slate-700 max-h-80 overflow-y-auto">
+                            <p>{content.blogPost}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-6">
+                        {/* Tweet Thread */}
+                        <div className="interactive-card">
+                             <div className="flex justify-between items-center mb-2">
+                                <h3 className="card-title">Tweet Thread</h3>
+                                <button onClick={() => handleCopy(content.tweetThread.join('\n\n'))} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
+                            </div>
+                            <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                {content.tweetThread.map((tweet, i) => (
+                                    <p key={i} className="text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md border border-slate-700">{i+1}/ {tweet}</p>
+                                ))}
+                            </div>
+                        </div>
+                        {/* LinkedIn Post */}
+                         <div className="interactive-card">
+                             <div className="flex justify-between items-center mb-2">
+                                <h3 className="card-title">LinkedIn Post</h3>
+                                <button onClick={() => handleCopy(content.linkedInPost)} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
+                            </div>
+                            <p className="text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md border border-slate-700 max-h-40 overflow-y-auto">{content.linkedInPost}</p>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
