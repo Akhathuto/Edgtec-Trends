@@ -106,7 +106,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
         switch (contentType) {
             case 'videos':
                 return (content as TrendingVideo[]).map((v, i) => (
-                    <a href={v.videoUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col group">
+                    <a href={v.videoUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col group animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
                         <div className="overflow-hidden rounded-lg mb-3">
                            <img src={v.thumbnailUrl} alt={v.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>
@@ -120,7 +120,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                 ));
             case 'music':
                 return (content as TrendingMusic[]).map((m, i) => (
-                    <div key={i} className="interactive-card flex flex-col justify-between">
+                    <div key={i} className="interactive-card flex flex-col justify-between animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
                          <div>
                             <h4 className="font-bold text-white text-lg">{m.trackTitle}</h4>
                             <p className="text-sm text-slate-400">{m.artistName}</p>
@@ -131,7 +131,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                 ));
             case 'creators':
                  return (content as TrendingCreator[]).map((c, i) => (
-                    <a href={c.channelUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col justify-between group">
+                    <a href={c.channelUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col justify-between group animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
                          <div>
                             <h4 className="font-bold text-white text-lg group-hover:text-violet-300 transition-colors">{c.name}</h4>
                             <p className="text-sm text-slate-400">{c.category}</p>
@@ -142,7 +142,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                 ));
             case 'topics':
                  return (content as TrendingTopic[]).map((t, i) => (
-                    <div key={i} className="interactive-card">
+                    <div key={i} className="interactive-card animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
                         <h4 className="font-bold text-white text-lg">{t.name}</h4>
                         <p className="text-sm text-slate-400">{t.description}</p>
                     </div>
@@ -229,7 +229,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                             placeholder="e.g., 'AI in video editing'"
                             className="form-input flex-grow"
                         />
-                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="button-primary">
+                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-5 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px">
                             {loadingSearch ? <Spinner size="sm"/> : <Search className="w-5 h-5"/>}
                         </button>
                     </div>

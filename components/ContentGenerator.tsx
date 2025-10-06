@@ -124,7 +124,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                         <button
                           onClick={() => handleGenerate()}
                           disabled={loading}
-                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
                         >
                           {loading ? <Spinner /> : <><Lightbulb className="w-5 h-5 mr-2" /> Generate Ideas</>}
                         </button>
@@ -141,9 +141,9 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
             )}
 
             {ideas.length > 0 && (
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {ideas.map((idea, index) => (
-                        <div key={index} className="interactive-card flex flex-col">
+                        <div key={index} className="interactive-card flex flex-col animate-fade-in-down opacity-0" style={{ animationDelay: `${index * 100}ms` }}>
                             <div className="flex justify-between items-start">
                                 <h3 className="text-xl font-bold text-violet-300 mb-3 pr-4">{idea.title}</h3>
                                 <div className="flex-shrink-0 flex items-center gap-1.5 bg-slate-700/50 px-2.5 py-1 rounded-full text-sm font-semibold">

@@ -292,8 +292,8 @@ const ContentHistory: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredHistory.map(item => (
-                            <div key={item.id} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1">
+                        {filteredHistory.map((item, index) => (
+                            <div key={item.id} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col transition-all duration-300 hover:border-violet-500 hover:shadow-glow-md hover:-translate-y-1 animate-fade-in-down opacity-0" style={{ animationDelay: `${index * 50}ms` }}>
                                 <div className="flex-grow">
                                     <span className="text-xs bg-slate-700 text-violet-300 font-medium px-2.5 py-1 rounded-full">{item.type}</span>
                                     <p className="text-slate-300 mt-3 text-sm flex-grow line-clamp-3">{item.summary}</p>

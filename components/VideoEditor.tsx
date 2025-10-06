@@ -262,7 +262,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                             <div>
                                 <h3 className="font-bold text-lg mb-2 text-center text-slate-200">Edited</h3>
                                 <div className="rounded-lg w-full aspect-video bg-black/20 flex items-center justify-center relative">
-                                    {loading && <div className="text-center"><Spinner size="lg" /><p className="text-sm text-slate-300 mt-2">{loadingMessage}</p></div>}
+                                    {loading && <div className="text-center"><Spinner size="lg" /><p className="text-sm text-slate-300 mt-2 animate-text-fade-cycle">{loadingMessage}</p></div>}
                                     {!loading && editedVideoUrl && <video src={editedVideoUrl} controls autoPlay loop className="rounded-lg w-full aspect-video object-contain" />}
                                     {!loading && !editedVideoUrl && <p className="text-slate-500">Your edited video will appear here</p>}
                                 </div>
@@ -329,7 +329,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                             <button
                                 onClick={handleGenerate}
                                 disabled={loading || !frameBase64}
-                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 transform hover:-translate-y-px"
                             >
                                {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate Edit</>}
                             </button>

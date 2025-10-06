@@ -403,104 +403,120 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         )
     }
 
-    const renderCreationStudio = () => (
-        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-             <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                <UserIcon className="w-6 h-6 text-violet-400" /> AI Avatar Creator
-            </h2>
-            <p className="text-center text-slate-400 mb-6">
-                Design your AI persona, then bring it to life.
-            </p>
+    // --- RENDER LOGIC ---
 
-            <div className="space-y-4 max-w-2xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="avatar-gender" className="block text-sm font-medium text-slate-300 mb-1">Gender</label>
-                        <select id="avatar-gender" value={gender} onChange={(e) => setGender(e.target.value)} className="form-select">
-                            {genders.map(g => <option key={g} value={g}>{g}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="avatar-style" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
-                        <select id="avatar-style" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value)} className="form-select">
-                            {avatarStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="hair-style" className="block text-sm font-medium text-slate-300 mb-1">Hair Style</label>
-                        <select id="hair-style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} className="form-select">
-                            {hairStyles.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="hair-color" className="block text-sm font-medium text-slate-300 mb-1">Hair Color</label>
-                        <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue'" className="form-input"/>
-                    </div>
-                    <div>
-                        <label htmlFor="eye-color" className="block text-sm font-medium text-slate-300 mb-1">Eye Color</label>
-                        <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} className="form-select">
-                            {eyeColors.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="facial-hair" className="block text-sm font-medium text-slate-300 mb-1">Facial Hair</label>
-                        <select id="facial-hair" value={facialHair} onChange={(e) => setFacialHair(e.target.value)} className="form-select">
-                            {facialHairOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="glasses" className="block text-sm font-medium text-slate-300 mb-1">Glasses</label>
-                        <select id="glasses" value={glasses} onChange={(e) => setGlasses(e.target.value)} className="form-select">
-                            {glassesOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                    </div>
-                     <div>
-                        <label htmlFor="other-facial-features" className="block text-sm font-medium text-slate-300 mb-1">Other Facial Features</label>
-                        <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar'" className="form-input"/>
-                    </div>
-                    <div>
-                        <label htmlFor="avatar-clothing" className="block text-sm font-medium text-slate-300 mb-1">Clothing</label>
-                        <input id="avatar-clothing" value={clothing} onChange={(e) => setClothing(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
-                    </div>
-                    <div>
-                        <label htmlFor="avatar-accessories" className="block text-sm font-medium text-slate-300 mb-1">Accessories</label>
-                        <input id="avatar-accessories" value={accessories} onChange={(e) => setAccessories(e.target.value)} placeholder="e.g., 'sunglasses'" className="form-input"/>
-                    </div>
-                     <div>
-                        <label htmlFor="shot-type" className="block text-sm font-medium text-slate-300 mb-1">Shot Type</label>
-                        <select id="shot-type" value={shotType} onChange={(e) => setShotType(e.target.value)} className="form-select">
-                            {shotTypes.map(st => <option key={st} value={st}>{st}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="avatar-background" className="block text-sm font-medium text-slate-300 mb-1">Background</label>
-                        <input id="avatar-background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., 'cityscape at night'" className="form-input"/>
-                    </div>
-                    <div className="sm:col-span-2">
-                        <label htmlFor="avatar-personality" className="block text-sm font-medium text-slate-300 mb-1">Personality</label>
-                        <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Personality traits for conversation (e.g., 'sarcastic and witty')" className="form-input h-20"/>
-                    </div>
-                    <div className="sm:col-span-2">
-                        <label htmlFor="avatar-extra-details" className="block text-sm font-medium text-slate-300 mb-1">Extra Visual Details</label>
-                        <textarea id="avatar-extra-details" value={extraDetails} onChange={(e) => setExtraDetails(e.target.value)} placeholder="e.g., 'has a small scar over one eye'" className="form-input h-20"/>
-                    </div>
+    // PHASE 1: IDLE / GENERATING (The Creation Studio)
+    if (phase === 'idle' || phase === 'generating') {
+        return (
+            <div className="animate-slide-in-up">
+                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                    <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
+                        <UserIcon className="w-6 h-6 text-violet-400" /> AI Avatar Creator
+                    </h2>
+                    <p className="text-center text-slate-400 mb-6">
+                        Design your AI persona, then bring it to life.
+                    </p>
+                    
+                    {phase === 'generating' ? (
+                        <div className="text-center py-10">
+                            <Spinner size="lg" />
+                            <p className="mt-4 text-slate-300 font-semibold text-lg">Creating your avatar...</p>
+                            <p className="mt-1 text-slate-400 text-sm">This can take a moment.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 max-w-2xl mx-auto">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="avatar-gender" className="block text-sm font-medium text-slate-300 mb-1">Gender</label>
+                                    <select id="avatar-gender" value={gender} onChange={(e) => setGender(e.target.value)} className="form-select">
+                                        {genders.map(g => <option key={g} value={g}>{g}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="avatar-style" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
+                                    <select id="avatar-style" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value)} className="form-select">
+                                        {avatarStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="hair-style" className="block text-sm font-medium text-slate-300 mb-1">Hair Style</label>
+                                    <select id="hair-style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} className="form-select">
+                                        {hairStyles.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="hair-color" className="block text-sm font-medium text-slate-300 mb-1">Hair Color</label>
+                                    <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue'" className="form-input"/>
+                                </div>
+                                <div>
+                                    <label htmlFor="eye-color" className="block text-sm font-medium text-slate-300 mb-1">Eye Color</label>
+                                    <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} className="form-select">
+                                        {eyeColors.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="facial-hair" className="block text-sm font-medium text-slate-300 mb-1">Facial Hair</label>
+                                    <select id="facial-hair" value={facialHair} onChange={(e) => setFacialHair(e.target.value)} className="form-select">
+                                        {facialHairOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="glasses" className="block text-sm font-medium text-slate-300 mb-1">Glasses</label>
+                                    <select id="glasses" value={glasses} onChange={(e) => setGlasses(e.target.value)} className="form-select">
+                                        {glassesOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="other-facial-features" className="block text-sm font-medium text-slate-300 mb-1">Other Facial Features</label>
+                                    <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar'" className="form-input"/>
+                                </div>
+                                <div>
+                                    <label htmlFor="avatar-clothing" className="block text-sm font-medium text-slate-300 mb-1">Clothing</label>
+                                    <input id="avatar-clothing" value={clothing} onChange={(e) => setClothing(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
+                                </div>
+                                <div>
+                                    <label htmlFor="avatar-accessories" className="block text-sm font-medium text-slate-300 mb-1">Accessories</label>
+                                    <input id="avatar-accessories" value={accessories} onChange={(e) => setAccessories(e.target.value)} placeholder="e.g., 'sunglasses'" className="form-input"/>
+                                </div>
+                                <div>
+                                    <label htmlFor="shot-type" className="block text-sm font-medium text-slate-300 mb-1">Shot Type</label>
+                                    <select id="shot-type" value={shotType} onChange={(e) => setShotType(e.target.value)} className="form-select">
+                                        {shotTypes.map(st => <option key={st} value={st}>{st}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="avatar-background" className="block text-sm font-medium text-slate-300 mb-1">Background</label>
+                                    <input id="avatar-background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., 'cityscape at night'" className="form-input"/>
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label htmlFor="avatar-personality" className="block text-sm font-medium text-slate-300 mb-1">Personality</label>
+                                    <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Personality traits for conversation (e.g., 'sarcastic and witty')" className="form-input h-20"/>
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label htmlFor="avatar-extra-details" className="block text-sm font-medium text-slate-300 mb-1">Extra Visual Details</label>
+                                    <textarea id="avatar-extra-details" value={extraDetails} onChange={(e) => setExtraDetails(e.target.value)} placeholder="e.g., 'has a small scar over one eye'" className="form-input h-20"/>
+                                </div>
+                            </div>
+
+                            <button onClick={handleGenerate} disabled={loading} className="button-primary w-full !py-3 text-base mt-6">
+                            {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
+                            </button>
+                            {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                        </div>
+                    )}
                 </div>
-
-                <button onClick={handleGenerate} disabled={loading} className="button-primary w-full !py-3 text-base mt-6">
-                   {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
-                </button>
-                 {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
             </div>
-        </div>
-    );
+        );
+    }
 
-    const renderInteractionPanel = () => (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+    // PHASE 2: READY / CONVERSING / ENDED (The Interaction Panel)
+    return (
+        <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Panel: Avatar & Controls */}
             <div className="lg:col-span-1 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl flex flex-col items-center justify-start space-y-6">
                 <div className="relative w-48 h-48">
                     <div className={`absolute inset-0 rounded-full bg-violet-500/20 ${status === 'SPEAKING' ? 'animate-ping' : ''}`}></div>
-                    <div className={`relative w-full h-full rounded-full bg-slate-800 shadow-lg p-2 ${phase === 'conversing' && status === 'SPEAKING' ? 'animate-breathing' : (phase !== 'idle' && phase !== 'generating' ? 'animate-breathing' : '')}`}>
+                    <div className={`relative w-full h-full rounded-full bg-slate-800 shadow-lg p-2 ${phase === 'conversing' && status === 'SPEAKING' ? 'animate-breathing' : 'animate-breathing'}`}>
                         {avatarBase64 && <img src={`data:image/png;base64,${avatarBase64}`} alt="Generated Avatar" className="w-full h-full object-cover rounded-full"/>}
                     </div>
                 </div>
@@ -541,7 +557,11 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
             </div>
             
             {/* Right Panel: Conversation */}
-            <div className="lg:col-span-2 bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col min-h-[60vh]">
+            <div className="lg:col-span-2 bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col min-h-[70vh]">
+                 <header className="p-4 border-b border-slate-700/50 flex-shrink-0">
+                    <h3 className="text-lg font-bold text-white text-center">Conversation</h3>
+                 </header>
+
                  {(phase === 'conversing' || phase === 'ended') ? (
                     <>
                         <div className="flex-1 p-4 space-y-3 overflow-y-auto">
@@ -572,22 +592,6 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                     </div>
                  )}
             </div>
-        </div>
-    );
-
-    return (
-        <div className="animate-slide-in-up">
-            {phase === 'idle' && renderCreationStudio()}
-
-            {phase === 'generating' && (
-                 <div className="text-center py-10 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300 font-semibold text-lg">Creating your avatar...</p>
-                    <p className="mt-1 text-slate-400 text-sm">This can take a moment.</p>
-                </div>
-            )}
-
-            {(phase === 'ready' || phase === 'conversing' || phase === 'ended') && renderInteractionPanel()}
         </div>
     );
 };

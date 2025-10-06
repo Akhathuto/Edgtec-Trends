@@ -129,7 +129,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                         <button
                           onClick={() => handleGenerate()}
                           disabled={loading}
-                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
                         >
                           {loading ? <Spinner /> : 'Generate Report'}
                         </button>

@@ -163,7 +163,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
+                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
                             title="Start generating the GIF. This may take a few minutes."
                         >
                            <Gif className="w-5 h-5 mr-2" /> Generate GIF
@@ -177,7 +177,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
             {loading && (
                 <div className="text-center py-10 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl mt-8">
                     <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300 font-semibold text-lg">{loadingMessage}</p>
+                    <p className="mt-4 text-slate-300 font-semibold text-lg animate-text-fade-cycle">{loadingMessage}</p>
                     <p className="mt-2 text-slate-400 text-sm">Please keep this tab open. GIF generation is in progress.</p>
                 </div>
             )}
