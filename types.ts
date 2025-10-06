@@ -43,7 +43,7 @@ export interface HistoryItem {
     content: any;
 }
 
-export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply';
+export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Generated Image' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply' | 'Avatar' | 'Avatar Conversation';
 
 export interface AuthContextType {
   user: User | null;
@@ -102,6 +102,8 @@ export enum Tab {
   GifCreator = 'gif-creator',
   ImageEditor = 'image-editor',
   LogoCreator = 'logo-creator',
+  ImageGenerator = 'image-generator',
+  AvatarCreator = 'avatar-creator',
   VideoEditor = 'video-editor',
   ThumbnailGenerator = 'thumbnail-generator',
   CommentResponder = 'comment-responder',
@@ -265,4 +267,5 @@ export interface Agent {
     name: string;
     icon: React.FC<React.SVGProps<SVGSVGElement>>;
   }[];
+  tools?: any[];
 }

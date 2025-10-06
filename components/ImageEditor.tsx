@@ -1,13 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { editImage } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Edit, Star, UploadCloud, RefreshCw, FileText, Download } from './Icons.tsx';
+import { Edit, Star, UploadCloud, RefreshCw, Download, Sliders, Trash2 } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 
 interface ImageEditorProps {
   setActiveTab: (tab: Tab) => void;
 }
+
+const imageStyles = ['Default', 'Cinematic', 'Vintage Film', 'Anime', 'Documentary', 'Hyperlapse', 'Claymation', 'Black and White', 'Vibrant Colors'];
 
 const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
   const { user, addContentToHistory } = useAuth();
@@ -18,6 +20,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
   const [error, setError] = useState<string | null>(null);
   const [editedImage, setEditedImage] = useState<{ data: string, url: string } | null>(null);
   const [editedText, setEditedText] = useState<string | null>(null);
+  
+  // AI Toolkit State
+  const [objectToRemove, setObjectToRemove] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState(imageStyles[0]);
 
   const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string, url: string }> => {
     return new Promise((resolve, reject) => {
@@ -55,8 +61,18 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
       setError('Please upload an image first.');
       return;
     }
-    if (!prompt.trim()) {
-      setError('Please enter an editing instruction.');
+
+    let finalPrompt = prompt;
+    if (objectToRemove) {
+        finalPrompt += ` Remove the ${objectToRemove}.`;
+    }
+    if (selectedStyle && selectedStyle !== 'Default') {
+        finalPrompt += ` Apply a ${selectedStyle} style.`;
+    }
+    finalPrompt = finalPrompt.trim();
+    
+    if (!finalPrompt) {
+      setError('Please enter an editing instruction or select a tool.');
       return;
     }
 
@@ -66,18 +82,23 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     setEditedText(null);
 
     try {
-      const result = await editImage(imageBase64.data, imageBase64.mimeType, prompt);
+      const result = await editImage(imageBase64.data, imageBase64.mimeType, finalPrompt);
       if (result.image) {
         const imageUrl = `data:${imageBase64.mimeType};base64,${result.image}`;
         setEditedImage({ data: result.image, url: imageUrl });
         addContentToHistory({
             type: 'Image Edit',
-            summary: `Image edit with prompt: "${prompt}"`,
+            summary: `Image edit: "${finalPrompt.substring(0, 30)}..."`,
             content: {
                 originalImageUrl: imageBase64.url,
                 editedImageBase64: result.image,
                 mimeType: imageBase64.mimeType,
-                prompt: prompt,
+                prompt: finalPrompt,
+                inputs: {
+                    general: prompt,
+                    remove: objectToRemove,
+                    style: selectedStyle,
+                },
                 aiNote: result.text
             }
         });
@@ -90,21 +111,27 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     } finally {
       setLoading(false);
     }
-  }, [imageBase64, prompt, addContentToHistory]);
+  }, [imageBase64, prompt, objectToRemove, selectedStyle, addContentToHistory]);
+
+  const handleClearToolkit = () => {
+    setPrompt('');
+    setObjectToRemove('');
+    setSelectedStyle(imageStyles[0]);
+  };
 
   const handleStartOver = () => {
     setError(null);
     setImageFile(null);
     setImageBase64(null);
-    setPrompt('');
     setEditedImage(null);
     setEditedText(null);
+    handleClearToolkit();
   };
   
   const handleDownloadImage = () => {
     if (!editedImage) return;
     const link = document.createElement('a');
-    link.href = editedImage.url; // The url is already a data URL
+    link.href = editedImage.url;
     link.download = `utrend_edit_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
@@ -169,24 +196,39 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                         <p className="text-sm text-slate-300 italic"><strong className="text-violet-300 not-italic">AI Note:</strong> {editedText}</p>
                     </div>
                 )}
-                <div>
-                    <label htmlFor="image-prompt" className="block text-sm font-medium text-slate-300 mb-1 flex items-center gap-2">
-                       <FileText className="w-5 h-5"/> Editing Instruction
-                    </label>
-                    <textarea
-                        id="image-prompt"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="e.g., 'add a birthday hat on the cat', 'make the background a galaxy'"
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none h-24 shadow-inner"
-                        rows={3}
-                    />
+                 {/* AI Toolkit */}
+                <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
+                    <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-lg font-semibold text-slate-200 flex items-center gap-2"><Sliders className="w-5 h-5 text-violet-400" /> AI Toolkit</h4>
+                        <button onClick={handleClearToolkit} className="flex items-center gap-2 text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded text-slate-300">
+                            <Trash2 className="w-3 h-3"/> Clear Toolkit
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                         <textarea
+                            id="image-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)}
+                            placeholder="General Instruction (e.g., 'add a birthday hat on the cat')"
+                            className="form-input h-20" rows={2}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                                <label htmlFor="remove-object" className="block text-sm font-medium text-slate-300 mb-1">Remove Object</label>
+                                <input id="remove-object" type="text" value={objectToRemove} onChange={(e) => setObjectToRemove(e.target.value)} placeholder="e.g., 'the person on the left'" className="form-input"/>
+                            </div>
+                            <div>
+                                <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1">Apply Style</label>
+                                <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="form-select">
+                                    {imageStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                      <button
                         onClick={handleDownloadImage}
                         disabled={!editedImage || loading}
-                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
+                        className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
                     >
                         <Download className="w-5 h-5 mr-2" /> Download
                     </button>
@@ -200,10 +242,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                     <button
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                         title="Regenerate the edited image"
                     >
-                       {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Regenerate</>}
+                       {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate</>}
                     </button>
                 </div>
             </div>

@@ -36,6 +36,8 @@ import AnimationCreator from './AnimationCreator.tsx';
 import GifCreator from './GifCreator.tsx';
 import ImageEditor from './ImageEditor.tsx';
 import LogoCreator from './LogoCreator.tsx';
+import ImageGenerator from './ImageGenerator.tsx';
+import AvatarCreator from './AvatarCreator.tsx';
 import VideoEditor from './VideoEditor.tsx';
 import ThumbnailGenerator from './ThumbnailGenerator.tsx';
 import CommentResponder from './CommentResponder.tsx';
@@ -85,6 +87,8 @@ const AppLayout: React.FC = () => {
     { id: Tab.AnimationCreator, label: 'Animation Creator', icon: <Clapperboard className="w-5 h-5 mr-3" />, title: 'Generate custom animations' },
     { id: Tab.GifCreator, label: 'GIF Creator', icon: <Gif className="w-5 h-5 mr-3" />, title: 'Create animated GIFs' },
     { id: Tab.LogoCreator, label: 'Logo Creator', icon: <PenTool className="w-5 h-5 mr-3" />, title: 'Design a logo for your brand' },
+    { id: Tab.AvatarCreator, label: 'Avatar Creator', icon: <UserIcon className="w-5 h-5 mr-3" />, title: 'Create a custom AI avatar' },
+    { id: Tab.ImageGenerator, label: 'Image Generator', icon: <Image className="w-5 h-5 mr-3" />, title: 'Generate unique images from text' },
     { id: Tab.ImageEditor, label: 'Image Editor', icon: <TypeIcon className="w-5 h-5 mr-3" />, title: 'Edit images with text prompts' },
     { id: Tab.VideoEditor, label: 'Video Editor', icon: <Scissors className="w-5 h-5 mr-3" />, title: 'Edit videos with text prompts' },
   ];
@@ -162,6 +166,10 @@ const AppLayout: React.FC = () => {
         return <ImageEditor setActiveTab={setActiveTab} />;
       case Tab.LogoCreator:
         return <LogoCreator setActiveTab={setActiveTab} />;
+      case Tab.AvatarCreator:
+        return <AvatarCreator setActiveTab={setActiveTab} />;
+      case Tab.ImageGenerator:
+        return <ImageGenerator setActiveTab={setActiveTab} />;
       case Tab.VideoEditor:
         return <VideoEditor setActiveTab={setActiveTab} />;
       case Tab.ThumbnailGenerator:

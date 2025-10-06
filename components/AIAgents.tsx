@@ -7,14 +7,17 @@ import Spinner from './Spinner.tsx';
 import { agents } from '../data/agents.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 import AgentSettingsModal from './AgentSettingsModal.tsx';
+import { youtubeSearch } from '../services/geminiService.ts';
 
 interface AIAgentsProps {
   setActiveTab: (tab: Tab) => void;
 }
 
 interface ChatMessage {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'tool';
   content: string;
+  toolCall?: { name: string; args: any };
+  toolResult?: any;
 }
 
 const TypingIndicator = () => (
@@ -26,15 +29,24 @@ const TypingIndicator = () => (
 );
 
 const ChatMessageContent: React.FC<{ 
-    content: string; 
+    message: ChatMessage;
     onAction: (service: string, details: string) => void;
     onHandoff: (agentId: string, prompt: string) => void;
-}> = ({ content, onAction, onHandoff }) => {
+}> = ({ message, onAction, onHandoff }) => {
     const externalActionRegex = /EXTERNAL_ACTION:\[(TWITTER|GMAIL|GDRIVE|SLACK),"([\s\S]+?)"\]/s;
     const handoffActionRegex = /HANDOFF:\[(\w+),"([\s\S]+?)"\]/s;
     
-    let currentContent = content;
+    let currentContent = message.content;
     let actionButton = null;
+
+    if (message.role === 'tool') {
+        return (
+             <div className="text-xs italic text-slate-400 text-center p-2 bg-slate-800/50 rounded-lg">
+                <p>Using tool: {message.toolCall?.name}</p>
+                <p>Parameters: {JSON.stringify(message.toolCall?.args)}</p>
+            </div>
+        );
+    }
 
     const externalMatch = currentContent.match(externalActionRegex);
     if (externalMatch) {
@@ -98,6 +110,8 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     model: 'gemini-2.5-flash',
     temperature: 0.7,
   });
+  
+  const availableTools = { youtubeSearch };
 
   useEffect(() => {
     if (user) {
@@ -111,16 +125,38 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   const initializeChat = useCallback((agent: AgentType, settings: AgentSettings, historyToRestore?: ChatMessage[]) => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+      
+      const chatHistory = historyToRestore?.map(msg => {
+            if (msg.role === 'tool') {
+                return {
+                    role: 'model', // Gemini API expects a model role for function responses
+                    parts: [{ functionResponse: { name: msg.toolCall!.name, response: msg.toolResult } }]
+                };
+            }
+            return {
+                role: msg.role,
+                parts: [{ text: msg.content }],
+            };
+        });
+
+      const processedTools = agent.tools?.map(tool => {
+        if (tool.googleSearch) {
+            return { googleSearch: tool.googleSearch };
+        }
+        if (tool.declaration) {
+            return { functionDeclarations: [tool.declaration] };
+        }
+        return null;
+      }).filter(Boolean);
+
       const chatInstance = ai.chats.create({
         model: settings.model,
-        history: historyToRestore?.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }],
-        })),
+        history: chatHistory,
         config: {
           systemInstruction: agent.systemInstruction,
           temperature: settings.temperature,
         },
+        tools: processedTools && processedTools.length > 0 ? processedTools : undefined,
       });
       setChat(chatInstance);
       return chatInstance;
@@ -130,6 +166,74 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
       return null;
     }
   }, []);
+  
+  const handleSendMessage = useCallback(async (message: string, agentOverride?: AgentType, historyOverride?: ChatMessage[]) => {
+    const currentAgent = agentOverride || activeAgent;
+    let currentHistory = historyOverride || history;
+
+    if (!message.trim() || loading) return;
+
+    let chatInstance = chat;
+    if (agentOverride || !chat) { 
+        chatInstance = initializeChat(currentAgent, agentSettings, currentHistory);
+    }
+    if (!chatInstance) return;
+
+    const newUserMessage: ChatMessage = { role: 'user', content: message };
+    currentHistory = [...currentHistory, newUserMessage];
+    setHistory(currentHistory);
+    setLoading(true);
+    setInput('');
+    
+    logActivity(`chatted with ${currentAgent.name}: "${message.substring(0, 30)}..."`, 'Bot');
+
+    try {
+        let result = await chatInstance.sendMessage({ message });
+
+        while (result.candidates[0].content.parts[0].functionCall) {
+            const fc = result.candidates[0].content.parts[0].functionCall;
+            const { name, args } = fc;
+
+            const toolMessage: ChatMessage = { role: 'tool', content: `Using tool: ${name}...`, toolCall: { name, args } };
+            currentHistory = [...currentHistory, toolMessage];
+            setHistory(currentHistory);
+
+            if (name in availableTools) {
+                const toolFn = availableTools[name as keyof typeof availableTools];
+                const toolResponse = toolFn(args);
+
+                const toolResultWithMessage: ChatMessage = { ...toolMessage, toolResult: { result: toolResponse } };
+                currentHistory[currentHistory.length - 1] = toolResultWithMessage;
+                setHistory(currentHistory);
+
+                result = await chatInstance.sendMessage({
+                    tool_responses: [{
+                        function_response: { name, response: { result: toolResponse } }
+                    }]
+                });
+
+            } else {
+                // If the tool is not one of our defined functions, it must be googleSearch
+                 result = await chatInstance.sendMessage({
+                    tool_responses: [{
+                        function_response: { name, response: { /* Let Gemini handle it */ } }
+                    }]
+                });
+            }
+        }
+        
+        // Final text response
+        const finalResponse = result.text;
+        setHistory(prev => [...prev, { role: 'model', content: finalResponse }]);
+
+    } catch (e) {
+      console.error("Error sending message to agent:", e);
+       setHistory(prev => [...prev, { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+}, [activeAgent, chat, history, loading, agentSettings, initializeChat, logActivity]);
+
 
   const switchAgent = useCallback((agent: AgentType, initialPrompt?: string) => {
     setActiveAgent(agent);
@@ -144,13 +248,14 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
     
     setHistory(initialHistory);
-    initializeChat(agent, agentSettings, initialHistory);
+    const chatInstance = initializeChat(agent, agentSettings, initialHistory);
 
     if (initialPrompt) {
+        // Need to pass the new chat instance directly as state update is async
         handleSendMessage(initialPrompt, agent, initialHistory);
     }
 
-  }, [user?.id, initializeChat, agentSettings]);
+  }, [user?.id, initializeChat, agentSettings, handleSendMessage]);
 
   useEffect(() => {
     if (user) {
@@ -184,52 +289,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
         initializeChat(activeAgent, newSettings, history);
     }
   };
-
-  const handleSendMessage = async (message: string, agentOverride?: AgentType, historyOverride?: ChatMessage[]) => {
-    const currentAgent = agentOverride || activeAgent;
-    const currentHistory = historyOverride || history;
-
-    if (!message.trim() || loading) return;
-
-    let chatInstance = chat;
-    if (agentOverride) { // Re-initialize chat if agent is changing
-        chatInstance = initializeChat(currentAgent, agentSettings, currentHistory);
-    }
-    if (!chatInstance) return;
-
-
-    const newUserMessage: ChatMessage = { role: 'user', content: message };
-    const updatedHistory = [...currentHistory, newUserMessage];
-    setHistory(updatedHistory);
-    setLoading(true);
-    setInput('');
-    
-    let fullResponse = '';
-    try {
-      logActivity(`chatted with ${currentAgent.name}: "${message.substring(0, 30)}..."`, 'Bot');
-      const stream = await chatInstance.sendMessageStream({ message });
-      const finalHistoryWithPlaceholder = [...updatedHistory, { role: 'model', content: '' }];
-      setHistory(finalHistoryWithPlaceholder);
-
-      for await (const chunk of stream) {
-        fullResponse += chunk.text;
-        setHistory(prev => {
-          const newHistory = [...prev];
-          const lastMessage = newHistory[newHistory.length - 1];
-          if (lastMessage?.role === 'model') {
-            lastMessage.content = fullResponse;
-          }
-          return newHistory;
-        });
-      }
-    } catch (e) {
-      console.error("Error sending message to agent:", e);
-       setHistory(prev => [...prev.slice(0, -1), { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -346,14 +406,14 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
 
           <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
             {history.map((msg, index) => (
-              <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+              <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''} ${msg.role === 'tool' ? 'justify-center' : ''}`}>
                 {msg.role === 'model' && (
                   <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
                     <activeAgent.icon className={`w-5 h-5 ${activeAgent.color}`} />
                   </div>
                 )}
-                <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                  <ChatMessageContent content={msg.content} onAction={handleAction} onHandoff={handleHandoff} />
+                <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : msg.role === 'tool' ? 'w-auto' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
+                  <ChatMessageContent message={msg} onAction={handleAction} onHandoff={handleHandoff} />
                 </div>
               </div>
             ))}

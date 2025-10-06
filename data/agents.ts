@@ -1,5 +1,8 @@
 import { Agent } from '../types.ts';
 import { Sparkles, BarChart2, DollarSign, Edit as EditIcon, Twitter, Gmail, GoogleDrive, Slack } from '../components/Icons.tsx';
+import { youtubeSearch } from '../services/geminiService.ts';
+import { Type } from '@google/genai';
+
 
 export const agents: Agent[] = [
   {
@@ -8,15 +11,31 @@ export const agents: Agent[] = [
     description: 'Your go-to expert for brainstorming viral-worthy content ideas and spotting the next big trend.',
     icon: Sparkles,
     color: 'text-violet-400',
-    systemInstruction: `You are the Viral Visionary, an AI agent with a deep understanding of internet culture. Your expertise is brainstorming unique, high-potential video ideas. You are creative and witty. When you provide a great idea, suggest handing it off to the Creative Writer to get it scripted. Use the format: HANDOFF:[writer,"Based on this idea, write a full 60-second video script: '{idea_title}'"]`,
+    systemInstruction: `You are the Viral Visionary, an AI agent with a deep understanding of internet culture. Your expertise is brainstorming unique, high-potential video ideas. You are creative and witty. When you need up-to-date information on trends or new topics, use the googleSearch and youtubeSearch tools to find relevant information before answering. When you provide a great idea, suggest handing it off to the Creative Writer to get it scripted. Use the format: HANDOFF:[writer,"Based on this idea, write a full 60-second video script: '{idea_title}'"]`,
     starterPrompts: [
       'Give me 3 video ideas for a cooking channel.',
       'What\'s a unique angle for a tech review video?',
-      'Brainstorm a viral challenge related to sustainable living.',
+      'What are the latest trends in the gaming community?',
     ],
     keywords: ['ideas', 'brainstorming', 'viral', 'trends', 'creativity'],
     externalTools: [
         { name: 'X (Twitter)', icon: Twitter },
+    ],
+    tools: [
+        { googleSearch: {} },
+        { function: youtubeSearch, 
+          declaration: {
+            name: 'youtubeSearch',
+            description: 'Searches YouTube for videos based on a query and returns a list of top results with titles, channels, and view counts.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                query: { type: Type.STRING, description: 'The search query for YouTube.' },
+              },
+              required: ['query'],
+            }
+          }
+        }
     ],
   },
   {
@@ -25,7 +44,7 @@ export const agents: Agent[] = [
     description: 'A data-driven specialist for SEO, keyword research, and audience growth strategies.',
     icon: BarChart2,
     color: 'text-blue-400',
-    systemInstruction: `You are the Growth Hacker, a data-obsessed AI agent focused on audience growth. You specialize in SEO, keyword optimization, and algorithmic strategy. Your advice is always actionable and backed by data-driven logic. When a user asks for keywords, suggest using them to brainstorm ideas with the Viral Visionary. Use the format: HANDOFF:[visionary,"Brainstorm 3 video titles using these keywords: {keywords}"]`,
+    systemInstruction: `You are the Growth Hacker, a data-obsessed AI agent focused on audience growth. You specialize in SEO, keyword optimization, and algorithmic strategy. Your advice is always actionable and backed by data-driven logic. When you need real-time data or competitor info, use the googleSearch and youtubeSearch tools. When a user asks for keywords, suggest using them to brainstorm ideas with the Viral Visionary. Use the format: HANDOFF:[visionary,"Brainstorm 3 video titles using these keywords: {keywords}"]`,
     starterPrompts: [
       'How can I optimize my video titles for search?',
       'What are some good keywords for the term "vlogging"?',
@@ -35,6 +54,22 @@ export const agents: Agent[] = [
     externalTools: [
         { name: 'Slack', icon: Slack },
         { name: 'Google Drive', icon: GoogleDrive },
+    ],
+    tools: [
+        { googleSearch: {} },
+        { function: youtubeSearch, 
+          declaration: {
+            name: 'youtubeSearch',
+            description: 'Searches YouTube for videos, channels, and trends based on a query.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                query: { type: Type.STRING, description: 'The search query for YouTube.' },
+              },
+              required: ['query'],
+            }
+          }
+        }
     ],
   },
   {

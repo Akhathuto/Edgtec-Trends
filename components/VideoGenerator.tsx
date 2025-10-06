@@ -1,9 +1,7 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders } from './Icons.tsx';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders, Zap } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
@@ -26,6 +24,7 @@ const videoTemplates: { name: string; prompt: string; recommendedPlatform?: 'You
 ];
 
 const videoStyles = ['Cinematic', 'Vintage Film', 'Anime', 'Documentary', 'Hyperlapse', 'Claymation', 'Black and White', 'Vibrant Colors'];
+const specialEffects = ['Slow Motion', 'Sped Up', 'Confetti', 'Fireworks', 'Lens Flare', 'Light Leaks', 'VHS Glitch'];
 const cameraMotions = ['Panning Shot', 'Tilting Shot', 'Drone Shot', 'Dolly Zoom', 'Handheld shaky cam', 'Static tripod shot'];
 
 interface VideoGeneratorProps {
@@ -49,6 +48,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
 
     // AI Prompt Enhancers
     const [selectedStyle, setSelectedStyle] = useState('');
+    const [selectedEffect, setSelectedEffect] = useState('');
     const [selectedCamera, setSelectedCamera] = useState('');
     
     // Transcript and TTS State
@@ -63,14 +63,29 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     // Effect to update the final prompt when enhancers are used
     useEffect(() => {
         let finalPrompt = basePrompt;
+
+        // Add aspect ratio hint based on platform
+        if (platform === 'TikTok' || platform === 'YouTube Shorts') {
+            if (!finalPrompt.toLowerCase().includes('vertical') && !finalPrompt.toLowerCase().includes('9:16')) {
+                 finalPrompt = `A vertical 9:16 video. ${finalPrompt}`;
+            }
+        } else { // YouTube
+            if (!finalPrompt.toLowerCase().includes('widescreen') && !finalPrompt.toLowerCase().includes('16:9')) {
+                finalPrompt = `A widescreen 16:9 video. ${finalPrompt}`;
+            }
+        }
+
         if (selectedStyle) {
             finalPrompt += ` The visual style should be ${selectedStyle.toLowerCase()}.`;
+        }
+        if (selectedEffect) {
+            finalPrompt += ` Include a ${selectedEffect.toLowerCase()} effect.`;
         }
         if (selectedCamera) {
             finalPrompt += ` Use a ${selectedCamera.toLowerCase()}.`;
         }
         setPrompt(finalPrompt.trim());
-    }, [basePrompt, selectedStyle, selectedCamera]);
+    }, [basePrompt, selectedStyle, selectedEffect, selectedCamera, platform]);
 
 
     const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string }> => {
@@ -125,7 +140,6 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
-                        // FIX: Switched to process.env.API_KEY per guidelines.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
@@ -164,7 +178,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
 
         try {
             const imageParam = imageBase64 ? { imageBytes: imageBase64.data, mimeType: imageBase64.mimeType } : undefined;
-            const initialOp = await generateVideo(prompt, platform, imageParam);
+            const initialOp = await generateVideo(prompt, imageParam);
             setOperation(initialOp);
             pollOperationStatus(initialOp);
             logActivity(`started generating a video for prompt: "${prompt.substring(0, 30)}..."`, 'Video');
@@ -182,6 +196,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         if (template) {
             setBasePrompt(template.prompt);
             setSelectedStyle('');
+            setSelectedEffect('');
             setSelectedCamera('');
             if (template.recommendedPlatform) {
                 setPlatform(template.recommendedPlatform);
@@ -199,6 +214,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setImageBase64(null);
         setSelectedTemplate(videoTemplates[0].name);
         setSelectedStyle('');
+        setSelectedEffect('');
         setSelectedCamera('');
         setTranscript(null);
         setTranscriptLoading(false);
@@ -364,12 +380,19 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         {/* AI Toolkit */}
                         <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
                             <h4 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2"><Sliders className="w-5 h-5 text-violet-400" /> AI Toolkit - Prompt Enhancers</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
                                     <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
                                         <option value="">Default</option>
                                         {videoStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="effect-select" className="block text-sm font-medium text-slate-300 mb-1">Special Effect</label>
+                                    <select id="effect-select" value={selectedEffect} onChange={(e) => setSelectedEffect(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                        <option value="">No Effect</option>
+                                        {specialEffects.map(effect => <option key={effect} value={effect}>{effect}</option>)}
                                     </select>
                                 </div>
                                 <div>

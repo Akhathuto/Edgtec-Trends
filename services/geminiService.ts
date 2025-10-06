@@ -7,6 +7,27 @@ import {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
+// --- Tool Definition for Function Calling ---
+/**
+ * A simulated YouTube search tool. In a real application, this would call the YouTube Data API.
+ * @param query The search query string.
+ * @returns A JSON string with mocked search results.
+ */
+export const youtubeSearch = ({ query }: { query: string }): string => {
+    console.log(`[Tool Executed] YouTube Search for: "${query}"`);
+    // Mocked data for demonstration purposes
+    const mockResults = {
+        videos: [
+            { title: `Top 5 Gadgets in 2024 for ${query}`, channel: 'TechFlow', views: '2.1M', published: '2 weeks ago', url: 'https://youtube.com/watch?v=example1' },
+            { title: `Is ${query} worth it? An Honest Review`, channel: 'HonestReviews', views: '850K', published: '1 month ago', url: 'https://youtube.com/watch?v=example2' },
+            { title: `Ultimate Guide to ${query} for Beginners`, channel: 'CreatorAcademy', views: '1.5M', published: '3 weeks ago', url: 'https://youtube.com/watch?v=example3' },
+        ],
+        search_summary: `The search for "${query}" shows strong interest in reviews and beginner guides. Videos focusing on "Top 5" lists and "Honest Reviews" have high view counts, indicating user trust in curated and critical content.`
+    };
+    return JSON.stringify(mockResults);
+};
+
+
 const parseJsonResponse = <T>(text: string, fallback: T): T => {
     try {
         const jsonMatch = text.match(/```json\n([\s\S]*?)\n```|([\s\S]*)/);
@@ -65,12 +86,88 @@ export async function getRealtimeTrends(plan: string, country: string): Promise<
 }
 
 export async function getTrendingContent(contentType: string, plan: string, country: string, category: string, platform: 'YouTube' | 'TikTok'): Promise<any[]> {
+    const videoSchema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                title: { type: Type.STRING },
+                channelName: { type: Type.STRING },
+                videoUrl: { type: Type.STRING },
+                thumbnailUrl: { type: Type.STRING },
+                viewCount: { type: Type.STRING },
+                publishedTime: { type: Type.STRING },
+            },
+            required: ["title", "channelName", "videoUrl", "thumbnailUrl", "viewCount", "publishedTime"]
+        }
+    };
+
+    const musicSchema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                trackTitle: { type: Type.STRING },
+                artistName: { type: Type.STRING },
+                videosUsingSound: { type: Type.STRING },
+                reason: { type: Type.STRING },
+            },
+            required: ["trackTitle", "artistName", "videosUsingSound", "reason"]
+        }
+    };
+
+    const creatorSchema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                name: { type: Type.STRING },
+                category: { type: Type.STRING },
+                subscriberCount: { type: Type.STRING },
+                channelUrl: { type: Type.STRING },
+                reason: { type: Type.STRING },
+            },
+            required: ["name", "category", "subscriberCount", "channelUrl", "reason"]
+        }
+    };
+    
+    const topicSchema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                name: { type: Type.STRING },
+                platform: { type: Type.STRING, enum: ['YouTube', 'TikTok'] },
+                description: { type: Type.STRING }
+            },
+            required: ["name", "platform", "description"],
+        }
+    };
+
+    let schema;
+    switch (contentType) {
+        case 'videos':
+            schema = videoSchema;
+            break;
+        case 'music':
+            schema = musicSchema;
+            break;
+        case 'creators':
+            schema = creatorSchema;
+            break;
+        case 'topics':
+            schema = topicSchema;
+            break;
+        default:
+            schema = { type: Type.ARRAY, items: { type: Type.OBJECT } };
+    }
+    
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `List the top 8 trending ${contentType} on ${platform} for the ${category} category in ${country}. User is on ${plan} plan.`,
         config: {
             responseMimeType: 'application/json',
-            // Schemas for each content type would go here. For brevity, a generic one is used.
+            responseSchema: schema,
         }
     });
     return parseJsonResponse(response.text, []);
@@ -128,7 +225,7 @@ export async function generateFullReport(topic: string, followers: number): Prom
     return parseJsonResponse(response.text, { trendAnalysis: '', contentIdeas: [], monetizationStrategies: [] });
 }
 
-export async function generateVideo(prompt: string, platform: 'YouTube' | 'TikTok' | 'YouTube Shorts', image?: { imageBytes: string, mimeType: string }): Promise<any> {
+export async function generateVideo(prompt: string, image?: { imageBytes: string, mimeType: string }): Promise<any> {
     return await ai.models.generateVideos({
         model: 'veo-2.0-generate-001',
         prompt,
@@ -190,7 +287,7 @@ export async function getChannelSnapshots(channels: Channel[]): Promise<any[]> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `For the following channels, provide an estimated follower count, total views, a 7-day view growth percentage, and a follower/view trend ('up', 'down', 'stable'). Use Google Search. Channels: ${JSON.stringify(channels.map(c => ({ id: c.id, url: c.url, platform: c.platform })))}`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
 }
@@ -205,7 +302,7 @@ export async function generateContentPrompt(topic: string, audience: string, sty
 
 export async function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null, text: string | null }> {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image-preview',
+        model: 'gemini-2.5-flash-image',
         contents: {
             parts: [
                 { inlineData: { data: base64ImageData, mimeType: mimeType } },
@@ -241,7 +338,7 @@ export async function getChannelAnalytics(channelUrl: string, platform: 'YouTube
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Analyze the ${platform} channel at ${channelUrl}. Provide channel name, platform, follower count, total views, total likes, follower trend ('up'/'down'/'stable'), views trend, an AI summary of the channel's content, and list the 3 most recent videos with title, view count, and URL. Use Google Search.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as ChannelAnalyticsData);
 }
@@ -250,7 +347,7 @@ export async function generateChannelOpportunities(channelUrl: string, platform:
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Based on the ${platform} channel at ${channelUrl}, provide 3 specific, actionable growth opportunities.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
 }
@@ -268,7 +365,7 @@ export async function generateChannelGrowthPlan(channelUrl: string, platform: 'Y
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Analyze and provide recommendations for: Content Strategy, SEO & Discoverability, Audience Engagement, and Thumbnail Critique. For each section, provide an 'analysis' text and a 'recommendations' array of strings.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as ChannelGrowthPlan);
 }
@@ -277,7 +374,7 @@ export async function findSponsorshipOpportunities(channelUrl: string, platform:
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Based on the content of the ${platform} channel at ${channelUrl}, find 5 potential brand sponsors. For each, provide brand name, industry, a brief explanation of relevance, and a sponsor match score out of 100.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
 }
@@ -295,7 +392,7 @@ export async function analyzeVideoUrl(url: string): Promise<VideoAnalysis> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Analyze the video at this URL: ${url}. Provide the video title, an AI summary, a content analysis (what makes it good/bad), an engagement analysis (why people are reacting), and an array of 3-4 specific improvement suggestions.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as VideoAnalysis);
 }
@@ -304,7 +401,7 @@ export async function repurposeVideoContent(url: string): Promise<RepurposedCont
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Watch the video at ${url} and repurpose its content into a blog post, a tweet thread (as an array of strings), and a LinkedIn post.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, { blogPost: '', tweetThread: [], linkedInPost: '' });
 }
@@ -324,6 +421,34 @@ export async function generateLogo(prompt: string, style: string, transparentBg:
         model: 'imagen-4.0-generate-001',
         prompt: fullPrompt,
         config: { numberOfImages: 1, outputMimeType: 'image/png', aspectRatio: '1:1' }
+    });
+    return response.generatedImages[0].image.imageBytes;
+}
+
+export async function generateImage(prompt: string, style: string, aspectRatio: string): Promise<string> {
+    const fullPrompt = `${prompt}. Style: ${style}.`;
+    const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: fullPrompt,
+        config: { 
+            numberOfImages: 1, 
+            outputMimeType: 'image/png', 
+            aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9"
+        }
+    });
+    return response.generatedImages[0].image.imageBytes;
+}
+
+export async function generateAvatar(gender: string, style: string, features: string, background: string, shotType: string): Promise<string> {
+    const fullPrompt = `${shotType} of a ${gender} avatar. Style: ${style}. Features: ${features}. Background: ${background}. 1:1 aspect ratio.`;
+    const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: fullPrompt,
+        config: { 
+            numberOfImages: 1, 
+            outputMimeType: 'image/png', 
+            aspectRatio: '1:1'
+        }
     });
     return response.generatedImages[0].image.imageBytes;
 }
