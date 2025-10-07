@@ -65,10 +65,10 @@ This is a modern React application built with Vite.
     >
     > **For local development:**
     > 1.  Create a file named `.env` in the project root.
-    > 2.  Add your API key to this file: `VITE_API_KEY=YOUR_API_KEY_HERE`
+    > 2.  Add your API key to this file: `API_KEY=YOUR_API_KEY_HERE`
     >
     > **For deployment (e.g., Vercel):**
-    >    Set an environment variable named `VITE_API_KEY` with your API key in your deployment service's settings.
+    >    Set an environment variable named `API_KEY` with your API key in your deployment service's settings.
 
 3.  **Run the development server:**
     ```bash

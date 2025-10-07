@@ -57,11 +57,11 @@ This is the most important step. Vercel is smart and will likely auto-detect tha
 
 3.  **Environment Variables (CRITICAL):** Your application requires the Google Gemini API key to function.
     *   Expand the **"Environment Variables"** section.
-    *   Enter `VITE_API_KEY` in the **"Name"** field.
+    *   Enter `API_KEY` in the **"Name"** field.
     *   Paste your actual Google Gemini API key into the **"Value"** field.
     *   Click the **"Add"** button.
 
-    > **⚠️ Important:** The name must be exactly `VITE_API_KEY`. Do not use any other name, as the application code specifically looks for this variable.
+    > **⚠️ Important:** The name must be exactly `API_KEY`. Do not use any other name, as the application code specifically looks for this variable.
 
 
 
