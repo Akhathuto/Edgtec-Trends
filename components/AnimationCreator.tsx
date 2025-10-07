@@ -63,7 +63,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your animation...");
-                        // FIX: Switched to process.env.API_KEY per guidelines.
+                        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);

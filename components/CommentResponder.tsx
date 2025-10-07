@@ -21,7 +21,8 @@ const CommentResponder: React.FC = () => {
     useEffect(() => {
         async function initAi() {
             const { GoogleGenAI } = await import('@google/genai');
-            setAi(new GoogleGenAI({ apiKey: process.env.API_KEY! }));
+            // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
+            setAi(new GoogleGenAI({ apiKey: process.env.API_KEY }));
         }
         initAi();
     }, []);

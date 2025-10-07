@@ -124,7 +124,8 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
 
   const initializeChat = useCallback((agent: AgentType, settings: AgentSettings, historyToRestore?: ChatMessage[]) => {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+      // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const chatHistory = historyToRestore?.map(msg => {
             if (msg.role === 'tool') {

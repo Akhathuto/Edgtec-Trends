@@ -136,6 +136,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
   const initializeChat = useCallback((historyToRestore?: ChatMessage[]) => {
     try {
+      // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chatInstance = ai.chats.create({
         model: 'gemini-2.5-flash',

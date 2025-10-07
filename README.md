@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/Gemini_API-8E44AD?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Gemini API">
+  <a href="https://github.com/Akhathuto/Edgtec-Trends.git"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
 </div>
 
 <div align="center">
@@ -23,6 +24,7 @@
 ### 📋 Table of Contents
 
 - [About The App](#about-the-app)
+- [📂 Repository](#-repository)
 - [🚀 Getting Started](#-getting-started)
 - [✨ Key Features](#-key-features)
 - [🤖 Meet Your AI Agents](#-meet-your-ai-agents)
@@ -35,28 +37,46 @@
 
 `utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to streamline your entire workflow, from discovering real-time trends to generating production-ready video scripts and assets.
 
+## 📂 Repository
+
+The source code for this project is available on GitHub.
+
+-   **Repository URL:** [https://github.com/Akhathuto/Edgtec-Trends.git](https://github.com/Akhathuto/Edgtec-Trends.git)
+
 ## 🚀 Getting Started
 
-This is a modern, no-build-step React application. You can run it directly in a browser that supports ES modules and import maps.
+This is a modern React application built with Vite.
 
 ### Prerequisites
 
--   A modern web browser (like Chrome, Firefox, Edge).
--   A local web server. If you don't have one, you can use `npx serve`.
+-   Node.js (version 18.x or later) and npm.
+-   A Google Gemini API key.
 
 ### Setup & Running
 
-1.  **API Key Configuration:**
-    > **⚠️ IMPORTANT:** This project requires a Google Gemini API key. The application is configured to read the API key from an environment variable named `API_KEY`. You must ensure this variable is set and accessible in the environment where you serve the application. The key's availability is handled externally.
-
-2.  **Serve the project folder:**
-    Open your terminal in the project's root directory and run the following command:
+1.  **Install dependencies:**
+    Open your terminal in the project's root directory and run:
     ```bash
-    npx serve
+    npm install
     ```
 
-3.  **Open in browser:**
-    Open your browser and navigate to the local address provided by the server (e.g., `http://localhost:3000`). The application should now be running.
+2.  **API Key Configuration:**
+    > **⚠️ IMPORTANT:** This project requires a Google Gemini API key.
+    >
+    > **For local development:**
+    > 1.  Create a file named `.env` in the project root.
+    > 2.  Add your API key to this file: `VITE_API_KEY=YOUR_API_KEY_HERE`
+    >
+    > **For deployment (e.g., Vercel):**
+    >    Set an environment variable named `VITE_API_KEY` with your API key in your deployment service's settings.
+
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+
+4.  **Open in browser:**
+    Open your browser and navigate to the local address provided by Vite (e.g., `http://localhost:5173`). The application should now be running.
 
 ## ✨ Key Features
 

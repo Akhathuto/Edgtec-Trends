@@ -140,6 +140,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
+                        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);

@@ -5,7 +5,8 @@ import {
     ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel
 } from '../types.ts';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- Tool Definition for Function Calling ---
 /**
@@ -30,8 +31,9 @@ export const youtubeSearch = ({ query }: { query: string }): string => {
 
 const parseJsonResponse = <T>(text: string, fallback: T): T => {
     try {
-        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```|([\s\S]*)/);
-        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[2]).trim() : '';
+        // FIX: Per Gemini API guidelines, when responseMimeType is "application/json",
+        // the response.text is a JSON string and should not be parsed from a markdown block.
+        const jsonStr = text.trim();
 
         if (!jsonStr) {
              console.warn("No content found in response text, returning fallback.");
@@ -190,6 +192,28 @@ export async function generateContentIdeas(topic: string, platform: 'YouTube' | 
         contents: `Generate 3 viral content ideas for a ${platform} creator on the topic of "${topic}". The user is on the ${plan} plan. For each idea, provide a catchy title, a strong hook, a 3-5 step script outline, relevant hashtags, and a virality potential score out of 10 with a short reasoning.`,
         config: {
             responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING },
+                        hook: { type: Type.STRING },
+                        script_outline: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        virality_potential: {
+                            type: Type.OBJECT,
+                            properties: {
+                                score: { type: Type.INTEGER },
+                                reasoning: { type: Type.STRING }
+                            },
+                            required: ['score', 'reasoning']
+                        }
+                    },
+                    required: ['title', 'hook', 'script_outline', 'hashtags', 'virality_potential']
+                }
+            }
         }
     });
     return parseJsonResponse(response.text, []);
@@ -209,6 +233,20 @@ export async function getMonetizationStrategies(platform: 'YouTube' | 'TikTok', 
         contents: `List 3-4 relevant monetization strategies for a ${platform} creator with ${followers} followers. For each strategy, provide a description, requirements, and earning potential.`,
         config: {
             responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        strategy: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        requirements: { type: Type.STRING },
+                        potential: { type: Type.STRING }
+                    },
+                    required: ['strategy', 'description', 'requirements', 'potential']
+                }
+            }
         }
     });
     return parseJsonResponse(response.text, []);
@@ -220,6 +258,48 @@ export async function generateFullReport(topic: string, followers: number): Prom
         contents: `Create a comprehensive content strategy report for the topic "${topic}" for a creator with ${followers} followers. Include a trend analysis, 5 content ideas (with hook, outline, hashtags, and virality score), and 3 relevant monetization strategies.`,
         config: {
             responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    trendAnalysis: { type: Type.STRING },
+                    contentIdeas: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                title: { type: Type.STRING },
+                                hook: { type: Type.STRING },
+                                script_outline: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                virality_potential: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        score: { type: Type.INTEGER },
+                                        reasoning: { type: Type.STRING }
+                                    },
+                                    required: ['score', 'reasoning']
+                                }
+                            },
+                            required: ['title', 'hook', 'script_outline', 'hashtags', 'virality_potential']
+                        }
+                    },
+                    monetizationStrategies: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                strategy: { type: Type.STRING },
+                                description: { type: Type.STRING },
+                                requirements: { type: Type.STRING },
+                                potential: { type: Type.STRING }
+                            },
+                            required: ['strategy', 'description', 'requirements', 'potential']
+                        }
+                    }
+                },
+                required: ['trendAnalysis', 'contentIdeas', 'monetizationStrategies']
+            }
         }
     });
     return parseJsonResponse(response.text, { trendAnalysis: '', contentIdeas: [], monetizationStrategies: [] });
@@ -277,16 +357,24 @@ export async function getTickerTrends(): Promise<string[]> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: "List 10 current, very specific and interesting trending topics on social media (YouTube, TikTok, X). Output as a simple JSON array of strings.",
-        config: { responseMimeType: "application/json" }
+        config: { 
+            responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+            }
+        }
     });
     return parseJsonResponse(response.text, []);
 }
 
 export async function getChannelSnapshots(channels: Channel[]): Promise<any[]> {
     if (channels.length === 0) return [];
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `For the following channels, provide an estimated follower count, total views, a 7-day view growth percentage, and a follower/view trend ('up', 'down', 'stable'). Use Google Search. Channels: ${JSON.stringify(channels.map(c => ({ id: c.id, url: c.url, platform: c.platform })))}`,
+        contents: `For the following channels, provide an estimated follower count, total views, a 7-day view growth percentage, and a follower/view trend ('up', 'down', 'stable'). Use Google Search. Channels: ${JSON.stringify(channels.map(c => ({ id: c.id, url: c.url, platform: c.platform })))}. Your response must be a valid JSON array of objects, where each object corresponds to a channel and has the following keys: 'id', 'followerCount', 'totalViews', 'weeklyViewGrowth', 'followerTrend', 'viewsTrend'.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
@@ -329,24 +417,39 @@ export async function getKeywordAnalysis(keyword: string): Promise<KeywordAnalys
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Analyze the keyword "${keyword}" for a content creator. Provide search volume and competition ('Very High', 'High', 'Medium', 'Low', 'Very Low'), 5 related long-tail keywords, and 3 content ideas.`,
-        config: { responseMimeType: "application/json" }
+        config: { 
+            responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    searchVolume: { type: Type.STRING, enum: ['Very High', 'High', 'Medium', 'Low', 'Very Low'] },
+                    competition: { type: Type.STRING, enum: ['Very High', 'High', 'Medium', 'Low', 'Very Low'] },
+                    relatedKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    contentIdeas: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ['searchVolume', 'competition', 'relatedKeywords', 'contentIdeas']
+            }
+        }
     });
     return parseJsonResponse(response.text, { searchVolume: 'Medium', competition: 'Medium', relatedKeywords: [], contentIdeas: [] });
 }
 
 export async function getChannelAnalytics(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelAnalyticsData> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Analyze the ${platform} channel at ${channelUrl}. Provide channel name, platform, follower count, total views, total likes, follower trend ('up'/'down'/'stable'), views trend, an AI summary of the channel's content, and list the 3 most recent videos with title, view count, and URL. Use Google Search.`,
+        contents: `Analyze the ${platform} channel at ${channelUrl}. Provide channel name, platform, follower count, total views, total likes, follower trend ('up'/'down'/'stable'), views trend, an AI summary of the channel's content, and list the 3 most recent videos with title, view count, and URL. Use Google Search. Your response must be a single valid JSON object with keys: 'channelName', 'platform', 'followerCount', 'totalViews', 'totalLikes', 'followerTrend', 'viewsTrend', 'aiSummary', 'recentVideos'.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as ChannelAnalyticsData);
 }
 
 export async function generateChannelOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<string[]> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Based on the ${platform} channel at ${channelUrl}, provide 3 specific, actionable growth opportunities.`,
+        contents: `Based on the ${platform} channel at ${channelUrl}, provide 3 specific, actionable growth opportunities. Your response must be a valid JSON array of strings.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
@@ -362,18 +465,20 @@ export async function generateDashboardTip(channels: Channel[]): Promise<string>
 }
 
 export async function generateChannelGrowthPlan(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelGrowthPlan> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Analyze and provide recommendations for: Content Strategy, SEO & Discoverability, Audience Engagement, and Thumbnail Critique. For each section, provide an 'analysis' text and a 'recommendations' array of strings.`,
+        contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Analyze and provide recommendations for: Content Strategy, SEO & Discoverability, Audience Engagement, and Thumbnail Critique. For each section, provide an 'analysis' text and a 'recommendations' array of strings. Your response must be a valid JSON object.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as ChannelGrowthPlan);
 }
 
 export async function findSponsorshipOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<SponsorshipOpportunity[]> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Based on the content of the ${platform} channel at ${channelUrl}, find 5 potential brand sponsors. For each, provide brand name, industry, a brief explanation of relevance, and a sponsor match score out of 100.`,
+        contents: `Based on the content of the ${platform} channel at ${channelUrl}, find 5 potential brand sponsors. For each, provide brand name, industry, a brief explanation of relevance, and a sponsor match score out of 100. Your response must be a valid JSON array of objects.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, []);
@@ -389,18 +494,20 @@ export async function generateBrandPitch(channelName: string, platform: 'YouTube
 }
 
 export async function analyzeVideoUrl(url: string): Promise<VideoAnalysis> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Analyze the video at this URL: ${url}. Provide the video title, an AI summary, a content analysis (what makes it good/bad), an engagement analysis (why people are reacting), and an array of 3-4 specific improvement suggestions.`,
+        contents: `Analyze the video at this URL: ${url}. Provide the video title, an AI summary, a content analysis (what makes it good/bad), an engagement analysis (why people are reacting), and an array of 3-4 specific improvement suggestions. Your response must be a valid JSON object.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, {} as VideoAnalysis);
 }
 
 export async function repurposeVideoContent(url: string): Promise<RepurposedContent> {
+    // FIX: Updated prompt to explicitly request JSON, making parsing safer despite googleSearch tool usage.
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Watch the video at ${url} and repurpose its content into a blog post, a tweet thread (as an array of strings), and a LinkedIn post.`,
+        contents: `Watch the video at ${url} and repurpose its content into a blog post, a tweet thread (as an array of strings), and a LinkedIn post. Your response must be a valid JSON object with keys 'blogPost', 'tweetThread', and 'linkedInPost'.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return parseJsonResponse(response.text, { blogPost: '', tweetThread: [], linkedInPost: '' });
@@ -410,7 +517,23 @@ export async function generateThumbnailIdeas(title: string): Promise<ThumbnailId
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Generate 3 distinct and click-worthy thumbnail ideas for a video titled "${title}". For each idea provide a style, text overlay, a visual description, and a detailed prompt for an AI image generator to create it.`,
-        config: { responseMimeType: "application/json" }
+        config: { 
+            responseMimeType: "application/json",
+            // FIX: Added a responseSchema to ensure consistent JSON output as per Gemini guidelines.
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        style: { type: Type.STRING },
+                        textOverlay: { type: Type.STRING },
+                        visualDescription: { type: Type.STRING },
+                        imageGenPrompt: { type: Type.STRING }
+                    },
+                    required: ['style', 'textOverlay', 'visualDescription', 'imageGenPrompt']
+                }
+            }
+        }
     });
     return parseJsonResponse(response.text, []);
 }

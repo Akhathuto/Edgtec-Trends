@@ -188,7 +188,8 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setStatus('READY');
         setTranscript([]);
 
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const chatInstance = ai.chats.create({
             model: 'gemini-2.5-flash',
             config: {
@@ -239,7 +240,8 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setTranscript([]);
         
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+            // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
             const resources = audioResourcesRef.current;

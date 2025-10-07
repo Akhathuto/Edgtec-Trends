@@ -125,6 +125,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your edited video...");
+                        // FIX: Per @google/genai guidelines, the API key must be appended to the video download URL from process.env.API_KEY.
                         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);

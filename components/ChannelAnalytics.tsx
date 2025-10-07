@@ -63,7 +63,9 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
         if (selectedChannelId) {
             const channel = compatibleChannels.find(c => c.id === selectedChannelId);
             if (channel) {
-                handleAnalyze(channel.url, channel.platform);
+                // FIX: Cast channel.platform to the expected type. This is safe because
+                // `compatibleChannels` is filtered to only include 'YouTube' and 'TikTok' platforms.
+                handleAnalyze(channel.url, channel.platform as 'YouTube' | 'TikTok');
             }
         }
     }, [selectedChannelId, compatibleChannels, handleAnalyze]);
