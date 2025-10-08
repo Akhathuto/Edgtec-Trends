@@ -1,3 +1,5 @@
-// FIX: Removed reference to "vite/client" to resolve a "Cannot find type definition file" error.
-// This is likely due to a project setup issue. Since no Vite client-specific
-// types (like import.meta.env) appear to be used, this is a safe workaround.
+// FIX: Replaced the reference to "vite/client" with a specific module declaration
+// for CSS files. This resolves the "Cannot find type definition file" error, which
+// is likely caused by an environment setup issue, and prevents further type errors
+// related to CSS imports.
+declare module '*.css';
