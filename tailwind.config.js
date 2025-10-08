@@ -2,9 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "./*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./contexts/**/*.{js,ts,jsx,tsx}",
+    "./**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -20,33 +18,27 @@ export default {
         'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
         'ticker': 'ticker 120s linear infinite',
         'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
-        'breathing': 'breathing 4s ease-in-out infinite',
-        'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
-        'text-fade-cycle': 'text-fade-cycle 2.5s ease-in-out infinite',
-        'pulse-bg': 'pulse-bg 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
-        'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-        'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
-        'slide-in-up': { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-        'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
-        'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' } },
-        'breathing': {
-          '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 5px rgba(167, 139, 250, 0.3))' },
-          '50%': { transform: 'scale(1.02)', filter: 'drop-shadow(0 0 15px rgba(167, 139, 250, 0.5))' },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        'fade-in-down': {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'slide-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        'text-fade-cycle': {
-          '0%, 100%': { opacity: 0.7 },
-          '50%': { opacity: 1 },
+        'ticker': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
-        'pulse-bg': {
-          '0%, 100%': { backgroundColor: 'rgba(30, 41, 59, 0.5)' },
-          '50%': { backgroundColor: 'rgba(51, 65, 85, 0.5)' },
-        },
+        'logo-pulse': {
+          '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' },
+        }
       },
       boxShadow: {
         'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',

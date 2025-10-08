@@ -7,20 +7,110 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script type="importmap">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.22.0",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
     "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "vite": "https://aistudiocdn.com/vite@^7.1.9",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4",
-    "process": "https://aistudiocdn.com/process@^0.11.10"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4"
   }
 }
 </script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'violet': '#8B5CF6',
+              'violet-dark': '#7C3AED',
+              'violet-light': '#A78BFA',
+              'violet-rich': '#6D28D9',
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-in-out forwards',
+              'scale-in': 'scale-in 0.4s ease-out forwards',
+              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
+              'ticker': 'ticker 120s linear infinite',
+              'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
+              'breathing': 'breathing 4s ease-in-out infinite',
+              'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
+              'text-fade-cycle': 'text-fade-cycle 2.5s ease-in-out infinite',
+              'pulse-bg': 'pulse-bg 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+              'slide-in-up': { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+              'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' } },
+              'breathing': {
+                '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 5px rgba(167, 139, 250, 0.3))' },
+                '50%': { transform: 'scale(1.02)', filter: 'drop-shadow(0 0 15px rgba(167, 139, 250, 0.5))' },
+              },
+              'fade-in-down': {
+                '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'text-fade-cycle': {
+                '0%, 100%': { opacity: 0.7 },
+                '50%': { opacity: 1 },
+              },
+              'pulse-bg': {
+                '0%, 100%': { backgroundColor: 'rgba(30, 41, 59, 0.5)' },
+                '50%': { backgroundColor: 'rgba(51, 65, 85, 0.5)' },
+              },
+            },
+            boxShadow: {
+              'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',
+              'glow-lg': '0 0 25px rgba(167, 139, 250, 0.3)',
+              'glow-violet': '0 0 40px rgba(139, 92, 246, 0.3)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617, #4c1d95);
+        background-size: 400% 400%;
+        animation: bg-animate 60s ease infinite;
+        color: #e2e8f0; /* Default text color slate-200 */
+      }
+      @keyframes bg-animate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 20px rgba(167, 139, 250, 0.2);
+      }
+      .bg-brand-glass {
+        background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+        backdrop-filter: blur(16px);
+        --tw-border-opacity: 0.5;
+        border-color: rgb(51 65 85 / var(--tw-border-opacity)); /* slate-700/50 */
+      }
+      .interactive-card {
+        background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+        backdrop-filter: blur(16px);
+        border: 1px solid rgb(51 65 85 / 0.5); /* slate-700/50 */
+        border-radius: 0.75rem; /* rounded-xl */
+        padding: 1.5rem; /* p-6 */
+        transition: all 0.3s ease-in-out;
+      }
+      .interactive-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(139, 92, 246, 0.5); /* violet-500/50 */
+        box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -4px rgba(139, 92, 246, 0.1);
+      }
+    </style>
 </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab, Agent as AgentType, AgentSettings } from '../types.ts';
 import { GoogleGenAI, Chat } from '@google/genai';
-// FIX: Import the missing ChevronsRight icon used in the handoff button.
 import { Send, Sparkles, Trash2, Bot, Zap, Sliders, ChevronsRight, Search, X } from './Icons.tsx';
 import Spinner from './Spinner.tsx';
 import { agents } from '../data/agents.ts';
