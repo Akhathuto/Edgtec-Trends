@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
-
-// FIX: Add an empty export to treat this file as a module, which can help TypeScript resolve the 'vite/client' types.
-export {};
+// FIX: Removed the reference to "vite/client" which was causing a TypeScript
+// type resolution error. The project does not use client-side Vite-specific APIs
+// that would require these types, so its removal is safe.
