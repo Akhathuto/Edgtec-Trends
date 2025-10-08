@@ -269,3 +269,23 @@ export interface Agent {
   }[];
   tools?: any[];
 }
+
+export interface AvatarProfile {
+    gender: string;
+    avatarStyle: string;
+    hairStyle: string;
+    hairColor: string;
+    eyeColor: string;
+    facialHair: string;
+    glasses: string;
+    otherFacialFeatures: string;
+    clothingTop: string;
+    clothingBottom: string;
+    clothingShoes: string;
+    accessoriesHat: string;
+    accessoriesJewelry: string;
+    extraDetails: string;
+    background: string;
+    shotType: string;
+    personality: string;
+}

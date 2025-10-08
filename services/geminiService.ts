@@ -2,8 +2,9 @@ import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { 
     TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, 
     ContentIdea, MonetizationStrategy, FullReport, KeywordAnalysis, 
-    ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel
+    ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel, AvatarProfile
 } from '../types.ts';
+import { avatarStyles, genders, shotTypes, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
 
 // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -604,4 +605,63 @@ export async function generateAvatarFromPhoto(base64ImageData: string, mimeType:
     }
     
     return null;
+}
+
+export async function generateRandomAvatarProfile(): Promise<AvatarProfile> {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Generate a random, interesting character profile for an AI avatar. Be creative and concise.
+        Provide details for the following fields.
+        - gender: Choose from ${genders.join(', ')}.
+        - avatarStyle: Choose from ${avatarStyles.join(', ')}.
+        - hairStyle: Choose from ${hairStyles.join(', ')}.
+        - hairColor: A creative hair color.
+        - eyeColor: Choose from ${eyeColors.join(', ')}.
+        - facialHair: Choose from ${facialHairOptions.join(', ')}.
+        - glasses: Choose from ${glassesOptions.join(', ')}.
+        - otherFacialFeatures: A brief, interesting feature, or empty string.
+        - clothingTop: A top clothing item.
+        - clothingBottom: A bottom clothing item.
+        - clothingShoes: A type of shoe.
+        - accessoriesHat: A type of hat, or empty string.
+        - accessoriesJewelry: A type of jewelry, or empty string.
+        - extraDetails: Any other extra visual details, or empty string.
+        - background: A scene for the background.
+        - shotType: Choose from ${shotTypes.join(', ')}.
+        - personality: A 1-sentence personality description for conversation.
+
+        Your response must be a single, valid JSON object with exactly these keys. Do not include markdown formatting.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    gender: { type: Type.STRING },
+                    avatarStyle: { type: Type.STRING },
+                    hairStyle: { type: Type.STRING },
+                    hairColor: { type: Type.STRING },
+                    eyeColor: { type: Type.STRING },
+                    facialHair: { type: Type.STRING },
+                    glasses: { type: Type.STRING },
+                    otherFacialFeatures: { type: Type.STRING },
+                    clothingTop: { type: Type.STRING },
+                    clothingBottom: { type: Type.STRING },
+                    clothingShoes: { type: Type.STRING },
+                    accessoriesHat: { type: Type.STRING },
+                    accessoriesJewelry: { type: Type.STRING },
+                    extraDetails: { type: Type.STRING },
+                    background: { type: Type.STRING },
+                    shotType: { type: Type.STRING },
+                    personality: { type: Type.STRING },
+                },
+                 required: [
+                    "gender", "avatarStyle", "hairStyle", "hairColor", "eyeColor", "facialHair",
+                    "glasses", "otherFacialFeatures", "clothingTop", "clothingBottom", "clothingShoes",
+                    "accessoriesHat", "accessoriesJewelry", "extraDetails", "background", "shotType", "personality"
+                ]
+            }
+        }
+    });
+    
+    return parseJsonResponse(response.text, {} as AvatarProfile);
 }

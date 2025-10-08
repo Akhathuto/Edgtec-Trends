@@ -1,11 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
-import { generateAvatar, generateAvatarFromPhoto } from '../services/geminiService.ts';
+import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, Save, MessageSquare, Send, UploadCloud } from './Icons.tsx';
+// FIX: Imported the missing X icon.
+import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, Save, MessageSquare, Send, UploadCloud, Wand, Edit, ChevronDown, Image, X } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
+import { avatarStyles, genders, shotTypes, voices, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -57,16 +59,6 @@ interface TranscriptEntry {
     text: string;
 }
 
-const avatarStyles = ['Cartoon', 'Realistic', 'Anime', 'Pixel Art', '3D Model', 'Cyberpunk', 'Fantasy', 'Sci-Fi', 'Vintage'];
-const genders = ['Male', 'Female', 'Non-binary'];
-const shotTypes = ['Close-up Portrait', 'Upper Body Shot', 'Full Body Shot'];
-const voices = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir'];
-const hairStyles = ['Short & Spiky', 'Long & Wavy', 'Curly Afro', 'Sleek Bob', 'Top Knot', 'Bald'];
-const eyeColors = ['Brown', 'Blue', 'Green', 'Hazel', 'Grey', 'Amber', 'Red'];
-const facialHairOptions = ['None', 'Short Beard', 'Full Beard', 'Mustache', 'Goatee'];
-const glassesOptions = ['None', 'Reading Glasses', 'Sunglasses', 'Goggles'];
-
-
 interface AvatarCreatorProps {
   setActiveTab: (tab: Tab) => void;
 }
@@ -89,15 +81,19 @@ const StatusIndicator: React.FC<{ status: ConversationStatus }> = ({ status }) =
     );
 };
 
-const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div>
-        <h3 className="text-lg font-semibold text-slate-200 mb-4 border-b border-slate-700/50 pb-2">{title}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {children}
+const AccordionSection: React.FC<{ title: string; children: React.ReactNode, defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => (
+    <details open={defaultOpen} className="bg-slate-800/30 border border-slate-700/50 rounded-lg group transition-all duration-300 overflow-hidden">
+        <summary className="p-3 font-semibold text-slate-200 cursor-pointer flex justify-between items-center list-none hover:bg-slate-800/20">
+            {title}
+            <ChevronDown className="w-5 h-5 transition-transform duration-300 group-open:rotate-180" />
+        </summary>
+        <div className="p-3 border-t border-slate-700/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {children}
+            </div>
         </div>
-    </div>
+    </details>
 );
-
 
 const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
@@ -125,6 +121,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const [shotType, setShotType] = useState(shotTypes[0]);
     const [personality, setPersonality] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isSurprising, setIsSurprising] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
     const [phase, setPhase] = useState<ConversationPhase>('idle');
@@ -138,6 +135,10 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const textChatRef = useRef<Chat | null>(null);
     const [textInput, setTextInput] = useState('');
     const [isTextLoading, setIsTextLoading] = useState(false);
+    
+    // Post-generation editing
+    const [editPrompt, setEditPrompt] = useState('');
+    const [isEditingAvatar, setIsEditingAvatar] = useState(false);
 
     const audioResourcesRef = useRef<{
         stream: MediaStream | null;
@@ -209,13 +210,6 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         try {
             let result: string | null = null;
             if (generationMode === 'scratch') {
-                const customDetailsProvided = hairColor.trim() || otherFacialFeatures.trim() || clothingTop.trim() || clothingBottom.trim() || clothingShoes.trim() || accessoriesHat.trim() || accessoriesJewelry.trim() || extraDetails.trim();
-                if (!customDetailsProvided) {
-                    setError('Please provide some details for your avatar (e.g., hair color, clothing, features).');
-                    setPhase('idle');
-                    setLoading(false);
-                    return;
-                }
                 result = await generateAvatar(gender, avatarStyle, featuresString, background, shotType);
             } else { // 'photo' mode
                 if (!sourceImageBase64) {
@@ -247,6 +241,59 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
             setLoading(false);
         }
     }, [generationMode, sourceImageBase64, gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, personality, faceDetails, clothingString, accessoriesString, addContentToHistory, logActivity]);
+    
+    const handleSurpriseMe = async () => {
+        setIsSurprising(true);
+        setError(null);
+        try {
+            const profile = await generateRandomAvatarProfile();
+            setGender(profile.gender);
+            setAvatarStyle(profile.avatarStyle);
+            setHairStyle(profile.hairStyle);
+            setHairColor(profile.hairColor);
+            setEyeColor(profile.eyeColor);
+            setFacialHair(profile.facialHair);
+            setGlasses(profile.glasses);
+            setOtherFacialFeatures(profile.otherFacialFeatures);
+            setClothingTop(profile.clothingTop);
+            setClothingBottom(profile.clothingBottom);
+            setClothingShoes(profile.clothingShoes);
+            setAccessoriesHat(profile.accessoriesHat);
+            setAccessoriesJewelry(profile.accessoriesJewelry);
+            setExtraDetails(profile.extraDetails);
+            setBackground(profile.background);
+            setShotType(profile.shotType);
+            setPersonality(profile.personality);
+            showToast("Avatar profile randomized!");
+        } catch (e: any) {
+            setError(e.message || "Failed to generate a random profile.");
+        } finally {
+            setIsSurprising(false);
+        }
+    };
+    
+    const handleApplyEdit = async () => {
+        if (!editPrompt.trim() || !avatarBase64) {
+            showToast('Please enter an edit instruction.');
+            return;
+        }
+        setIsEditingAvatar(true);
+        setError(null);
+        try {
+            const editedAvatar = await generateAvatarFromPhoto(avatarBase64, 'image/png', editPrompt);
+            if (editedAvatar) {
+                setAvatarBase64(editedAvatar);
+                setEditPrompt('');
+                showToast("Avatar updated!");
+            } else {
+                throw new Error("The AI didn't return an edited image. Try a different prompt.");
+            }
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsEditingAvatar(false);
+        }
+    };
     
     const cleanupAudio = useCallback(() => {
         const resources = audioResourcesRef.current;
@@ -488,25 +535,15 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         )
     }
 
-    // --- RENDER LOGIC ---
-
-    // PHASE 1: IDLE / GENERATING (The Creation Studio)
     if (phase === 'idle' || phase === 'generating') {
         return (
             <div className="animate-slide-in-up">
-                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                    <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                        <UserIcon className="w-6 h-6 text-violet-400" /> AI Avatar Creator
+                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl">
+                    <h2 className="text-3xl font-bold text-center mb-2 text-white text-glow flex items-center justify-center gap-2">
+                        <UserIcon className="w-8 h-8 text-violet-400" /> AI Avatar Creator
                     </h2>
-                    <p className="text-center text-slate-400 mb-6">
-                        Design your AI persona, then bring it to life.
-                    </p>
+                    <p className="text-center text-slate-400 mb-8">Design your AI persona, then bring it to life.</p>
                     
-                    <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700 max-w-sm mx-auto mb-6">
-                        <button onClick={() => setGenerationMode('scratch')} className={`tab-button w-1/2 ${generationMode === 'scratch' ? 'active' : ''}`}>From Scratch</button>
-                        <button onClick={() => setGenerationMode('photo')} className={`tab-button w-1/2 ${generationMode === 'photo' ? 'active' : ''}`}>From Photo</button>
-                    </div>
-
                     {phase === 'generating' ? (
                         <div className="text-center py-10">
                             <Spinner size="lg" />
@@ -514,125 +551,130 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                             <p className="mt-1 text-slate-400 text-sm">This can take a moment.</p>
                         </div>
                     ) : (
-                        <div className="space-y-8 max-w-4xl mx-auto">
-                           {generationMode === 'photo' && (
+                        <div className="max-w-6xl mx-auto space-y-6">
+                            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700 max-w-sm mx-auto">
+                                <button onClick={() => setGenerationMode('scratch')} className={`tab-button w-1/2 ${generationMode === 'scratch' ? 'active' : ''}`}><Wand className="w-4 h-4 mr-2"/>From Scratch</button>
+                                <button onClick={() => setGenerationMode('photo')} className={`tab-button w-1/2 ${generationMode === 'photo' ? 'active' : ''}`}><Image className="w-4 h-4 mr-2"/>From Photo</button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                 <div className="space-y-4">
-                                    {!sourceImageBase64 ? (
-                                        <div className="flex items-center justify-center w-full">
-                                            <label htmlFor="avatar-source-photo" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
-                                                <UploadCloud className="w-10 h-10 mb-4 text-slate-400" />
-                                                <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload your photo</span></p>
-                                                <p className="text-xs text-slate-500">PNG or JPG (MAX. 4MB)</p>
-                                                <input id="avatar-source-photo" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
-                                            </label>
+                                    <AccordionSection title="Appearance" defaultOpen>
+                                        <div>
+                                            <label className="input-label" htmlFor="avatar-gender">Gender</label>
+                                            <select id="avatar-gender" value={gender} onChange={(e) => setGender(e.target.value)} className="form-select">
+                                                {genders.map(g => <option key={g} value={g}>{g}</option>)}
+                                            </select>
                                         </div>
-                                    ) : (
-                                        <div className="text-center">
-                                            <img src={sourceImageBase64.url} alt="Source" className="max-h-48 mx-auto rounded-lg mb-2" />
-                                            <p className="text-sm text-slate-400">Source Image: {sourceImageFile?.name}</p>
-                                            <button onClick={() => { setSourceImageFile(null); setSourceImageBase64(null); }} className="text-xs text-red-400 hover:underline mt-1">Remove Image</button>
+                                        <div>
+                                            <label className="input-label" htmlFor="avatar-style">Visual Style</label>
+                                            <select id="avatar-style" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value)} className="form-select">
+                                                {avatarStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="hair-style">Hair Style</label>
+                                            <select id="hair-style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} className="form-select">
+                                                {hairStyles.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="hair-color">Hair Color</label>
+                                            <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue'" className="form-input"/>
+                                        </div>
+                                    </AccordionSection>
+                                    <AccordionSection title="Features">
+                                        <div>
+                                            <label className="input-label" htmlFor="eye-color">Eye Color</label>
+                                            <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} className="form-select">
+                                                {eyeColors.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="facial-hair">Facial Hair</label>
+                                            <select id="facial-hair" value={facialHair} onChange={(e) => setFacialHair(e.target.value)} className="form-select">
+                                                {facialHairOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="glasses">Glasses</label>
+                                            <select id="glasses" value={glasses} onChange={(e) => setGlasses(e.target.value)} className="form-select">
+                                                {glassesOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <label className="input-label" htmlFor="other-facial-features">Other Facial Features</label>
+                                            <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar'" className="form-input"/>
+                                        </div>
+                                    </AccordionSection>
+                                </div>
+                                <div className="space-y-4">
+                                     {generationMode === 'photo' && (
+                                        <div>
+                                            {!sourceImageBase64 ? (
+                                                <div className="flex items-center justify-center w-full">
+                                                    <label htmlFor="avatar-source-photo" className="flex flex-col items-center justify-center w-full h-48 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                                                        <UploadCloud className="w-8 h-8 mb-3 text-slate-400" />
+                                                        <p className="mb-1 text-sm text-slate-400"><span className="font-semibold">Upload Photo</span></p>
+                                                        <p className="text-xs text-slate-500">PNG or JPG (MAX. 4MB)</p>
+                                                        <input id="avatar-source-photo" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
+                                                    </label>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center relative group">
+                                                    <img src={sourceImageBase64.url} alt="Source" className="max-h-48 mx-auto rounded-lg" />
+                                                    <button onClick={() => { setSourceImageFile(null); setSourceImageBase64(null); }} className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <X className="w-4 h-4"/>
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                    <p className="text-center text-slate-400 -mt-2">Then, describe the avatar style you want or any changes to make.</p>
+                                    <AccordionSection title="Clothing & Accessories" defaultOpen>
+                                        <div>
+                                            <label className="input-label" htmlFor="clothing-top">Top</label>
+                                            <input id="clothing-top" value={clothingTop} onChange={(e) => setClothingTop(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="clothing-bottom">Bottom</label>
+                                            <input id="clothing-bottom" value={clothingBottom} onChange={(e) => setClothingBottom(e.target.value)} placeholder="e.g., 'ripped jeans'" className="form-input"/>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="accessories-hat">Hat</label>
+                                            <input id="accessories-hat" value={accessoriesHat} onChange={(e) => setAccessoriesHat(e.target.value)} placeholder="e.g., 'purple beanie'" className="form-input"/>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="accessories-jewelry">Jewelry</label>
+                                            <input id="accessories-jewelry" value={accessoriesJewelry} onChange={(e) => setAccessoriesJewelry(e.target.value)} placeholder="e.g., 'silver chain'" className="form-input"/>
+                                        </div>
+                                    </AccordionSection>
+                                    <AccordionSection title="Scene & Personality">
+                                        <div>
+                                            <label className="input-label" htmlFor="shot-type">Shot Type</label>
+                                            <select id="shot-type" value={shotType} onChange={(e) => setShotType(e.target.value)} className="form-select">
+                                                {shotTypes.map(st => <option key={st} value={st}>{st}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="input-label" htmlFor="avatar-background">Background</label>
+                                            <input id="avatar-background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., 'city at night'" className="form-input"/>
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <label className="input-label" htmlFor="avatar-personality">Personality</label>
+                                            <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="For conversation (e.g., 'sarcastic tech expert')" className="form-input h-20"/>
+                                        </div>
+                                    </AccordionSection>
                                 </div>
-                            )}
-
-                           <FormSection title="Appearance">
-                                <div>
-                                    <label className="input-label" htmlFor="avatar-gender">Gender</label>
-                                    <select id="avatar-gender" value={gender} onChange={(e) => setGender(e.target.value)} className="form-select">
-                                        {genders.map(g => <option key={g} value={g}>{g}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="avatar-style">Visual Style</label>
-                                    <select id="avatar-style" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value)} className="form-select">
-                                        {avatarStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="hair-style">Hair Style</label>
-                                    <select id="hair-style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} className="form-select">
-                                        {hairStyles.map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="hair-color">Hair Color</label>
-                                    <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue' (to change)" className="form-input"/>
-                                </div>
-                                 <div>
-                                    <label className="input-label" htmlFor="eye-color">Eye Color</label>
-                                    <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} className="form-select">
-                                        {eyeColors.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                            </FormSection>
-                            <FormSection title="Features">
-                                <div>
-                                    <label className="input-label" htmlFor="facial-hair">Facial Hair</label>
-                                    <select id="facial-hair" value={facialHair} onChange={(e) => setFacialHair(e.target.value)} className="form-select">
-                                        {facialHairOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="glasses">Glasses</label>
-                                    <select id="glasses" value={glasses} onChange={(e) => setGlasses(e.target.value)} className="form-select">
-                                        {glassesOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                                    </select>
-                                </div>
-                                 <div className="sm:col-span-2">
-                                    <label className="input-label" htmlFor="other-facial-features">Other Facial Features</label>
-                                    <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar over left eye'" className="form-input"/>
-                                </div>
-                            </FormSection>
-                            <FormSection title="Clothing & Accessories">
-                                <div>
-                                    <label className="input-label" htmlFor="clothing-top">Top Clothing</label>
-                                    <input id="clothing-top" value={clothingTop} onChange={(e) => setClothingTop(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="clothing-bottom">Bottom Clothing</label>
-                                    <input id="clothing-bottom" value={clothingBottom} onChange={(e) => setClothingBottom(e.target.value)} placeholder="e.g., 'ripped jeans'" className="form-input"/>
-                                </div>
-                                {shotType === 'Full Body Shot' && (
-                                    <div>
-                                        <label className="input-label" htmlFor="clothing-shoes">Shoes</label>
-                                        <input id="clothing-shoes" value={clothingShoes} onChange={(e) => setClothingShoes(e.target.value)} placeholder="e.g., 'white sneakers'" className="form-input"/>
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="input-label" htmlFor="accessories-hat">Hat</label>
-                                    <input id="accessories-hat" value={accessoriesHat} onChange={(e) => setAccessoriesHat(e.target.value)} placeholder="e.g., 'purple beanie'" className="form-input"/>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="accessories-jewelry">Jewelry</label>
-                                    <input id="accessories-jewelry" value={accessoriesJewelry} onChange={(e) => setAccessoriesJewelry(e.target.value)} placeholder="e.g., 'silver chain necklace'" className="form-input"/>
-                                </div>
-                            </FormSection>
-                             <FormSection title="Scene & Personality">
-                                <div>
-                                    <label className="input-label" htmlFor="shot-type">Shot Type</label>
-                                    <select id="shot-type" value={shotType} onChange={(e) => setShotType(e.target.value)} className="form-select">
-                                        {shotTypes.map(st => <option key={st} value={st}>{st}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="input-label" htmlFor="avatar-background">Background</label>
-                                    <input id="avatar-background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., 'cityscape at night'" className="form-input"/>
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <label className="input-label" htmlFor="avatar-extra-details">Extra Visual Details</label>
-                                    <textarea id="avatar-extra-details" value={extraDetails} onChange={(e) => setExtraDetails(e.target.value)} placeholder="e.g., 'holding a glowing orb, floating slightly'" className="form-input h-20"/>
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <label className="input-label" htmlFor="avatar-personality">Personality</label>
-                                    <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Personality for conversation (e.g., 'sarcastic and witty tech expert')" className="form-input h-20"/>
-                                </div>
-                            </FormSection>
+                            </div>
                             
-                            <button onClick={handleGenerate} disabled={loading || (generationMode === 'photo' && !sourceImageBase64)} className="button-primary w-full !py-3 !text-base mt-6">
-                                {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                                <button onClick={handleSurpriseMe} disabled={loading || isSurprising} className="button-secondary w-full sm:w-auto">
+                                    {isSurprising ? <Spinner size="sm" /> : <><Wand className="w-5 h-5 mr-2" /> Surprise Me</>}
+                                </button>
+                                <button onClick={handleGenerate} disabled={loading || isSurprising || (generationMode === 'photo' && !sourceImageBase64)} className="button-primary w-full !py-3 !text-base">
+                                    {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
+                                </button>
+                            </div>
                             {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
                         </div>
                     )}
@@ -641,11 +683,9 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         );
     }
 
-    // PHASE 2: READY / CONVERSING / ENDED (The Interaction Panel)
     return (
-        <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Panel: Avatar & Controls */}
-            <div className="lg:col-span-1 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl flex flex-col items-center justify-start space-y-6">
+        <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-2 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl flex flex-col items-center justify-start space-y-6">
                 <div className="relative w-48 h-48">
                     <div className={`absolute inset-0 rounded-full bg-violet-500/20 ${status === 'SPEAKING' ? 'animate-pulse' : ''}`}></div>
                     <div className={`relative w-full h-full rounded-full bg-slate-800 shadow-lg p-2 ${phase === 'conversing' && status === 'SPEAKING' ? 'animate-breathing' : ''}`}>
@@ -679,7 +719,29 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                         </button>
                     )}
                     
-                    <div className="flex gap-3">
+                     <div className="space-y-2 pt-2 border-t border-slate-700/50">
+                        <h4 className="text-sm font-semibold text-slate-300 text-center">Quick Edit</h4>
+                        <div className="relative">
+                            <input 
+                                type="text" 
+                                value={editPrompt}
+                                onChange={e => setEditPrompt(e.target.value)}
+                                placeholder="e.g., 'give him a blue shirt'"
+                                className="form-input !py-2 !pr-12"
+                                disabled={isEditingAvatar}
+                            />
+                            <button 
+                                onClick={handleApplyEdit}
+                                disabled={isEditingAvatar || !editPrompt.trim()}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-violet hover:opacity-90 disabled:opacity-50"
+                                title="Apply Edit"
+                            >
+                                {isEditingAvatar ? <Spinner size="sm" /> : <Edit className="w-4 h-4 text-white" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
                         <button onClick={handleDownload} className="button-secondary w-full"><Download className="w-5 h-5 mr-2"/>Download</button>
                         <button onClick={handleGenerate} disabled={loading} className="button-secondary w-full"><RefreshCw className="w-5 h-5 mr-2"/>Regen</button>
                     </div>
@@ -688,34 +750,35 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 </div>
             </div>
             
-            {/* Right Panel: Conversation */}
-            <div className="lg:col-span-2 bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col min-h-[70vh]">
+            <div className="lg:col-span-3 bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col min-h-[70vh]">
                  <header className="p-4 border-b border-slate-700/50 flex-shrink-0">
                     <h3 className="text-lg font-bold text-white text-center">Conversation</h3>
                  </header>
 
                  {(phase === 'conversing' || phase === 'ended') ? (
                     <>
-                        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                             {transcript.map((entry, index) => (
-                                <div key={index} className={`flex items-end gap-2 ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    {entry.source === 'avatar' && <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>}
-                                    <p className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm ${entry.source === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                                        {entry.text}
-                                    </p>
+                                <div key={index} className={`flex items-end gap-3 ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    {entry.source === 'avatar' && <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-violet-300"/></div>}
+                                    <div className={`prose prose-sm prose-invert prose-p:my-0 max-w-[80%] px-4 py-3 rounded-2xl ${entry.source === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
+                                        <p>{entry.text}</p>
+                                    </div>
                                 </div>
                             ))}
                             {isTextLoading && (
-                                <div className="flex justify-start items-end gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>
-                                    <p className="max-w-[80%] px-4 py-2 rounded-2xl text-sm bg-slate-700 text-slate-200 rounded-bl-none"><Spinner size="sm"/></p>
+                                <div className="flex justify-start items-end gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-violet-300"/></div>
+                                    <div className="px-4 py-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-none">
+                                      <Spinner size="sm"/>
+                                    </div>
                                 </div>
                             )}
                         </div>
                         {interactionMode === 'text' && phase === 'conversing' && (
                             <div className="p-4 border-t border-slate-700/50">
                                 <div className="relative">
-                                    <input type="text" value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." className="form-input !py-3 !pl-4 !pr-12" disabled={isTextLoading}/>
+                                    <textarea value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendTextMessage())} placeholder="Type your message..." className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner" disabled={isTextLoading} rows={1}></textarea>
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                                         <button onClick={handleSendTextMessage} className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50" disabled={isTextLoading || !textInput.trim()}>
                                             <Send className="w-5 h-5 text-white"/>

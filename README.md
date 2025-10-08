@@ -16,7 +16,7 @@
 
 <div align="center">
   <h3>Application Showcase</h3>
-  <img src="https://i.imgur.com/v8kASgM.gif" width="80%" alt="utrend Application Showcase GIF">
+  <img src="https://i.imgur.com/v8kASgM.gif" width="80%" alt="A GIF showcasing the various features of the utrend application, including the dashboard, trend discovery, and AI chat.">
 </div>
 
 ---
@@ -80,16 +80,16 @@ This is a modern React application built with Vite.
 
 ## ✨ Key Features
 
-The `utrend` platform is organized into three powerful suites to cover every aspect of your content creation journey.
+The `utrend` platform is organized into three powerful suites to cover every aspect of your content creation journey, from initial spark to strategic growth.
 
 <details>
 <summary><strong>📈 Discovery & Analytics Suite</strong></summary>
 <br>
 <ul>
-    <li><strong>Real-time Trend Discovery:</strong> Find out what's currently trending in any country or category on YouTube and TikTok. <em>Pinpoint viral opportunities before they peak.</em></li>
-    <li><strong>Live Channel Analytics:</strong> Connect your channels for an AI-powered performance summary or analyze any competitor's channel. <em>Benchmark your performance against anyone.</em></li>
-    <li><strong>Keyword Research Tool:</strong> Analyze keyword search volume and competition to find untapped content opportunities. <em>Own your niche with data-driven SEO.</em></li>
-    <li><strong>Video Analyzer:</strong> Get an AI-powered breakdown of any YouTube or TikTok video's strengths and weaknesses. <em>Learn from the best (and the rest).</em></li>
+    <li><strong>Trend Discovery:</strong> Uncover real-time trending topics, channels, videos, and music across YouTube and TikTok. Filter by country and category to pinpoint viral opportunities before they peak.</li>
+    <li><strong>Keyword Research:</strong> Analyze any keyword to get insights on search volume and competition. Discover related long-tail keywords and get content ideas tailored to your SEO strategy.</li>
+    <li><strong>Channel Analytics (Pro):</strong> Connect your channels for an AI-powered performance summary or analyze any public competitor's channel. Receive an AI summary, key metrics, and actionable growth opportunities.</li>
+    <li><strong>Video Analyzer:</strong> Get an AI breakdown of any YouTube or TikTok video. Paste a URL to receive analysis on content, engagement, and specific improvement suggestions.</li>
 </ul>
 </details>
 
@@ -97,12 +97,34 @@ The `utrend` platform is organized into three powerful suites to cover every asp
 <summary><strong>🎨 AI Create Suite</strong></summary>
 <br>
 <ul>
-    <li><strong>Content Idea Generation:</strong> Generate unique and viral video ideas, complete with hooks, outlines, and hashtags. <em>Never run out of inspiration.</em></li>
-    <li><strong>AI Script Generation:</strong> Turn any content idea into a production-ready script. <em>Go from concept to final draft instantly.</em></li>
-    <li><strong>Video & Animation Generation:</strong> Create video content and animations using simple text prompts. <em>Bring your imagination to life in seconds.</em></li>
-    <li><strong>Image & Logo Generation:</strong> Create logos and edit images with natural language instructions. <em>Build your brand's visual identity effortlessly.</em></li>
-    <li><strong>GIF Creator:</strong> Quickly generate looping GIFs for social media or promotional content.</li>
-    <li><strong>AI Comment Responder:</strong> Craft the perfect, on-brand replies to your audience's comments in seconds.</li>
+    <li><strong>Content & Script Generation:</strong> Go from a simple topic to a full-fledged video plan. Generate viral content ideas complete with titles, hooks, outlines, and hashtags. Upgrade to generate a production-ready script from any idea.</li>
+    <li><strong>AI Video Generation (Pro):</strong> Create stunning videos and animations from text prompts or by animating an image. Includes:
+        <ul>
+            <li><strong>Video Generator:</strong> For standard video creation.</li>
+            <li><strong>Animation Creator:</strong> Generate animated clips in various styles.</li>
+            <li><strong>GIF Creator:</strong> Create short, looping GIFs for social media.</li>
+        </ul>
+    </li>
+    <li><strong>Visual Asset Creation (Pro):</strong> Build your brand's visual identity effortlessly.
+        <ul>
+            <li><strong>Image Generator:</strong> Create unique images from text prompts in various styles and aspect ratios.</li>
+            <li><strong>Logo Creator:</strong> Design a professional logo for your brand or channel.</li>
+            <li><strong>Thumbnail Idea Generator:</strong> Get click-worthy thumbnail concepts with visual descriptions and AI image prompts.</li>
+        </ul>
+    </li>
+    <li><strong>AI-Powered Editing (Pro):</strong> Modify your media with simple text commands.
+        <ul>
+            <li><strong>Image Editor:</strong> Upload an image and describe your desired changes.</li>
+            <li><strong>Video Editor:</strong> Upload a video clip and tell the AI how to alter it.</li>
+        </ul>
+    </li>
+    <li><strong>AI Avatar Creator (Pro):</strong> Design a unique AI persona from scratch or a photo. Customize its appearance and personality, then interact with it via a live voice conversation or text chat.</li>
+    <li><strong>Audience Engagement Tools:</strong>
+        <ul>
+            <li><strong>Comment Responder:</strong> Generate the perfect, on-brand replies to your audience's comments in seconds, with customizable tones.</li>
+        </ul>
+    </li>
+    <li><strong>Prompt Generator:</strong> Craft the perfect, detailed prompts for AI media generation tools, ensuring you get the exact results you want.</li>
 </ul>
 </details>
 
@@ -110,12 +132,12 @@ The `utrend` platform is organized into three powerful suites to cover every asp
 <summary><strong>🧠 Strategy & Growth Engine</strong></summary>
 <br>
 <ul>
-    <li><strong>AI Agents:</strong> A team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting. <em>Your personal team of channel managers, on demand.</em></li>
-    <li><strong>Monetization Guide:</strong> Receive tailored strategies to monetize your content based on your follower count. <em>Unlock your earning potential.</em></li>
-    <li><strong>Full Strategy Reports:</strong> A pro-level feature that combines trend analysis, content ideas, and monetization strategies into a single, comprehensive report. <em>Get your complete roadmap to success.</em></li>
-    <li><strong>Channel Growth Plan:</strong> Get a custom, multi-point growth plan for your channel. <em>Receive actionable steps to grow faster.</em></li>
-    <li><strong>Brand Connect:</strong> Find potential brand sponsors and generate professional pitch emails. <em>Secure sponsorships with confidence.</em></li>
-    <li><strong>Content Repurposing:</strong> Turn a single video into a blog post, a Tweet thread, and a LinkedIn post automatically.</li>
+    <li><strong>AI Agents:</strong> Consult a team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting. Your personal team of channel managers, on demand.</li>
+    <li><strong>Monetization Guide:</strong> Receive tailored monetization strategies based on your platform and follower count. Unlock your earning potential at any stage of your journey.</li>
+    <li><strong>Full Strategy Reports (Pro):</strong> Generate a comprehensive content strategy document for any topic, combining trend analysis, multiple content ideas, and monetization strategies into one report.</li>
+    <li><strong>Channel Growth Plan (Pro):</strong> Get a custom, multi-point growth plan for your connected channel, with AI analysis of your content, SEO, engagement, and thumbnails.</li>
+    <li><strong>Brand Connect (Pro):</strong> Let the AI find potential brand sponsors for your channel based on your content. Generate professional, personalized pitch emails to secure sponsorships with confidence.</li>
+    <li><strong>Content Repurposing:</strong> Turn a single video into a blog post, a Tweet thread, and a LinkedIn post automatically. Maximize your content's reach with minimal effort.</li>
 </ul>
 </details>
 
