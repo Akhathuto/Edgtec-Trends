@@ -7,8 +7,9 @@ import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 
-// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
-// about mixed dynamic and static imports.
+// FIX: Initialized the GoogleGenAI client statically. This resolves a reference error
+// where the 'ai' variable was used but not defined, and also prevents a potential
+// Vite build warning about mixed dynamic and static imports.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- Live API Audio Helper Functions ---
