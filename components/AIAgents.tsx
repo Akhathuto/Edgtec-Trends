@@ -9,6 +9,10 @@ import { useToast } from '../contexts/ToastContext.tsx';
 import AgentSettingsModal from './AgentSettingsModal.tsx';
 import { youtubeSearch } from '../services/geminiService.ts';
 
+// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
+// about mixed dynamic and static imports.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 interface AIAgentsProps {
   setActiveTab: (tab: Tab) => void;
 }
@@ -124,9 +128,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
 
   const initializeChat = useCallback((agent: AgentType, settings: AgentSettings, historyToRestore?: ChatMessage[]) => {
     try {
-      // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
       const chatHistory = historyToRestore?.map(msg => {
             if (msg.role === 'tool') {
                 return {

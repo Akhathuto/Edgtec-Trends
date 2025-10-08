@@ -7,6 +7,10 @@ import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 
+// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
+// about mixed dynamic and static imports.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 // --- Live API Audio Helper Functions ---
 function encode(bytes: Uint8Array) {
   let binary = '';
@@ -188,8 +192,6 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setStatus('READY');
         setTranscript([]);
 
-        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const chatInstance = ai.chats.create({
             model: 'gemini-2.5-flash',
             config: {
@@ -240,8 +242,6 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setTranscript([]);
         
         try {
-            // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
             const resources = audioResourcesRef.current;
