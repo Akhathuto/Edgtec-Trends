@@ -22,6 +22,10 @@ interface ChatMessage {
   gifUrl?: string;
 }
 
+// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
+// about mixed dynamic and static imports.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 const TypingIndicator = () => (
     <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse [animation-delay:-0.3s]"></span>
@@ -136,8 +140,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
   const initializeChat = useCallback((historyToRestore?: ChatMessage[]) => {
     try {
-      // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chatInstance = ai.chats.create({
         model: 'gemini-2.5-flash',
         history: historyToRestore?.map((msg) => ({
