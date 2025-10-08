@@ -1,10 +1,15 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import Spinner from './Spinner.tsx';
-import { MessageSquare, RefreshCw, Copy, ThumbsUp, Heart, Sparkles } from './Icons.tsx';
+import { MessageSquare, RefreshCw, Copy, Sparkles } from './Icons.tsx';
 import { useToast } from '../contexts/ToastContext.tsx';
 
 const tones = ['Friendly', 'Professional', 'Witty', 'Grateful', 'Inquisitive'];
+
+// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
+// about mixed dynamic and static imports.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const CommentResponder: React.FC = () => {
     const { logActivity } = useAuth();
@@ -14,24 +19,8 @@ const CommentResponder: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [response, setResponse] = useState<string | null>(null);
-    const [ai, setAi] = useState<any>(null);
-
-    // FIX: Imported useEffect hook from React.
-    // Lazy initialize GoogleGenAI
-    useEffect(() => {
-        async function initAi() {
-            const { GoogleGenAI } = await import('@google/genai');
-            // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-            setAi(new GoogleGenAI({ apiKey: process.env.API_KEY }));
-        }
-        initAi();
-    }, []);
 
     const handleGenerate = useCallback(async () => {
-        if (!ai) {
-            setError('AI service is not ready. Please wait a moment and try again.');
-            return;
-        }
         if (!comment.trim()) {
             setError('Please enter a comment to respond to.');
             return;
@@ -42,18 +31,18 @@ const CommentResponder: React.FC = () => {
         setResponse(null);
 
         try {
-            const result = await ai.models.generateContent({
+            const geminiResponse = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: `Generate a concise, engaging, and ${tone.toLowerCase()} reply to the following user comment on a video: "${comment}". The reply should encourage further engagement. Do not include your own username or signature.`,
             });
-            setResponse(result.text);
+            setResponse(geminiResponse.text);
             logActivity(`generated a ${tone} reply to a comment`, 'MessageSquare');
         } catch (e: any) {
             setError(e.message || 'An error occurred while generating the response.');
         } finally {
             setLoading(false);
         }
-    }, [ai, comment, tone, logActivity]);
+    }, [comment, tone, logActivity]);
 
     const handleCopy = () => {
         if (response) {
@@ -97,7 +86,7 @@ const CommentResponder: React.FC = () => {
                     </div>
                     <button
                         onClick={handleGenerate}
-                        disabled={loading || !ai}
+                        disabled={loading}
                         className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                         {loading ? <Spinner /> : <><Sparkles className="w-5 h-5 mr-2" /> Generate Reply</>}
