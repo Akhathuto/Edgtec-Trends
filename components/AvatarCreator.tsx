@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
+import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
 import { generateAvatar } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
 import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, Save, MessageSquare, Send } from './Icons.tsx';
@@ -7,9 +7,6 @@ import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 
-// FIX: Initialized the GoogleGenAI client statically. This resolves a reference error
-// where the 'ai' variable was used but not defined, and also prevents a potential
-// Vite build warning about mixed dynamic and static imports.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- Live API Audio Helper Functions ---
@@ -92,6 +89,15 @@ const StatusIndicator: React.FC<{ status: ConversationStatus }> = ({ status }) =
     );
 };
 
+const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <div>
+        <h3 className="text-lg font-semibold text-slate-200 mb-4 border-b border-slate-700/50 pb-2">{title}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {children}
+        </div>
+    </div>
+);
+
 
 const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
@@ -106,8 +112,11 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const [facialHair, setFacialHair] = useState(facialHairOptions[0]);
     const [glasses, setGlasses] = useState(glassesOptions[0]);
     const [otherFacialFeatures, setOtherFacialFeatures] = useState('');
-    const [clothing, setClothing] = useState('');
-    const [accessories, setAccessories] = useState('');
+    const [clothingTop, setClothingTop] = useState('');
+    const [clothingBottom, setClothingBottom] = useState('');
+    const [clothingShoes, setClothingShoes] = useState('');
+    const [accessoriesHat, setAccessoriesHat] = useState('');
+    const [accessoriesJewelry, setAccessoriesJewelry] = useState('');
     const [extraDetails, setExtraDetails] = useState('');
     const [background, setBackground] = useState('');
     const [shotType, setShotType] = useState(shotTypes[0]);
@@ -122,7 +131,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const [voice, setVoice] = useState(voices[0]);
     const [status, setStatus] = useState<ConversationStatus>('CONNECTING...');
     const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-    const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
+    const sessionPromiseRef = useRef<Promise<any> | null>(null);
     const textChatRef = useRef<Chat | null>(null);
     const [textInput, setTextInput] = useState('');
     const [isTextLoading, setIsTextLoading] = useState(false);
@@ -142,10 +151,21 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         otherFacialFeatures
     ].filter(Boolean).join(', ');
 
-    const systemInstruction = `You are an AI avatar. Your appearance is '${avatarStyle}' and you are a ${gender}. Your features are: Hair: ${hairStyle}, ${hairColor}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothing}. Accessories: ${accessories}. Other Details: ${extraDetails}. The background is '${background}'. Your personality is '${personality}'. Embody this persona. Keep your responses conversational and relatively brief.`;
+    const clothingString = [
+        clothingTop ? `Top: ${clothingTop}` : '',
+        clothingBottom ? `Bottom: ${clothingBottom}` : '',
+        shotType === 'Full Body Shot' && clothingShoes ? `Shoes: ${clothingShoes}` : ''
+    ].filter(Boolean).join(', ');
+
+    const accessoriesString = [
+        accessoriesHat ? `Hat: ${accessoriesHat}` : '',
+        accessoriesJewelry ? `Jewelry: ${accessoriesJewelry}` : ''
+    ].filter(Boolean).join(', ');
+
+    const systemInstruction = `You are an AI avatar. Your appearance is '${avatarStyle}' and you are a ${gender}. Your features are: Hair: ${hairStyle}, ${hairColor}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothingString || 'not specified'}. Accessories: ${accessoriesString || 'not specified'}. Other Details: ${extraDetails}. The background is '${background}'. Your personality is '${personality}'. Embody this persona. Keep your responses conversational and relatively brief.`;
     
     const handleGenerate = useCallback(async () => {
-        const customDetailsProvided = hairColor.trim() || otherFacialFeatures.trim() || clothing.trim() || accessories.trim() || extraDetails.trim();
+        const customDetailsProvided = hairColor.trim() || otherFacialFeatures.trim() || clothingTop.trim() || clothingBottom.trim() || clothingShoes.trim() || accessoriesHat.trim() || accessoriesJewelry.trim() || extraDetails.trim();
         if (!customDetailsProvided) {
             setError('Please provide some details for your avatar (e.g., hair color, clothing, features).');
             return;
@@ -155,7 +175,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setError(null);
         setAvatarBase64(null);
 
-        const featuresString = `Hair: ${hairStyle}${hairColor ? `, ${hairColor}` : ''}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothing || 'not specified'}. Accessories: ${accessories || 'not specified'}. Other details: ${extraDetails || 'none'}.`;
+        const featuresString = `Hair: ${hairStyle}${hairColor ? `, ${hairColor}` : ''}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothingString || 'not specified'}. Accessories: ${accessoriesString || 'not specified'}. Other details: ${extraDetails || 'none'}.`;
 
 
         try {
@@ -164,8 +184,8 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
             setPhase('ready');
             addContentToHistory({
                 type: 'Avatar',
-                summary: `Avatar: ${[hairStyle, hairColor, eyeColor, clothing].filter(Boolean).join(', ').substring(0, 40)}...`,
-                content: { gender, style: avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothing, accessories, extraDetails, background, shotType, avatarBase64: result }
+                summary: `Avatar: ${[hairStyle, hairColor, clothingTop].filter(Boolean).join(', ').substring(0, 40)}...`,
+                content: { gender, style: avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, avatarBase64: result }
             });
             logActivity(`generated a ${avatarStyle} avatar`, 'User');
         } catch (e: any) {
@@ -174,7 +194,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         } finally {
             setLoading(false);
         }
-    }, [gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothing, accessories, extraDetails, background, shotType, addContentToHistory, logActivity, faceDetails]);
+    }, [gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, addContentToHistory, logActivity, faceDetails, clothingString, accessoriesString]);
     
     const cleanupAudio = useCallback(() => {
         const resources = audioResourcesRef.current;
@@ -193,14 +213,18 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setStatus('READY');
         setTranscript([]);
 
+        const initialGreeting = "Hello! It's great to meet you. What's on your mind?";
         const chatInstance = ai.chats.create({
             model: 'gemini-2.5-flash',
             config: {
                 systemInstruction,
-            }
+            },
+            history: [
+                { role: 'model', parts: [{ text: initialGreeting }] }
+            ]
         });
         textChatRef.current = chatInstance;
-        setTranscript([{ source: 'avatar', text: "Hello! It's great to meet you. What's on your mind?" }]);
+        setTranscript([{ source: 'avatar', text: initialGreeting }]);
 
     }, [systemInstruction]);
 
@@ -349,7 +373,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     
     const handleSaveTranscript = () => {
         const fullTranscript = transcript.map(t => `${t.source === 'user' ? 'You' : 'Avatar'}: ${t.text}`).join('\n\n');
-        const summary = `Conversation with ${avatarStyle} avatar (${[hairStyle, hairColor, clothing].filter(Boolean).join(', ')})`;
+        const summary = `Conversation with ${avatarStyle} avatar (${[hairStyle, hairColor, clothingTop].filter(Boolean).join(', ')})`;
         addContentToHistory({
             type: 'Avatar Conversation',
             summary: summary.substring(0, 100),
@@ -378,8 +402,11 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setFacialHair(facialHairOptions[0]);
         setGlasses(glassesOptions[0]);
         setOtherFacialFeatures('');
-        setClothing('');
-        setAccessories('');
+        setClothingTop('');
+        setClothingBottom('');
+        setClothingShoes('');
+        setAccessoriesHat('');
+        setAccessoriesJewelry('');
         setExtraDetails('');
         setBackground('');
         setPersonality('');
@@ -427,81 +454,102 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                             <p className="mt-1 text-slate-400 text-sm">This can take a moment.</p>
                         </div>
                     ) : (
-                        <div className="space-y-4 max-w-2xl mx-auto">
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-8 max-w-4xl mx-auto">
+                           <FormSection title="Appearance">
                                 <div>
-                                    <label htmlFor="avatar-gender" className="block text-sm font-medium text-slate-300 mb-1">Gender</label>
+                                    <label className="input-label" htmlFor="avatar-gender">Gender</label>
                                     <select id="avatar-gender" value={gender} onChange={(e) => setGender(e.target.value)} className="form-select">
                                         {genders.map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="avatar-style" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
+                                    <label className="input-label" htmlFor="avatar-style">Visual Style</label>
                                     <select id="avatar-style" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value)} className="form-select">
                                         {avatarStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="hair-style" className="block text-sm font-medium text-slate-300 mb-1">Hair Style</label>
+                                    <label className="input-label" htmlFor="hair-style">Hair Style</label>
                                     <select id="hair-style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} className="form-select">
                                         {hairStyles.map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="hair-color" className="block text-sm font-medium text-slate-300 mb-1">Hair Color</label>
+                                    <label className="input-label" htmlFor="hair-color">Hair Color</label>
                                     <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue'" className="form-input"/>
                                 </div>
-                                <div>
-                                    <label htmlFor="eye-color" className="block text-sm font-medium text-slate-300 mb-1">Eye Color</label>
+                                 <div>
+                                    <label className="input-label" htmlFor="eye-color">Eye Color</label>
                                     <select id="eye-color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} className="form-select">
                                         {eyeColors.map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
+                            </FormSection>
+                            <FormSection title="Features">
                                 <div>
-                                    <label htmlFor="facial-hair" className="block text-sm font-medium text-slate-300 mb-1">Facial Hair</label>
+                                    <label className="input-label" htmlFor="facial-hair">Facial Hair</label>
                                     <select id="facial-hair" value={facialHair} onChange={(e) => setFacialHair(e.target.value)} className="form-select">
                                         {facialHairOptions.map(o => <option key={o} value={o}>{o}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="glasses" className="block text-sm font-medium text-slate-300 mb-1">Glasses</label>
+                                    <label className="input-label" htmlFor="glasses">Glasses</label>
                                     <select id="glasses" value={glasses} onChange={(e) => setGlasses(e.target.value)} className="form-select">
                                         {glassesOptions.map(o => <option key={o} value={o}>{o}</option>)}
                                     </select>
                                 </div>
+                                 <div className="sm:col-span-2">
+                                    <label className="input-label" htmlFor="other-facial-features">Other Facial Features</label>
+                                    <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar over left eye'" className="form-input"/>
+                                </div>
+                            </FormSection>
+                            <FormSection title="Clothing & Accessories">
                                 <div>
-                                    <label htmlFor="other-facial-features" className="block text-sm font-medium text-slate-300 mb-1">Other Facial Features</label>
-                                    <input id="other-facial-features" value={otherFacialFeatures} onChange={(e) => setOtherFacialFeatures(e.target.value)} placeholder="e.g., 'freckles, scar'" className="form-input"/>
+                                    <label className="input-label" htmlFor="clothing-top">Top Clothing</label>
+                                    <input id="clothing-top" value={clothingTop} onChange={(e) => setClothingTop(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
                                 </div>
                                 <div>
-                                    <label htmlFor="avatar-clothing" className="block text-sm font-medium text-slate-300 mb-1">Clothing</label>
-                                    <input id="avatar-clothing" value={clothing} onChange={(e) => setClothing(e.target.value)} placeholder="e.g., 'black hoodie'" className="form-input"/>
+                                    <label className="input-label" htmlFor="clothing-bottom">Bottom Clothing</label>
+                                    <input id="clothing-bottom" value={clothingBottom} onChange={(e) => setClothingBottom(e.target.value)} placeholder="e.g., 'ripped jeans'" className="form-input"/>
+                                </div>
+                                {shotType === 'Full Body Shot' && (
+                                    <div>
+                                        <label className="input-label" htmlFor="clothing-shoes">Shoes</label>
+                                        <input id="clothing-shoes" value={clothingShoes} onChange={(e) => setClothingShoes(e.target.value)} placeholder="e.g., 'white sneakers'" className="form-input"/>
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="input-label" htmlFor="accessories-hat">Hat</label>
+                                    <input id="accessories-hat" value={accessoriesHat} onChange={(e) => setAccessoriesHat(e.target.value)} placeholder="e.g., 'purple beanie'" className="form-input"/>
                                 </div>
                                 <div>
-                                    <label htmlFor="avatar-accessories" className="block text-sm font-medium text-slate-300 mb-1">Accessories</label>
-                                    <input id="avatar-accessories" value={accessories} onChange={(e) => setAccessories(e.target.value)} placeholder="e.g., 'sunglasses'" className="form-input"/>
+                                    <label className="input-label" htmlFor="accessories-jewelry">Jewelry</label>
+                                    <input id="accessories-jewelry" value={accessoriesJewelry} onChange={(e) => setAccessoriesJewelry(e.target.value)} placeholder="e.g., 'silver chain necklace'" className="form-input"/>
                                 </div>
+                            </FormSection>
+                             <FormSection title="Scene & Personality">
                                 <div>
-                                    <label htmlFor="shot-type" className="block text-sm font-medium text-slate-300 mb-1">Shot Type</label>
+                                    <label className="input-label" htmlFor="shot-type">Shot Type</label>
                                     <select id="shot-type" value={shotType} onChange={(e) => setShotType(e.target.value)} className="form-select">
                                         {shotTypes.map(st => <option key={st} value={st}>{st}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="avatar-background" className="block text-sm font-medium text-slate-300 mb-1">Background</label>
+                                    <label className="input-label" htmlFor="avatar-background">Background</label>
                                     <input id="avatar-background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., 'cityscape at night'" className="form-input"/>
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="avatar-personality" className="block text-sm font-medium text-slate-300 mb-1">Personality</label>
-                                    <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Personality traits for conversation (e.g., 'sarcastic and witty')" className="form-input h-20"/>
+                                    <label className="input-label" htmlFor="avatar-extra-details">Extra Visual Details</label>
+                                    <textarea id="avatar-extra-details" value={extraDetails} onChange={(e) => setExtraDetails(e.target.value)} placeholder="e.g., 'holding a glowing orb, floating slightly'" className="form-input h-20"/>
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="avatar-extra-details" className="block text-sm font-medium text-slate-300 mb-1">Extra Visual Details</label>
-                                    <textarea id="avatar-extra-details" value={extraDetails} onChange={(e) => setExtraDetails(e.target.value)} placeholder="e.g., 'has a small scar over one eye'" className="form-input h-20"/>
+                                    <label className="input-label" htmlFor="avatar-personality">Personality</label>
+                                    <textarea id="avatar-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Personality for conversation (e.g., 'sarcastic and witty tech expert')" className="form-input h-20"/>
                                 </div>
-                            </div>
+                            </FormSection>
+                            
 
-                            <button onClick={handleGenerate} disabled={loading} className="button-primary w-full !py-3 text-base mt-6">
+                            <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px text-base mt-6">
                             {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
                             </button>
                             {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
@@ -518,8 +566,8 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
             {/* Left Panel: Avatar & Controls */}
             <div className="lg:col-span-1 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl flex flex-col items-center justify-start space-y-6">
                 <div className="relative w-48 h-48">
-                    <div className={`absolute inset-0 rounded-full bg-violet-500/20 ${status === 'SPEAKING' ? 'animate-ping' : ''}`}></div>
-                    <div className={`relative w-full h-full rounded-full bg-slate-800 shadow-lg p-2 ${phase === 'conversing' && status === 'SPEAKING' ? 'animate-breathing' : 'animate-breathing'}`}>
+                    <div className={`absolute inset-0 rounded-full bg-violet-500/20 ${status === 'SPEAKING' ? 'animate-pulse' : ''}`}></div>
+                    <div className={`relative w-full h-full rounded-full bg-slate-800 shadow-lg p-2 ${phase === 'conversing' && status === 'SPEAKING' ? 'animate-breathing' : ''}`}>
                         {avatarBase64 && <img src={`data:image/png;base64,${avatarBase64}`} alt="Generated Avatar" className="w-full h-full object-cover rounded-full"/>}
                     </div>
                 </div>
@@ -529,32 +577,32 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 <div className="w-full space-y-3 pt-6 border-t border-slate-700/50">
                      {phase === 'ready' && (
                          <div className="space-y-3">
-                            <button onClick={handleStartTextChat} className="button-primary w-full"><MessageSquare className="w-5 h-5 mr-2"/>Start Text Chat</button>
+                            <button onClick={handleStartTextChat} className="w-full flex items-center justify-center bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors"><MessageSquare className="w-5 h-5 mr-2"/>Start Text Chat</button>
                             <div className="flex gap-2">
                                 <select value={voice} onChange={(e) => setVoice(e.target.value)} className="form-select flex-grow">
                                     {voices.map(v => <option key={v} value={v}>{v} Voice</option>)}
                                 </select>
-                                <button onClick={handleStartLiveConversation} title="Start Voice Chat" className="button-primary flex-shrink-0 !px-4"><Mic className="w-5 h-5"/></button>
+                                <button onClick={handleStartLiveConversation} title="Start Voice Chat" className="flex-shrink-0 !px-4 flex items-center justify-center bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors"><Mic className="w-5 h-5"/></button>
                             </div>
                         </div>
                     )}
 
                     {phase === 'conversing' && (
-                        <button onClick={handleEndConversation} className="button-danger w-full">
+                        <button onClick={handleEndConversation} className="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 font-semibold text-white px-4 py-2 rounded-lg transition-colors">
                             <Phone className="w-5 h-5 mr-2"/>End Conversation
                         </button>
                     )}
                      {phase === 'ended' && (
-                        <button onClick={handleSaveTranscript} className="button-secondary w-full">
+                        <button onClick={handleSaveTranscript} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors">
                             <Save className="w-5 h-5 mr-2"/>Save Transcript
                         </button>
                     )}
                     
                     <div className="flex gap-3">
-                        <button onClick={handleDownload} className="button-secondary w-full"><Download className="w-5 h-5 mr-2"/>Download</button>
-                        <button onClick={handleGenerate} disabled={loading} className="button-secondary w-full"><RefreshCw className="w-5 h-5 mr-2"/>Regen</button>
+                        <button onClick={handleDownload} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors"><Download className="w-5 h-5 mr-2"/>Download</button>
+                        <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors"><RefreshCw className="w-5 h-5 mr-2"/>Regen</button>
                     </div>
-                    <button onClick={handleStartOver} className="button-secondary w-full !bg-slate-800">Start Over</button>
+                    <button onClick={handleStartOver} className="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 font-semibold text-white px-4 py-2 rounded-lg transition-colors">Start Over</button>
 
                 </div>
             </div>
@@ -569,21 +617,29 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                     <>
                         <div className="flex-1 p-4 space-y-3 overflow-y-auto">
                             {transcript.map((entry, index) => (
-                                <div key={index} className={`flex ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <p className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${entry.source === 'user' ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-200'}`}>
+                                <div key={index} className={`flex items-end gap-2 ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    {entry.source === 'avatar' && <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>}
+                                    <p className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm ${entry.source === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
                                         {entry.text}
                                     </p>
                                 </div>
                             ))}
                             {isTextLoading && (
-                                <div className="flex justify-start"><p className="max-w-[80%] px-3 py-2 rounded-lg text-sm bg-slate-700 text-slate-200"><Spinner size="sm"/></p></div>
+                                <div className="flex justify-start items-end gap-2">
+                                    <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>
+                                    <p className="max-w-[80%] px-4 py-2 rounded-2xl text-sm bg-slate-700 text-slate-200 rounded-bl-none"><Spinner size="sm"/></p>
+                                </div>
                             )}
                         </div>
                         {interactionMode === 'text' && phase === 'conversing' && (
                             <div className="p-4 border-t border-slate-700/50">
-                                <div className="flex gap-2">
-                                    <input type="text" value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." className="form-input flex-grow" disabled={isTextLoading}/>
-                                    <button onClick={handleSendTextMessage} className="button-primary" disabled={isTextLoading}><Send className="w-5 h-5"/></button>
+                                <div className="relative">
+                                    <input type="text" value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner" disabled={isTextLoading}/>
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                        <button onClick={handleSendTextMessage} className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50" disabled={isTextLoading || !textInput.trim()}>
+                                            <Send className="w-5 h-5 text-white"/>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

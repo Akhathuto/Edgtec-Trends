@@ -157,8 +157,9 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
         config: {
           systemInstruction: agent.systemInstruction,
           temperature: settings.temperature,
+          // FIX: Per @google/genai guidelines, the 'tools' property should be inside the 'config' object for chat creation.
+          tools: processedTools && processedTools.length > 0 ? processedTools : undefined,
         },
-        tools: processedTools && processedTools.length > 0 ? processedTools : undefined,
       });
       setChat(chatInstance);
       return chatInstance;
@@ -202,23 +203,26 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
 
             if (name in availableTools) {
                 const toolFn = availableTools[name as keyof typeof availableTools];
-                const toolResponse = toolFn(args);
+                // FIX: Cast 'args' to the expected type for the tool function to resolve the type error.
+                const toolResponse = toolFn(args as { query: string });
 
                 const toolResultWithMessage: ChatMessage = { ...toolMessage, toolResult: { result: toolResponse } };
                 currentHistory[currentHistory.length - 1] = toolResultWithMessage;
                 setHistory(currentHistory);
 
+                // FIX: The `sendMessage` method expects an object with a `message` property for sending tool responses in some library versions.
                 result = await chatInstance.sendMessage({
-                    tool_responses: [{
-                        function_response: { name, response: { result: toolResponse } }
+                    message: [{
+                        functionResponse: { name, response: { result: toolResponse } }
                     }]
                 });
 
             } else {
                 // If the tool is not one of our defined functions, it must be googleSearch
+                 // FIX: The `sendMessage` method expects an object with a `message` property for sending tool responses in some library versions.
                  result = await chatInstance.sendMessage({
-                    tool_responses: [{
-                        function_response: { name, response: { /* Let Gemini handle it */ } }
+                    message: [{
+                        functionResponse: { name, response: { /* Let Gemini handle it */ } }
                     }]
                 });
             }
