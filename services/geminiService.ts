@@ -575,3 +575,33 @@ export async function generateAvatar(gender: string, style: string, features: st
     });
     return response.generatedImages[0].image.imageBytes;
 }
+
+export async function generateAvatarFromPhoto(base64ImageData: string, mimeType: string, prompt: string): Promise<string | null> {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+            parts: [
+                { inlineData: { data: base64ImageData, mimeType: mimeType } },
+                { text: prompt },
+            ],
+        },
+        config: {
+            responseModalities: [Modality.IMAGE, Modality.TEXT],
+        },
+    });
+    
+    for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+            return part.inlineData.data;
+        }
+    }
+
+    // Log text part for debugging if no image is returned
+    for (const part of response.candidates[0].content.parts) {
+        if (part.text) {
+             console.warn("AI returned text instead of image:", part.text);
+        }
+    }
+    
+    return null;
+}

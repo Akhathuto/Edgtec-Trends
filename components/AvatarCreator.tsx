@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
-import { generateAvatar } from '../services/geminiService.ts';
+import { generateAvatar, generateAvatarFromPhoto } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, Save, MessageSquare, Send } from './Icons.tsx';
+import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, Save, MessageSquare, Send, UploadCloud } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
@@ -57,7 +57,7 @@ interface TranscriptEntry {
     text: string;
 }
 
-const avatarStyles = ['Cartoon', 'Realistic', 'Anime', 'Pixel Art', '3D Model'];
+const avatarStyles = ['Cartoon', 'Realistic', 'Anime', 'Pixel Art', '3D Model', 'Cyberpunk', 'Fantasy', 'Sci-Fi', 'Vintage'];
 const genders = ['Male', 'Female', 'Non-binary'];
 const shotTypes = ['Close-up Portrait', 'Upper Body Shot', 'Full Body Shot'];
 const voices = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir'];
@@ -104,6 +104,9 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const { showToast } = useToast();
 
     // Generation State
+    const [generationMode, setGenerationMode] = useState<'scratch' | 'photo'>('scratch');
+    const [sourceImageFile, setSourceImageFile] = useState<File | null>(null);
+    const [sourceImageBase64, setSourceImageBase64] = useState<{ data: string; mimeType: string; url: string; } | null>(null);
     const [gender, setGender] = useState(genders[0]);
     const [avatarStyle, setAvatarStyle] = useState(avatarStyles[0]);
     const [hairStyle, setHairStyle] = useState(hairStyles[0]);
@@ -164,12 +167,38 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
 
     const systemInstruction = `You are an AI avatar. Your appearance is '${avatarStyle}' and you are a ${gender}. Your features are: Hair: ${hairStyle}, ${hairColor}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothingString || 'not specified'}. Accessories: ${accessoriesString || 'not specified'}. Other Details: ${extraDetails}. The background is '${background}'. Your personality is '${personality}'. Embody this persona. Keep your responses conversational and relatively brief.`;
     
-    const handleGenerate = useCallback(async () => {
-        const customDetailsProvided = hairColor.trim() || otherFacialFeatures.trim() || clothingTop.trim() || clothingBottom.trim() || clothingShoes.trim() || accessoriesHat.trim() || accessoriesJewelry.trim() || extraDetails.trim();
-        if (!customDetailsProvided) {
-            setError('Please provide some details for your avatar (e.g., hair color, clothing, features).');
-            return;
+    const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string, url: string }> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                const base64Data = result.split(',')[1];
+                resolve({ data: base64Data, mimeType: file.type, url: result });
+            };
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 4 * 1024 * 1024) { // 4MB limit
+                setError("Image size should not exceed 4MB.");
+                return;
+            }
+            if (!['image/png', 'image/jpeg'].includes(file.type)) {
+                setError("Please upload a PNG or JPG image.");
+                return;
+            }
+            setError(null);
+            setSourceImageFile(file);
+            const base64 = await fileToBase64(file);
+            setSourceImageBase64(base64);
         }
+    };
+
+    const handleGenerate = useCallback(async () => {
         setLoading(true);
         setPhase('generating');
         setError(null);
@@ -177,24 +206,47 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
 
         const featuresString = `Hair: ${hairStyle}${hairColor ? `, ${hairColor}` : ''}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothingString || 'not specified'}. Accessories: ${accessoriesString || 'not specified'}. Other details: ${extraDetails || 'none'}.`;
 
-
         try {
-            const result = await generateAvatar(gender, avatarStyle, featuresString, background, shotType);
-            setAvatarBase64(result);
-            setPhase('ready');
-            addContentToHistory({
-                type: 'Avatar',
-                summary: `Avatar: ${[hairStyle, hairColor, clothingTop].filter(Boolean).join(', ').substring(0, 40)}...`,
-                content: { gender, style: avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, avatarBase64: result }
-            });
-            logActivity(`generated a ${avatarStyle} avatar`, 'User');
+            let result: string | null = null;
+            if (generationMode === 'scratch') {
+                const customDetailsProvided = hairColor.trim() || otherFacialFeatures.trim() || clothingTop.trim() || clothingBottom.trim() || clothingShoes.trim() || accessoriesHat.trim() || accessoriesJewelry.trim() || extraDetails.trim();
+                if (!customDetailsProvided) {
+                    setError('Please provide some details for your avatar (e.g., hair color, clothing, features).');
+                    setPhase('idle');
+                    setLoading(false);
+                    return;
+                }
+                result = await generateAvatar(gender, avatarStyle, featuresString, background, shotType);
+            } else { // 'photo' mode
+                if (!sourceImageBase64) {
+                    setError('Please upload a source photo.');
+                    setPhase('idle');
+                    setLoading(false);
+                    return;
+                }
+                const prompt = `Transform the person in this photo into a ${shotType} avatar. Apply a ${avatarStyle} visual style. The avatar should be ${gender}. Additional features or changes: ${featuresString}. Set the background to: ${background}. Key personality trait for the look: ${personality}. The final image should be a high-quality, professional avatar. Retain the likeness of the person in the photo but fully adapt them to the new style.`;
+                result = await generateAvatarFromPhoto(sourceImageBase64.data, sourceImageBase64.mimeType, prompt);
+            }
+
+            if (result) {
+                setAvatarBase64(result);
+                setPhase('ready');
+                addContentToHistory({
+                    type: 'Avatar',
+                    summary: `Avatar: ${generationMode === 'scratch' ? [hairStyle, hairColor, clothingTop].filter(Boolean).join(', ') : `from photo, ${avatarStyle} style`}`,
+                    content: { gender, style: avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, avatarBase64: result }
+                });
+                logActivity(`generated a ${avatarStyle} avatar ${generationMode === 'photo' ? 'from a photo' : 'from scratch'}`, 'User');
+            } else {
+                throw new Error('The AI did not return an image. Please try adjusting your prompt.');
+            }
         } catch (e: any) {
             setError(e.message || 'An error occurred while generating the avatar.');
             setPhase('idle');
         } finally {
             setLoading(false);
         }
-    }, [gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, addContentToHistory, logActivity, faceDetails, clothingString, accessoriesString]);
+    }, [generationMode, sourceImageBase64, gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses, otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, extraDetails, background, shotType, personality, faceDetails, clothingString, accessoriesString, addContentToHistory, logActivity]);
     
     const cleanupAudio = useCallback(() => {
         const resources = audioResourcesRef.current;
@@ -415,6 +467,9 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setAvatarStyle(avatarStyles[0]);
         setPhase('idle');
         setInteractionMode('none');
+        setGenerationMode('scratch');
+        setSourceImageFile(null);
+        setSourceImageBase64(null);
     }
 
     if (user?.plan !== 'pro') {
@@ -425,7 +480,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 <p className="text-slate-400 mb-6 max-w-md">The Avatar Creator is a Pro feature. Upgrade your account to create a unique avatar for your brand or profile.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    className="button-primary"
                 >
                     View Plans
                 </button>
@@ -447,6 +502,11 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                         Design your AI persona, then bring it to life.
                     </p>
                     
+                    <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700 max-w-sm mx-auto mb-6">
+                        <button onClick={() => setGenerationMode('scratch')} className={`tab-button w-1/2 ${generationMode === 'scratch' ? 'active' : ''}`}>From Scratch</button>
+                        <button onClick={() => setGenerationMode('photo')} className={`tab-button w-1/2 ${generationMode === 'photo' ? 'active' : ''}`}>From Photo</button>
+                    </div>
+
                     {phase === 'generating' ? (
                         <div className="text-center py-10">
                             <Spinner size="lg" />
@@ -455,6 +515,28 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                         </div>
                     ) : (
                         <div className="space-y-8 max-w-4xl mx-auto">
+                           {generationMode === 'photo' && (
+                                <div className="space-y-4">
+                                    {!sourceImageBase64 ? (
+                                        <div className="flex items-center justify-center w-full">
+                                            <label htmlFor="avatar-source-photo" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                                                <UploadCloud className="w-10 h-10 mb-4 text-slate-400" />
+                                                <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload your photo</span></p>
+                                                <p className="text-xs text-slate-500">PNG or JPG (MAX. 4MB)</p>
+                                                <input id="avatar-source-photo" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
+                                            </label>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <img src={sourceImageBase64.url} alt="Source" className="max-h-48 mx-auto rounded-lg mb-2" />
+                                            <p className="text-sm text-slate-400">Source Image: {sourceImageFile?.name}</p>
+                                            <button onClick={() => { setSourceImageFile(null); setSourceImageBase64(null); }} className="text-xs text-red-400 hover:underline mt-1">Remove Image</button>
+                                        </div>
+                                    )}
+                                    <p className="text-center text-slate-400 -mt-2">Then, describe the avatar style you want or any changes to make.</p>
+                                </div>
+                            )}
+
                            <FormSection title="Appearance">
                                 <div>
                                     <label className="input-label" htmlFor="avatar-gender">Gender</label>
@@ -476,7 +558,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                                 </div>
                                 <div>
                                     <label className="input-label" htmlFor="hair-color">Hair Color</label>
-                                    <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue'" className="form-input"/>
+                                    <input id="hair-color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., 'neon blue' (to change)" className="form-input"/>
                                 </div>
                                  <div>
                                     <label className="input-label" htmlFor="eye-color">Eye Color</label>
@@ -548,9 +630,8 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                                 </div>
                             </FormSection>
                             
-
-                            <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px text-base mt-6">
-                            {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
+                            <button onClick={handleGenerate} disabled={loading || (generationMode === 'photo' && !sourceImageBase64)} className="button-primary w-full !py-3 !text-base mt-6">
+                                {loading ? <Spinner /> : <><UserIcon className="w-5 h-5 mr-2" /> Generate Avatar</>}
                             </button>
                             {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
                         </div>
@@ -577,32 +658,32 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 <div className="w-full space-y-3 pt-6 border-t border-slate-700/50">
                      {phase === 'ready' && (
                          <div className="space-y-3">
-                            <button onClick={handleStartTextChat} className="w-full flex items-center justify-center bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors"><MessageSquare className="w-5 h-5 mr-2"/>Start Text Chat</button>
+                            <button onClick={handleStartTextChat} className="button-primary w-full"><MessageSquare className="w-5 h-5 mr-2"/>Start Text Chat</button>
                             <div className="flex gap-2">
                                 <select value={voice} onChange={(e) => setVoice(e.target.value)} className="form-select flex-grow">
                                     {voices.map(v => <option key={v} value={v}>{v} Voice</option>)}
                                 </select>
-                                <button onClick={handleStartLiveConversation} title="Start Voice Chat" className="flex-shrink-0 !px-4 flex items-center justify-center bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors"><Mic className="w-5 h-5"/></button>
+                                <button onClick={handleStartLiveConversation} title="Start Voice Chat" className="button-primary flex-shrink-0 !px-4"><Mic className="w-5 h-5"/></button>
                             </div>
                         </div>
                     )}
 
                     {phase === 'conversing' && (
-                        <button onClick={handleEndConversation} className="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 font-semibold text-white px-4 py-2 rounded-lg transition-colors">
+                        <button onClick={handleEndConversation} className="button-danger w-full">
                             <Phone className="w-5 h-5 mr-2"/>End Conversation
                         </button>
                     )}
                      {phase === 'ended' && (
-                        <button onClick={handleSaveTranscript} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors">
+                        <button onClick={handleSaveTranscript} className="button-secondary w-full">
                             <Save className="w-5 h-5 mr-2"/>Save Transcript
                         </button>
                     )}
                     
                     <div className="flex gap-3">
-                        <button onClick={handleDownload} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors"><Download className="w-5 h-5 mr-2"/>Download</button>
-                        <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center bg-slate-700 hover:bg-slate-600 font-semibold text-white px-4 py-2 rounded-lg transition-colors"><RefreshCw className="w-5 h-5 mr-2"/>Regen</button>
+                        <button onClick={handleDownload} className="button-secondary w-full"><Download className="w-5 h-5 mr-2"/>Download</button>
+                        <button onClick={handleGenerate} disabled={loading} className="button-secondary w-full"><RefreshCw className="w-5 h-5 mr-2"/>Regen</button>
                     </div>
-                    <button onClick={handleStartOver} className="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 font-semibold text-white px-4 py-2 rounded-lg transition-colors">Start Over</button>
+                    <button onClick={handleStartOver} className="w-full !bg-slate-800 hover:!bg-slate-700 font-semibold text-white px-4 py-2 rounded-lg transition-colors">Start Over</button>
 
                 </div>
             </div>
@@ -634,7 +715,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                         {interactionMode === 'text' && phase === 'conversing' && (
                             <div className="p-4 border-t border-slate-700/50">
                                 <div className="relative">
-                                    <input type="text" value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner" disabled={isTextLoading}/>
+                                    <input type="text" value={textInput} onChange={(e) => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." className="form-input !py-3 !pl-4 !pr-12" disabled={isTextLoading}/>
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                                         <button onClick={handleSendTextMessage} className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50" disabled={isTextLoading || !textInput.trim()}>
                                             <Send className="w-5 h-5 text-white"/>
