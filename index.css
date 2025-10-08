@@ -2,50 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617, #4c1d95);
-  background-size: 400% 400%;
-  animation: bg-animate 60s ease infinite;
-  color: #e2e8f0; /* Default text color slate-200 */
-}
-@keyframes bg-animate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617, #4c1d95);
+    background-size: 400% 400%;
+    animation: bg-animate 60s ease infinite;
+    color: #e2e8f0; /* slate-200 */
+  }
+
+  @keyframes bg-animate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 }
 
-/* Custom utility classes for the new design */
-.text-glow {
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 20px rgba(167, 139, 250, 0.2);
+@layer components {
+  /* Define custom component classes used throughout the app */
+  .form-select {
+      @apply w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner;
+  }
+  .form-input {
+      @apply w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner text-white placeholder:text-slate-400;
+  }
+  .tab-button {
+      @apply px-4 py-2 text-sm font-semibold rounded-full transition-colors flex items-center;
+  }
+  .tab-button.active {
+      @apply bg-violet text-white;
+  }
+  .tab-button:not(.active) {
+      @apply text-slate-300 hover:bg-slate-700/50;
+  }
+  .button-primary {
+      @apply flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-5 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px;
+  }
+  .button-secondary {
+      @apply bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors;
+  }
+  .button-danger {
+      @apply bg-red-500/20 text-red-300 font-semibold py-2 px-4 rounded-lg hover:bg-red-500/30 transition-colors;
+  }
+  .button-copy {
+      @apply text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded-md text-slate-300 flex items-center;
+  }
+  .interactive-card-nested {
+    @apply bg-slate-800/50 p-4 rounded-lg border border-slate-700;
+  }
+  .card-title {
+    @apply text-lg font-bold text-slate-200 mb-2 flex items-center gap-2;
+  }
+  .card-content {
+    @apply text-slate-300 text-sm;
+  }
 }
-.bg-brand-glass {
-  background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
-  backdrop-filter: blur(16px);
-  --tw-border-opacity: 0.5;
-  border-color: rgb(51 65 85 / var(--tw-border-opacity)); /* slate-700/50 */
-}
-.interactive-card {
-  background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
-  backdrop-filter: blur(16px);
-  border: 1px solid rgb(51 65 85 / 0.5); /* slate-700/50 */
-  border-radius: 0.75rem; /* rounded-xl */
-  padding: 1.5rem; /* p-6 */
-  transition: all 0.3s ease-in-out;
-}
-.interactive-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.5); /* violet-500/50 */
-  box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -4px rgba(139, 92, 246, 0.1);
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 20px rgba(167, 139, 250, 0.2);
+  }
+  .bg-brand-glass {
+    background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+    backdrop-filter: blur(16px);
+    --tw-border-opacity: 0.5;
+    border-color: rgb(51 65 85 / var(--tw-border-opacity)); /* slate-700/50 */
+  }
+  .interactive-card {
+    background-color: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+    backdrop-filter: blur(16px);
+    border: 1px solid rgb(51 65 85 / 0.5); /* slate-700/50 */
+    border-radius: 0.75rem; /* rounded-xl */
+    padding: 1.5rem; /* p-6 */
+    transition: all 0.3s ease-in-out;
+  }
+  .interactive-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.5); /* violet-500/50 */
+    box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -4px rgba(139, 92, 246, 0.1);
+  }
 }
