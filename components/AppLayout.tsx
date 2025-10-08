@@ -209,6 +209,7 @@ const AppLayout: React.FC = () => {
           <span className="mx-2">|</span>
           <button onClick={() => setActiveTab(Tab.License)} className="hover:text-slate-300 transition-colors">License</button>
           <p className="mt-1">&copy; {new Date().getFullYear()} utrend. All rights reserved.</p>
+          <p className="mt-2 text-slate-600">Powered by Edgtec by Nolotec</p>
         </footer>
     </div>
   );
