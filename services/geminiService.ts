@@ -6,32 +6,35 @@ import {
 } from '../types.ts';
 import { avatarStyles, genders, shotTypes, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
 
+// FIX: Add missing youtubeSearch function to be used as a function calling tool.
+export const youtubeSearch = (args: { query: string }): string => {
+    console.log(`Simulating YouTube search for: "${args.query}"`);
+    // This is a mock response.
+    if (args.query.toLowerCase().includes('trending')) {
+        return JSON.stringify([
+            { title: "Top 5 Viral Challenges This Week", views: "10M" },
+            { title: "New Gadget Unboxing and Review", views: "5.2M" },
+            { title: "Learn to Code in 10 Minutes", views: "3.1M" }
+        ]);
+    }
+    return JSON.stringify([
+        { title: `Tutorial for ${args.query}`, views: "1.2M" },
+        { title: `Best moments of ${args.query} in 2024`, views: "800k" }
+    ]);
+};
+
 // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- Tool Definition for Function Calling ---
-/**
- * A simulated YouTube search tool. In a real application, this would call the YouTube Data API.
- * @param query The search query string.
- * @returns A JSON string with mocked search results.
- */
-export const youtubeSearch = ({ query }: { query: string }): string => {
-    console.log(`[Tool Executed] YouTube Search for: "${query}"`);
-    // Mocked data for demonstration purposes
-    const mockResults = {
-        videos: [
-            { title: `Top 5 Gadgets in 2024 for ${query}`, channel: 'TechFlow', views: '2.1M', published: '2 weeks ago', url: 'https://youtube.com/watch?v=example1' },
-            { title: `Is ${query} worth it? An Honest Review`, channel: 'HonestReviews', views: '850K', published: '1 month ago', url: 'https://youtube.com/watch?v=example2' },
-            { title: `Ultimate Guide to ${query} for Beginners`, channel: 'CreatorAcademy', views: '1.5M', published: '3 weeks ago', url: 'https://youtube.com/watch?v=example3' },
-        ],
-        search_summary: `The search for "${query}" shows strong interest in reviews and beginner guides. Videos focusing on "Top 5" lists and "Honest Reviews" have high view counts, indicating user trust in curated and critical content.`
-    };
-    return JSON.stringify(mockResults);
-};
 
-
-const parseJsonResponse = <T>(text: string, fallback: T): T => {
+const parseJsonResponse = <T>(text: string | undefined | null, fallback: T): T => {
     try {
+        if (!text) {
+             console.warn("No content found in response text, returning fallback.");
+             return fallback;
+        }
+        
         // FIX: Per Gemini API guidelines, when responseMimeType is "application/json",
         // the response.text is a JSON string and should not be parsed from a markdown block.
         const jsonStr = text.trim();
@@ -402,15 +405,14 @@ export async function editImage(base64ImageData: string, mimeType: string, promp
             responseModalities: [Modality.IMAGE, Modality.TEXT],
         },
     });
-    let image = null;
-    let text = null;
-    for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-            image = part.inlineData.data;
-        } else if (part.text) {
-            text = part.text;
-        }
-    }
+
+    const parts = response.candidates?.[0]?.content?.parts;
+    const imagePart = parts?.find(p => p.inlineData);
+    const textPart = parts?.find(p => p.text);
+
+    const image = imagePart?.inlineData?.data || null;
+    const text = textPart?.text || null;
+
     return { image, text };
 }
 
@@ -591,17 +593,17 @@ export async function generateAvatarFromPhoto(base64ImageData: string, mimeType:
         },
     });
     
-    for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-            return part.inlineData.data;
-        }
+    const parts = response.candidates?.[0]?.content?.parts;
+    const imagePart = parts?.find(p => p.inlineData);
+      
+    if (imagePart?.inlineData?.data) {
+        return imagePart.inlineData.data;
     }
-
+      
     // Log text part for debugging if no image is returned
-    for (const part of response.candidates[0].content.parts) {
-        if (part.text) {
-             console.warn("AI returned text instead of image:", part.text);
-        }
+    const textPart = parts?.find(p => p.text);
+    if (textPart?.text) {
+        console.warn("AI returned text instead of image:", textPart.text);
     }
     
     return null;

@@ -165,12 +165,14 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleDownloadImage}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Download the generated image as a PNG file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download
                         </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Clear the prompt and settings to start over"
                         >
                            Start Over
                         </button>
@@ -178,6 +180,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                             onClick={handleGenerate}
                             disabled={loading}
                             className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            title="Generate a new image with the same prompt and settings"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                         </button>

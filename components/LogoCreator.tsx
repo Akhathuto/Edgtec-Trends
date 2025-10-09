@@ -165,12 +165,14 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleDownloadLogo}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Download the generated logo as a PNG file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download
                         </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Clear the form and start a new logo design"
                         >
                            Start Over
                         </button>
@@ -178,6 +180,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                             onClick={handleGenerate}
                             disabled={loading}
                             className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            title="Generate a new logo with the same prompt and settings"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                         </button>

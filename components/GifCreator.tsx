@@ -194,12 +194,14 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={() => handleDownload(gifUrl, `utrend_gif_${Date.now()}.mp4`)}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Download the generated GIF as an MP4 file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download GIF
                         </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Clear the prompt and start over"
                         >
                            Start Over
                         </button>
@@ -207,6 +209,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                             onClick={handleGenerate}
                             disabled={loading}
                             className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            title="Generate a new GIF with the same prompt"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                         </button>

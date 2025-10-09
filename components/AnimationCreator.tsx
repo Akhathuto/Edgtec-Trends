@@ -243,12 +243,14 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                         <button
                             onClick={() => handleDownload(animationUrl, `utrend_animation_${Date.now()}.mp4`)}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Download the generated animation as an MP4 file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download Animation
                         </button>
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            title="Clear the prompt and start over"
                         >
                            Start Over
                         </button>
@@ -256,6 +258,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                             onClick={handleGenerate}
                             disabled={loading}
                             className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            title="Generate a new animation with the same prompt"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
                         </button>

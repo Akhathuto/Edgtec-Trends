@@ -278,6 +278,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                 placeholder="e.g., 'a dog is now wearing a superhero cape', 'the car is now bright red'"
                                 className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none h-20 shadow-inner"
                                 rows={2}
+                                title="Describe the main change you want to make to the video"
                             />
                         </div>
                         <div className="mt-2">
@@ -287,7 +288,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                     <label htmlFor="style-select" className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-1">
                                         <Sliders className="w-4 h-4 text-violet-400" /> Style
                                     </label>
-                                    <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all" title="Apply a specific visual style to the video">
                                         <option value="">Default Style</option>
                                         {videoStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                     </select>
@@ -296,7 +297,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                     <label htmlFor="effect-select" className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-1">
                                         <Zap className="w-4 h-4 text-violet-400" /> Special Effect
                                     </label>
-                                    <select id="effect-select" value={selectedEffect} onChange={(e) => setSelectedEffect(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="effect-select" value={selectedEffect} onChange={(e) => setSelectedEffect(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all" title="Add a special effect to the video">
                                         <option value="">No Effect</option>
                                         {specialEffects.map(effect => <option key={effect} value={effect}>{effect}</option>)}
                                     </select>
@@ -305,7 +306,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                     <label htmlFor="camera-select" className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-1">
                                         <Film className="w-4 h-4 text-violet-400" /> Camera Motion
                                     </label>
-                                    <select id="camera-select" value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="camera-select" value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all" title="Apply a specific camera motion to the video">
                                         <option value="">Default Motion</option>
                                         {cameraMotions.map(motion => <option key={motion} value={motion}>{motion}</option>)}
                                     </select>
@@ -318,12 +319,14 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                 onClick={() => handleDownload(editedVideoUrl!, `utrend_edit_${Date.now()}.mp4`)}
                                 disabled={!editedVideoUrl || loading}
                                 className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                                title="Download the edited video as an MP4 file"
                             >
                                 <Download className="w-5 h-5 mr-2" /> Download
                             </button>
                              <button
                                 onClick={handleStartOver}
                                 className="w-full sm:w-auto flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                                title="Clear the current video and start a new edit"
                             >
                                Start Over
                             </button>
@@ -331,6 +334,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                                 onClick={handleGenerate}
                                 disabled={loading || !frameBase64}
                                 className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 transform hover:-translate-y-px"
+                                title="Apply your edits and generate a new video. This may take a few minutes."
                             >
                                {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate Edit</>}
                             </button>

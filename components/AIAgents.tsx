@@ -192,45 +192,48 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
 
     try {
         let result = await chatInstance.sendMessage({ message });
+        let functionCalls = result.functionCalls;
 
-        while (result.candidates[0].content.parts[0].functionCall) {
-            const fc = result.candidates[0].content.parts[0].functionCall;
-            const { name, args } = fc;
+        while (functionCalls && functionCalls.length > 0) {
+            const functionResponses = [];
+            for (const functionCall of functionCalls) {
+                const { name, args } = functionCall;
 
-            const toolMessage: ChatMessage = { role: 'tool', content: `Using tool: ${name}...`, toolCall: { name, args } };
-            currentHistory = [...currentHistory, toolMessage];
-            setHistory(currentHistory);
-
-            if (name in availableTools) {
-                const toolFn = availableTools[name as keyof typeof availableTools];
-                // FIX: Cast 'args' to the expected type for the tool function to resolve the type error.
-                const toolResponse = toolFn(args as { query: string });
-
-                const toolResultWithMessage: ChatMessage = { ...toolMessage, toolResult: { result: toolResponse } };
-                currentHistory[currentHistory.length - 1] = toolResultWithMessage;
+                const toolMessage: ChatMessage = { role: 'tool', content: `Using tool: ${name}...`, toolCall: { name, args } };
+                currentHistory = [...currentHistory, toolMessage];
                 setHistory(currentHistory);
 
-                // FIX: The `sendMessage` method expects an object with a `message` property for sending tool responses in some library versions.
-                result = await chatInstance.sendMessage({
-                    message: [{
-                        functionResponse: { name, response: { result: toolResponse } }
-                    }]
-                });
+                let toolOutputResult;
+                if (name in availableTools) {
+                    const toolFn = availableTools[name as keyof typeof availableTools];
+                    toolOutputResult = toolFn(args as { query: string });
+                } else {
+                    toolOutputResult = `Error: Tool "${name}" not found.`;
+                }
 
-            } else {
-                // If the tool is not one of our defined functions, it must be googleSearch
-                 // FIX: The `sendMessage` method expects an object with a `message` property for sending tool responses in some library versions.
-                 result = await chatInstance.sendMessage({
-                    message: [{
-                        functionResponse: { name, response: { /* Let Gemini handle it */ } }
-                    }]
+                functionResponses.push({
+                    functionResponse: {
+                        name,
+                        response: { result: toolOutputResult }
+                    }
                 });
+                
+                const toolResultWithMessage: ChatMessage = { ...toolMessage, toolResult: { result: toolOutputResult } };
+                currentHistory[currentHistory.length - 1] = toolResultWithMessage;
+                setHistory(currentHistory);
             }
+
+            result = await chatInstance.sendMessage({
+                message: functionResponses
+            });
+
+            functionCalls = result.functionCalls;
         }
         
-        // Final text response
         const finalResponse = result.text;
-        setHistory(prev => [...prev, { role: 'model', content: finalResponse }]);
+        if (finalResponse) {
+            setHistory(prev => [...prev, { role: 'model', content: finalResponse }]);
+        }
 
     } catch (e) {
       console.error("Error sending message to agent:", e);
@@ -254,10 +257,9 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
     
     setHistory(initialHistory);
-    const chatInstance = initializeChat(agent, agentSettings, initialHistory);
+    initializeChat(agent, agentSettings, initialHistory);
 
     if (initialPrompt) {
-        // Need to pass the new chat instance directly as state update is async
         handleSendMessage(initialPrompt, agent, initialHistory);
     }
 

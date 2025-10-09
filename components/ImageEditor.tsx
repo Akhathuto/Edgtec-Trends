@@ -209,15 +209,16 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                             id="image-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)}
                             placeholder="General Instruction (e.g., 'add a birthday hat on the cat')"
                             className="form-input h-20" rows={2}
+                            title="Describe the main change you want, e.g., 'add a birthday hat on the cat'"
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <div>
                                 <label htmlFor="remove-object" className="block text-sm font-medium text-slate-300 mb-1">Remove Object</label>
-                                <input id="remove-object" type="text" value={objectToRemove} onChange={(e) => setObjectToRemove(e.target.value)} placeholder="e.g., 'the person on the left'" className="form-input"/>
+                                <input id="remove-object" type="text" value={objectToRemove} onChange={(e) => setObjectToRemove(e.target.value)} placeholder="e.g., 'the person on the left'" className="form-input" title="Specify an object to remove from the image"/>
                             </div>
                             <div>
                                 <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1">Apply Style</label>
-                                <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="form-select">
+                                <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="form-select" title="Apply a specific visual style to the entire image">
                                     {imageStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                 </select>
                             </div>
@@ -229,13 +230,14 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                         onClick={handleDownloadImage}
                         disabled={!editedImage || loading}
                         className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                        title="Download the edited image"
                     >
                         <Download className="w-5 h-5 mr-2" /> Download
                     </button>
                     <button
                         onClick={handleStartOver}
                         className="w-full sm:w-auto flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
-                        title="Clear the current image and start over"
+                        title="Clear the current image and start a new edit"
                     >
                        Start Over
                     </button>
@@ -243,7 +245,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                         onClick={handleGenerate}
                         disabled={loading}
                         className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-                        title="Regenerate the edited image"
+                        title="Apply your edits and generate a new image"
                     >
                        {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate</>}
                     </button>
