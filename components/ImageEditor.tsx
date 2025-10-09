@@ -164,7 +164,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
         
         {!imageBase64 && (
              <div className="flex items-center justify-center w-full">
-               <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+               <label htmlFor="dropzone-file" title="Upload the image you want to edit (PNG or JPG, max 4MB)" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <UploadCloud className="w-10 h-10 mb-4 text-slate-400" />
                         <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
@@ -200,7 +200,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                 <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-lg font-semibold text-slate-200 flex items-center gap-2"><Sliders className="w-5 h-5 text-violet-400" /> AI Toolkit</h4>
-                        <button onClick={handleClearToolkit} className="flex items-center gap-2 text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded text-slate-300">
+                        <button onClick={handleClearToolkit} title="Reset all toolkit inputs to their default values" className="flex items-center gap-2 text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded text-slate-300">
                             <Trash2 className="w-3 h-3"/> Clear Toolkit
                         </button>
                     </div>

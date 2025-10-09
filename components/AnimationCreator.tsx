@@ -185,6 +185,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                                     value={selectedTemplate}
                                     onChange={handleTemplateChange}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    title="Choose a template to get started with a pre-filled prompt."
                                 >
                                     {animationTemplates.map(template => <option key={template.name} value={template.name}>{template.name}</option>)}
                                 </select>
@@ -196,6 +197,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                                     value={animationStyle}
                                     onChange={(e) => setAnimationStyle(e.target.value)}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    title="Select the visual style for your animation."
                                  >
                                     {animationStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                  </select>
@@ -250,7 +252,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
-                            title="Clear the prompt and start over"
+                            title="Clear the prompt and start a new animation"
                         >
                            Start Over
                         </button>

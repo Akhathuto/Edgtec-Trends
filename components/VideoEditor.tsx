@@ -242,7 +242,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                 
                 {!videoFile && (
                     <div className="flex items-center justify-center w-full">
-                       <label htmlFor="video-upload" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                       <label htmlFor="video-upload" title="Upload the video you want to edit (MP4, MOV, etc., max 50MB)" className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <UploadCloud className="w-10 h-10 mb-4 text-slate-400" />
                                 <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload a video</span></p>

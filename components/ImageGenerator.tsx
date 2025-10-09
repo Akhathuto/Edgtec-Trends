@@ -100,6 +100,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                                     value={imageStyle}
                                     onChange={(e) => setImageStyle(e.target.value)}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    title="Choose the visual style for your image"
                                  >
                                     {imageStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                  </select>
@@ -111,6 +112,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                                     value={aspectRatio}
                                     onChange={(e) => setAspectRatio(e.target.value)}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    title="Choose the aspect ratio (width:height) for your image"
                                  >
                                     {aspectRatios.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}
                                  </select>
@@ -128,7 +130,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                             onClick={handleGenerate}
                             disabled={loading}
                             className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
-                            title="Generate your image."
+                            title="Generate your image"
                         >
                            <ImageIcon className="w-5 h-5 mr-2" /> Generate Image
                         </button>
@@ -153,6 +155,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
                             onClick={() => setIsGalleryOpen(true)}
                             className="w-full max-w-lg rounded-lg bg-black/20 shadow-lg p-2 group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-violet-500"
                             aria-label="View generated image in gallery"
+                            title="View a larger preview of your image"
                         >
                             <img 
                                 src={`data:image/png;base64,${imageBase64}`}

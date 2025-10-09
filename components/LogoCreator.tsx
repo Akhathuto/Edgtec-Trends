@@ -99,6 +99,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                                     value={logoStyle}
                                     onChange={(e) => setLogoStyle(e.target.value)}
                                     className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    title="Select the overall style for your logo design"
                                  >
                                     {logoStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                  </select>
@@ -110,6 +111,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                                         type="checkbox"
                                         checked={transparentBg}
                                         onChange={(e) => setTransparentBg(e.target.checked)}
+                                        title="Check this to generate a logo with a transparent background (PNG)"
                                         className="w-4 h-4 text-violet-600 bg-slate-700 border-slate-500 rounded focus:ring-violet-500"
                                     />
                                     <label htmlFor="transparent-bg" className="ml-2 text-sm font-medium text-slate-300">Transparent Background</label>
@@ -153,6 +155,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                             onClick={() => setIsGalleryOpen(true)}
                             className="w-64 h-64 rounded-lg bg-white shadow-lg p-2 group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-violet-500"
                             aria-label="View generated logo in gallery"
+                            title="View a larger preview of your logo"
                         >
                             <img 
                                 src={`data:image/png;base64,${logoBase64}`}

@@ -201,7 +201,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
-                            title="Clear the prompt and start over"
+                            title="Clear the prompt and start a new GIF"
                         >
                            Start Over
                         </button>
