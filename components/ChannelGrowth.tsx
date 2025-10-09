@@ -85,9 +85,9 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for a Personalized Growth Plan</h2>
+                <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Personalized Growth Plans</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Get a custom, AI-powered strategy to grow your channel, including content, SEO, and thumbnail analysis.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                <button onClick={() => setActiveTab(Tab.Pricing)} title="View subscription plans to upgrade" className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     View Plans
                 </button>
             </div>
@@ -100,7 +100,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Connect a YouTube or TikTok Channel</h2>
                 <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add a YouTube or TikTok channel URL to your profile.</p>
-                <button onClick={() => setActiveTab(Tab.Profile)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                <button onClick={() => setActiveTab(Tab.Profile)} title="Go to your profile to connect a channel" className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     Go to Profile
                 </button>
             </div>
@@ -136,6 +136,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                     <button
                         onClick={handleGenerate}
                         disabled={loading || !selectedChannelId}
+                        title="Generate a personalized growth plan for the selected channel (Pro feature)"
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
                     >
                         {loading ? <Spinner /> : 'Generate My Growth Plan'}

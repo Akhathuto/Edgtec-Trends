@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { History, FileText, CheckCircle, Copy, Download } from './Icons.tsx';
@@ -269,6 +271,7 @@ const ContentHistory: React.FC = () => {
                 <div className="flex flex-wrap justify-center gap-2 mb-6">
                     <button 
                         onClick={() => setFilter('All')}
+                        title="Show all content types"
                         className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${filter === 'All' ? 'bg-violet text-white' : 'bg-slate-700/50 hover:bg-slate-600/50'}`}
                     >
                         All
@@ -277,6 +280,7 @@ const ContentHistory: React.FC = () => {
                         <button 
                             key={type}
                             onClick={() => setFilter(type)}
+                            title={`Filter by ${type}`}
                             className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${filter === type ? 'bg-violet text-white' : 'bg-slate-700/50 hover:bg-slate-600/50'}`}
                         >
                             {type}
@@ -300,7 +304,7 @@ const ContentHistory: React.FC = () => {
                                 </div>
                                 <div className="mt-4 pt-3 border-t border-slate-700/50 flex justify-between items-center">
                                     <p className="text-xs text-slate-500">{format(new Date(item.timestamp), 'MMM d, yyyy h:mm a')}</p>
-                                    <button onClick={() => setSelectedItem(item)} className="text-sm font-semibold text-violet-300 hover:text-white">View Content</button>
+                                    <button onClick={() => setSelectedItem(item)} title="View the details of this generated content" className="text-sm font-semibold text-violet-300 hover:text-white">View Content</button>
                                 </div>
                             </div>
                         ))}
@@ -316,6 +320,7 @@ const ContentHistory: React.FC = () => {
                     selectedItem && (
                         <button
                             onClick={handleDownload}
+                            title="Download this content"
                             className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                         >
                             <Download className="w-4 h-4" /> Download

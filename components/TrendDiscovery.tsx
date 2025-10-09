@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService.ts';
 import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types.ts';
@@ -195,20 +196,20 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                 <h3 className="text-xl font-bold mb-4 text-slate-200">Explore Trends</h3>
                 <div className="bg-brand-glass p-4 rounded-lg mb-4">
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <select onChange={(e) => setPlatform(e.target.value as any)} value={platform} className="form-select">
+                        <select onChange={(e) => setPlatform(e.target.value as any)} value={platform} className="form-select" title="Filter trends by platform">
                             {platformOptions.map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
-                        <select onChange={(e) => setCountry(e.target.value)} value={country} className="form-select">
+                        <select onChange={(e) => setCountry(e.target.value)} value={country} className="form-select" title="Filter trends by country">
                             {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
-                        <select onChange={(e) => setCategory(e.target.value)} value={category} className="form-select">
+                        <select onChange={(e) => setCategory(e.target.value)} value={category} className="form-select" title="Filter trends by content category">
                             {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     <div className="flex justify-center flex-wrap gap-2 mt-4">
-                        <button onClick={() => setContentType('videos')} className={`tab-button ${contentType === 'videos' ? 'active' : ''}`}><VideoIcon className="w-4 h-4 mr-2"/> Videos</button>
-                        <button onClick={() => setContentType('music')} className={`tab-button ${contentType === 'music' ? 'active' : ''}`}><Music className="w-4 h-4 mr-2"/> Music</button>
-                        <button onClick={() => setContentType('creators')} className={`tab-button ${contentType === 'creators' ? 'active' : ''}`}><Users className="w-4 h-4 mr-2"/> Creators</button>
+                        <button onClick={() => setContentType('videos')} className={`tab-button ${contentType === 'videos' ? 'active' : ''}`} title="Show trending videos"><VideoIcon className="w-4 h-4 mr-2"/> Videos</button>
+                        <button onClick={() => setContentType('music')} className={`tab-button ${contentType === 'music' ? 'active' : ''}`} title="Show trending music and sounds"><Music className="w-4 h-4 mr-2"/> Music</button>
+                        <button onClick={() => setContentType('creators')} className={`tab-button ${contentType === 'creators' ? 'active' : ''}`} title="Show trending creators"><Users className="w-4 h-4 mr-2"/> Creators</button>
                     </div>
                 </div>
                 {loadingContent ? <div className="flex justify-center p-8"><Spinner size="lg" /></div> : 
@@ -228,8 +229,9 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                             onChange={e => setSearchTerm(e.target.value)}
                             placeholder="e.g., 'AI in video editing'"
                             className="form-input flex-grow"
+                            title="Analyze a specific trend, topic, or keyword (Starter/Pro Feature)"
                         />
-                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-5 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px">
+                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-5 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px" title="Start analysis (Starter/Pro Feature)">
                             {loadingSearch ? <Spinner size="sm"/> : <Search className="w-5 h-5"/>}
                         </button>
                     </div>

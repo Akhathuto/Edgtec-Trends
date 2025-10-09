@@ -163,15 +163,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                         <p className="text-center sm:text-left text-slate-400">View and manage your account details.</p>
                     </div>
                     {!isEditing ? (
-                        <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mt-4 sm:mt-0 w-full sm:w-auto justify-center">
+                        <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mt-4 sm:mt-0 w-full sm:w-auto justify-center" title="Enable editing of your profile details">
                             <Edit className="w-4 h-4" /> Edit Profile
                         </button>
                     ) : (
                          <div className="flex items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
-                            <button onClick={handleCancel} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full justify-center">
+                            <button onClick={handleCancel} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full justify-center" title="Discard changes and exit edit mode">
                                 <X className="w-4 h-4" /> Cancel
                             </button>
-                            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 text-sm bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 w-full justify-center">
+                            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 text-sm bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 w-full justify-center" title="Save your profile changes">
                                 {loading ? <Spinner size="sm" /> : <><Save className="w-4 h-4" /> Save Changes</>}
                             </button>
                         </div>
@@ -187,11 +187,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                 <>
                                     <div>
                                         <label htmlFor="name" className="text-sm text-slate-400">Full Name</label>
-                                        <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                        <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white" title="Your full name"/>
                                     </div>
                                     <div>
                                         <label htmlFor="email" className="text-sm text-slate-400">Email Address</label>
-                                        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white" title="Your email address"/>
                                     </div>
                                 </>
                             ) : (
@@ -213,15 +213,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                 <>
                                     <div>
                                         <label htmlFor="country" className="text-sm text-slate-400">Country</label>
-                                        <input id="country" type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. South Africa" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                        <input id="country" type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. South Africa" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white" title="Your country of residence"/>
                                     </div>
                                      <div>
                                         <label htmlFor="phone" className="text-sm text-slate-400">Phone</label>
-                                        <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +27..." className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                        <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. +27..." className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white" title="Your phone number (optional)"/>
                                     </div>
                                      <div>
                                         <label htmlFor="company" className="text-sm text-slate-400">Company/Brand</label>
-                                        <input id="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. EDGTEC" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white"/>
+                                        <input id="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. EDGTEC" className="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mt-1 text-white" title="Your company or brand name (optional)"/>
                                     </div>
                                 </>
                             ) : (
@@ -256,6 +256,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                                 value={channel.platform}
                                                 onChange={(e) => handleChannelPlatformChange(channel.id, e.target.value as 'YouTube' | 'TikTok')}
                                                 className="bg-slate-700 border-slate-600 rounded-lg p-2 text-white"
+                                                title={`Change platform for ${channel.url.split('/').pop()}`}
                                             >
                                                 <option value="YouTube">YouTube</option>
                                                 <option value="TikTok">TikTok</option>
@@ -263,12 +264,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                         )}
                                     </div>
                                     {isEditing ? (
-                                        <input type="url" value={channel.url} onChange={(e) => handleChannelUrlChange(channel.id, e.target.value)} placeholder="https://..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" />
+                                        <input type="url" value={channel.url} onChange={(e) => handleChannelUrlChange(channel.id, e.target.value)} placeholder="https://..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" title={`Edit URL for ${channel.url.split('/').pop()}`}/>
                                     ) : (
                                         <p className="flex-grow text-slate-300 truncate text-sm">{channel.url}</p>
                                     )}
                                      {isEditing && (
-                                        <button onClick={() => handleRemoveChannel(channel.id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-full">
+                                        <button onClick={() => handleRemoveChannel(channel.id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-full" title={`Remove ${channel.url.split('/').pop()} from your profile`}>
                                             <Trash2 className="w-5 h-5"/>
                                         </button>
                                      )}
@@ -281,12 +282,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                 <div className="pt-4 border-t border-slate-700/50">
                                     <h4 className="text-lg font-semibold text-slate-200 mb-2">Add New Channel</h4>
                                     <div className="flex flex-col sm:flex-row items-center gap-2 p-2">
-                                        <select value={newChannelPlatform} onChange={(e) => setNewChannelPlatform(e.target.value as 'YouTube' | 'TikTok')} className="bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white">
+                                        <select value={newChannelPlatform} onChange={(e) => setNewChannelPlatform(e.target.value as 'YouTube' | 'TikTok')} className="bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white" title="Select the platform for the new channel">
                                             <option value="YouTube">YouTube</option>
                                             <option value="TikTok">TikTok</option>
                                         </select>
-                                        <input type="url" value={newChannelUrl} onChange={(e) => setNewChannelUrl(e.target.value)} placeholder="Enter new channel URL..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" />
-                                        <button onClick={handleAddChannel} className="w-full sm:w-auto bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors">Add</button>
+                                        <input type="url" value={newChannelUrl} onChange={(e) => setNewChannelUrl(e.target.value)} placeholder="Enter new channel URL..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" title="Enter the full URL of the new channel"/>
+                                        <button onClick={handleAddChannel} className="w-full sm:w-auto bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors" title="Add the new channel to your profile">Add</button>
                                     </div>
                                 </div>
                              )}

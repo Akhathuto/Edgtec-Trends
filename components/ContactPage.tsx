@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { Mail } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
@@ -46,23 +48,24 @@ const ContactPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="contact-name" className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-              <input type="text" id="contact-name" value={name} onChange={e => setName(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
+              <input type="text" id="contact-name" value={name} onChange={e => setName(e.target.value)} required title="Your full name" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
             </div>
             <div>
               <label htmlFor="contact-email" className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-              <input type="email" id="contact-email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
+              <input type="email" id="contact-email" value={email} onChange={e => setEmail(e.target.value)} required title="Your email address" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
             </div>
             <div>
               <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-300 mb-1">Phone Number (Optional)</label>
-              <input type="tel" id="contact-phone" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
+              <input type="tel" id="contact-phone" value={phone} onChange={e => setPhone(e.target.value)} title="Your phone number (optional)" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"/>
             </div>
             <div>
               <label htmlFor="contact-message" className="block text-sm font-medium text-slate-300 mb-1">Message</label>
-              <textarea id="contact-message" value={message} onChange={e => setMessage(e.target.value)} required rows={4} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"></textarea>
+              <textarea id="contact-message" value={message} onChange={e => setMessage(e.target.value)} required rows={4} title="Your message" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"></textarea>
             </div>
             <button
                 type="submit"
                 disabled={loading}
+                title="Send your message to the support team"
                 className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30"
             >
                 {loading ? <Spinner /> : 'Send Message'}

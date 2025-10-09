@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateContentIdeas, generateVideoScript } from '../services/geminiService.ts';
 import { ContentIdea } from '../types.ts';
@@ -111,13 +112,14 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                         onChange={(e) => setTopic(e.target.value)}
                         placeholder="Enter your topic or niche..."
                         className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner md:col-span-2"
+                        title="Enter the topic or niche for your content ideas"
                     />
                     <div>
                         <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
                         <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-                          <button onClick={() => setPlatform('YouTube')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700'}`}><Youtube className="w-5 h-5"/> YouTube</button>
-                          <button onClick={() => setPlatform('TikTok')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700'}`}><TikTok className="w-5 h-5"/> TikTok</button>
-                          <button onClick={() => setPlatform('Both')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${platform === 'Both' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Both</button>
+                          <button onClick={() => setPlatform('YouTube')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for YouTube"><Youtube className="w-5 h-5"/> YouTube</button>
+                          <button onClick={() => setPlatform('TikTok')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for TikTok"><TikTok className="w-5 h-5"/> TikTok</button>
+                          <button onClick={() => setPlatform('Both')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${platform === 'Both' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for both YouTube and TikTok">Both</button>
                         </div>
                     </div>
                     <div className="flex items-end">
@@ -125,6 +127,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                           onClick={() => handleGenerate()}
                           disabled={loading}
                           className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                          title="Generate viral content ideas based on your topic"
                         >
                           {loading ? <Spinner /> : <><Lightbulb className="w-5 h-5 mr-2" /> Generate Ideas</>}
                         </button>
@@ -166,7 +169,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                                     {idea.hashtags.map((tag, i) => <span key={i} className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">{tag}</span>)}
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-slate-700/50">
-                                    <button onClick={() => handleGenerateScript(idea)} className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50" disabled={user?.plan === 'free'}>
+                                    <button onClick={() => handleGenerateScript(idea)} className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50" disabled={user?.plan === 'free'} title="Generate a full video script from this idea (Starter/Pro Feature)">
                                         <FileText className="w-4 h-4 mr-2"/> Generate Script {user?.plan === 'free' && '(Upgrade)'}
                                     </button>
                                 </div>
@@ -178,8 +181,8 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
             
             <Modal isOpen={isScriptModalOpen} onClose={() => setIsScriptModalOpen(false)} title={`Script for: ${selectedIdea?.title || ''}`} footer={
                  <>
-                    <button onClick={handleDownloadScript} disabled={!generatedScript} className="button-secondary"><Download className="w-4 h-4 mr-2"/> Download</button>
-                    <button onClick={() => handleCopy(generatedScript || '', 'Script')} disabled={!generatedScript} className="button-primary"><Copy className="w-4 h-4 mr-2"/> Copy Script</button>
+                    <button onClick={handleDownloadScript} disabled={!generatedScript} className="button-secondary" title="Download the script as a text file"><Download className="w-4 h-4 mr-2"/> Download</button>
+                    <button onClick={() => handleCopy(generatedScript || '', 'Script')} disabled={!generatedScript} className="button-primary" title="Copy the full script to your clipboard"><Copy className="w-4 h-4 mr-2"/> Copy Script</button>
                 </>
             }>
                 {scriptLoading && <div className="flex justify-center p-8"><Spinner size="lg" /></div>}

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo } from 'react';
 // FIX: Imported the missing FileText icon.
 import {
@@ -377,6 +379,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
               placeholder="Search help topics..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              title="Search for help topics, keywords, or features"
               className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
             />
         </div>
@@ -390,6 +393,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
                   <div key={topic.title} className="border-b border-slate-800 last:border-b-0">
                     <button
                       onClick={() => toggleTopic(topic.title.toLowerCase().replace(/\s/g, '-'))}
+                      title={`Expand to see details about ${topic.title}`}
                       className="w-full flex justify-between items-center text-left p-3 hover:bg-slate-800/50 rounded-md transition-colors"
                     >
                       <span className="font-semibold text-md text-slate-100 flex items-center">{topic.icon} {topic.title}</span>
@@ -415,6 +419,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
             <p className="text-slate-400 mb-4">Our support team is here to assist you.</p>
             <button
                 onClick={() => setActiveTab(Tab.Contact)}
+                title="Go to the contact page"
                 className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
             >
                 Contact Us

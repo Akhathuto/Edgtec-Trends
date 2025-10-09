@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateThumbnailIdeas } from '../services/geminiService.ts';
 import { ThumbnailIdea, HistoryContentType } from '../types.ts';
@@ -72,11 +73,13 @@ const ThumbnailGenerator: React.FC<ThumbnailGeneratorProps> = ({ initialInput })
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Enter your video title..."
                         className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+                        title="Enter the title of your video to get thumbnail ideas"
                     />
                     <button
                         onClick={() => handleGenerate()}
                         disabled={loading}
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                        title="Generate three thumbnail concepts based on your video title"
                     >
                         {loading ? <Spinner /> : <><Lightbulb className="w-5 h-5 mr-2" /> Generate Ideas</>}
                     </button>
@@ -110,6 +113,7 @@ const ThumbnailGenerator: React.FC<ThumbnailGeneratorProps> = ({ initialInput })
                                 <button
                                     onClick={() => handleCopy(idea.imageGenPrompt)}
                                     className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white"
+                                    title="Copy the AI image generator prompt for this thumbnail idea"
                                 >
                                     <Copy className="w-4 h-4 mr-2" /> Copy Image Prompt
                                 </button>

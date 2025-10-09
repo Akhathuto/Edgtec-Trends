@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import Spinner from './Spinner.tsx';
 import { Wand, FileText, Trash2, Copy } from './Icons.tsx';
@@ -68,19 +69,19 @@ const PromptGenerator: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
                 <label htmlFor="prompt-topic" className="block text-sm font-medium text-slate-300 mb-1">Core Topic*</label>
-                <input id="prompt-topic" type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g., 'Ancient Rome'" required className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
+                <input id="prompt-topic" type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g., 'Ancient Rome'" required className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner" title="The main subject of your desired content"/>
             </div>
              <div>
                 <label htmlFor="prompt-audience" className="block text-sm font-medium text-slate-300 mb-1">Target Audience</label>
-                <input id="prompt-audience" type="text" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g., 'History students'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
+                <input id="prompt-audience" type="text" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g., 'History students'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner" title="Who is this content for?"/>
             </div>
              <div>
                 <label htmlFor="prompt-style" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
-                <input id="prompt-style" type="text" value={style} onChange={(e) => setStyle(e.target.value)} placeholder="e.g., 'Cinematic, dramatic lighting'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
+                <input id="prompt-style" type="text" value={style} onChange={(e) => setStyle(e.target.value)} placeholder="e.g., 'Cinematic, dramatic lighting'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner" title="Describe the aesthetic (e.g., cinematic, cartoon, vintage)"/>
             </div>
              <div>
                 <label htmlFor="prompt-elements" className="block text-sm font-medium text-slate-300 mb-1">Key Elements to Include</label>
-                <input id="prompt-elements" type="text" value={elements} onChange={(e) => setElements(e.target.value)} placeholder="e.g., 'Colosseum, legionaries marching'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner"/>
+                <input id="prompt-elements" type="text" value={elements} onChange={(e) => setElements(e.target.value)} placeholder="e.g., 'Colosseum, legionaries marching'" className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light shadow-inner" title="List specific objects, characters, or actions to include"/>
             </div>
         </div>
 
@@ -88,6 +89,7 @@ const PromptGenerator: React.FC = () => {
             <button
               onClick={handleClear}
               className="w-full sm:w-auto flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+              title="Clear all input fields"
             >
               <Trash2 className="w-5 h-5 mr-2" /> Clear
             </button>
@@ -95,6 +97,7 @@ const PromptGenerator: React.FC = () => {
               onClick={handleGenerate}
               disabled={loading}
               className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+              title="Generate an optimized AI prompt based on your inputs"
             >
               {loading ? <Spinner /> : <><Wand className="w-5 h-5 mr-2" /> Generate Prompt</>}
             </button>

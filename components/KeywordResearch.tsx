@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService.ts';
 import { KeywordAnalysis } from '../types.ts';
@@ -85,11 +86,13 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder="Enter keyword..."
                         className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
+                        title="Enter the keyword you want to research"
                     />
                     <button
                         onClick={() => handleAnalyze()}
                         disabled={loading}
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
+                        title="Get search volume, competition, and content ideas for this keyword"
                     >
                         {loading ? <Spinner /> : <><Search className="w-5 h-5 mr-2" /> Analyze</>}
                     </button>

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { repurposeVideoContent } from '../services/geminiService.ts';
 import { RepurposedContent } from '../types.ts';
@@ -69,11 +71,13 @@ const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => 
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="Paste a YouTube or TikTok video URL..."
+                        title="Paste the URL of the video to repurpose"
                         className="form-input flex-grow"
                     />
                     <button
                         onClick={() => handleRepurpose()}
                         disabled={loading}
+                        title="Generate repurposed content from this video"
                         className="button-primary flex items-center justify-center"
                     >
                         {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Repurpose</>}
@@ -95,7 +99,7 @@ const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => 
                     <div className="interactive-card lg:col-span-2">
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="card-title"><FileText className="w-5 h-5 text-violet-300" /> Blog Post</h3>
-                            <button onClick={() => handleCopy(content.blogPost)} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
+                            <button onClick={() => handleCopy(content.blogPost)} title="Copy blog post" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
                         </div>
                         <div className="prose prose-sm prose-invert max-w-none text-slate-300 bg-slate-800/50 p-3 rounded-md border border-slate-700 max-h-80 overflow-y-auto">
                             <p>{content.blogPost}</p>
@@ -107,7 +111,7 @@ const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => 
                         <div className="interactive-card">
                              <div className="flex justify-between items-center mb-2">
                                 <h3 className="card-title">Tweet Thread</h3>
-                                <button onClick={() => handleCopy(content.tweetThread.join('\n\n'))} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
+                                <button onClick={() => handleCopy(content.tweetThread.join('\n\n'))} title="Copy tweet thread" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
                             </div>
                             <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                                 {content.tweetThread.map((tweet, i) => (
@@ -119,7 +123,7 @@ const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => 
                          <div className="interactive-card">
                              <div className="flex justify-between items-center mb-2">
                                 <h3 className="card-title">LinkedIn Post</h3>
-                                <button onClick={() => handleCopy(content.linkedInPost)} className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
+                                <button onClick={() => handleCopy(content.linkedInPost)} title="Copy LinkedIn post" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
                             </div>
                             <p className="text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md border border-slate-700 max-h-40 overflow-y-auto">{content.linkedInPost}</p>
                         </div>

@@ -152,8 +152,8 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Brand Connect</h2>
-                <p className="text-slate-400 mb-6 max-w-md">Unlock the AI Sponsorship Finder & Pitch Generator. Find relevant brands and create professional pitches in seconds.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                <p className="text-slate-400 mb-6 max-w-md">Unlock the AI Sponsorship Finder & Pitch Generator (Pro feature). Find relevant brands and create professional pitches in seconds.</p>
+                <button onClick={() => setActiveTab(Tab.Pricing)} title="View subscription plans to upgrade" className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     View Plans
                 </button>
             </div>
@@ -166,7 +166,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Connect a YouTube or TikTok Channel</h2>
                 <p className="text-slate-400 mb-6 max-w-md">To find brand sponsors, please add a YouTube or TikTok channel URL to your profile first.</p>
-                <button onClick={() => setActiveTab(Tab.Profile)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                <button onClick={() => setActiveTab(Tab.Profile)} title="Go to your profile to connect a channel" className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
                     Go to Profile
                 </button>
             </div>
@@ -188,6 +188,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                             id="channel-select-brand"
                             value={selectedChannelId || ''}
                             onChange={(e) => setSelectedChannelId(e.target.value)}
+                            title="Select one of your channels to find sponsors for"
                             className="w-full bg-slate-800 border border-slate-600 rounded-lg py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all appearance-none"
                         >
                             {compatibleChannels.map(channel => (
@@ -201,6 +202,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                     <button
                         onClick={handleFindSponsors}
                         disabled={loadingOpportunities || !selectedChannelId}
+                        title="Start searching for potential sponsors (Pro feature)"
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
                         {loadingOpportunities ? <Spinner /> : 'Find Sponsors'}
@@ -234,7 +236,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                                 <div className="mt-2 mb-4 bg-slate-800/50 p-3 rounded-lg border border-slate-700 space-y-2">
                                     <div className="flex justify-between items-center">
                                          <h4 className="font-semibold text-slate-200 text-sm">Generated Pitch:</h4>
-                                          <button onClick={() => handleCopyPitch(pitchData[opp.brandName].pitch!)} className="flex items-center gap-1.5 text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md">
+                                          <button onClick={() => handleCopyPitch(pitchData[opp.brandName].pitch!)} title="Copy generated pitch" className="flex items-center gap-1.5 text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md">
                                             <Copy className="w-3 h-3"/> Copy
                                           </button>
                                     </div>
@@ -246,6 +248,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                             <button
                                 onClick={() => handleGeneratePitch(opp)}
                                 disabled={pitchData[opp.brandName]?.loading}
+                                title={`Generate a pitch email for ${opp.brandName}`}
                                 className="w-full mt-auto flex items-center justify-center text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                             >
                                 {pitchData[opp.brandName]?.loading ? <Spinner size="sm" /> : <><Send className="w-4 h-4 mr-2"/> Generate Pitch</>}

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateFullReport } from '../services/geminiService.ts';
 import { FullReport, Tab } from '../types.ts';
@@ -93,7 +94,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Get a comprehensive, AI-powered content strategy document combining trend analysis, content ideas, and monetization strategies.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30">
+                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30" title="View subscription plans to upgrade">
                     View Plans
                 </button>
             </div>
@@ -114,6 +115,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                         onChange={(e) => setTopic(e.target.value)}
                         placeholder="Enter your topic..."
                         className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner md:col-span-2"
+                        title="Enter the main topic for your strategy report (Pro Feature)"
                     />
                     <div>
                          <label htmlFor="followers" className="font-semibold text-slate-300 mb-2 block flex justify-between">
@@ -123,6 +125,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                           id="followers" type="range" min="0" max="5000000" step="1000"
                           value={followers} onChange={(e) => setFollowers(Number(e.target.value))}
                           className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet"
+                          title="Set the target audience size for the report's recommendations (Pro Feature)"
                         />
                     </div>
                      <div className="flex items-end">
@@ -130,6 +133,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                           onClick={() => handleGenerate()}
                           disabled={loading}
                           className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                          title="Generate a comprehensive strategy report for your topic (Pro Feature)"
                         >
                           {loading ? <Spinner /> : 'Generate Report'}
                         </button>
@@ -149,7 +153,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-2xl font-bold text-white text-glow">Your Report for "{topic}"</h3>
-                        <button onClick={handleDownload} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                        <button onClick={handleDownload} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors" title="Download the full report as a Markdown file">
                             <Download className="w-4 h-4" /> Download Report
                         </button>
                     </div>

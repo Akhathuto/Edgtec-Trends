@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../contexts/AuthContext.tsx';
@@ -66,6 +68,7 @@ const CommentResponder: React.FC = () => {
                             id="comment-input"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
+                            title="Enter the comment you want to reply to"
                             placeholder="e.g., 'This was the best video I've seen all week!'"
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none h-24 shadow-inner"
                         />
@@ -77,6 +80,7 @@ const CommentResponder: React.FC = () => {
                                 <button
                                     key={t}
                                     onClick={() => setTone(t)}
+                                    title={`Set response tone to ${t}`}
                                     className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-colors ${tone === t ? 'bg-violet text-white' : 'bg-slate-700/50 hover:bg-slate-600/50'}`}
                                 >
                                     {t}
@@ -87,6 +91,7 @@ const CommentResponder: React.FC = () => {
                     <button
                         onClick={handleGenerate}
                         disabled={loading}
+                        title="Generate an AI-powered reply"
                         className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                         {loading ? <Spinner /> : <><Sparkles className="w-5 h-5 mr-2" /> Generate Reply</>}
@@ -103,6 +108,7 @@ const CommentResponder: React.FC = () => {
                         <div className="mt-4 flex gap-4">
                             <button
                                 onClick={handleCopy}
+                                title="Copy the generated reply"
                                 className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white"
                             >
                                 <Copy className="w-4 h-4 mr-2" /> Copy
@@ -110,6 +116,7 @@ const CommentResponder: React.FC = () => {
                             <button
                                 onClick={handleGenerate}
                                 disabled={loading}
+                                title="Generate a new reply with the same settings"
                                 className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white"
                             >
                                 <RefreshCw className="w-4 h-4 mr-2" /> Regenerate

@@ -35,9 +35,12 @@ const parseJsonResponse = <T>(text: string | undefined | null, fallback: T): T =
              return fallback;
         }
         
-        // FIX: Per Gemini API guidelines, when responseMimeType is "application/json",
-        // the response.text is a JSON string and should not be parsed from a markdown block.
-        const jsonStr = text.trim();
+        // When using `googleSearch`, the model might wrap the JSON in markdown code fences.
+        // This regex will find the JSON block, even with the fences.
+        const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+
+        // If a markdown block is found, use its content. Otherwise, assume the whole text is JSON.
+        const jsonStr = match ? match[1] : text.trim();
 
         if (!jsonStr) {
              console.warn("No content found in response text, returning fallback.");

@@ -54,6 +54,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs }) => {
               <button
                 onClick={() => setActiveTab(Tab.Pricing)}
                 className="flex items-center gap-2 bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 text-yellow-300 font-semibold text-sm px-4 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-yellow-400/20"
+                title="Upgrade your plan to unlock more features"
               >
                 <Star className="w-4 h-4" />
                 Upgrade
@@ -84,6 +85,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs }) => {
                                             setIsUserMenuOpen(false);
                                         }}
                                         className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-violet-500/50 hover:text-white transition-colors"
+                                        title={tab.title}
                                     >
                                         {tab.icon}
                                         {tab.label}

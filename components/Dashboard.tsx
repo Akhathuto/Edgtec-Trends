@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab, Channel } from '../types.ts';
-import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool, TrendingUp, TrendingDown } from './Icons.tsx';
+import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool, TrendingUp, TrendingDown, Star } from './Icons.tsx';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService.ts';
 import Spinner from './Spinner';
 
@@ -12,6 +13,25 @@ interface EnrichedChannel extends Channel {
     viewsTrend?: 'up' | 'down' | 'stable';
     weeklyViewGrowth?: string;
 }
+
+const proTabs: Tab[] = [
+  Tab.Chat, Tab.Analytics, Tab.Report, Tab.ChannelGrowth, Tab.BrandConnect,
+  Tab.Video, Tab.AnimationCreator, Tab.GifCreator, Tab.ImageEditor, Tab.LogoCreator,
+  Tab.ImageGenerator, Tab.AvatarCreator, Tab.VideoEditor
+];
+
+const ProChip: React.FC<{ isButton?: boolean }> = ({ isButton = false }) => (
+    isButton ?
+    <span className="absolute -top-1.5 -right-1.5 flex items-center gap-1 text-[10px] font-bold bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 px-1.5 py-0.5 rounded-full">
+        <Star className="w-2.5 h-2.5" />
+        PRO
+    </span>
+    :
+    <span className="flex items-center gap-1 text-xs font-bold bg-yellow-400/10 text-yellow-300 border border-yellow-400/20 px-2 py-1 rounded-full">
+        <Star className="w-3 h-3" /> PRO
+    </span>
+);
+
 
 const AITipCard: React.FC = () => {
     const { user } = useAuth();
@@ -36,7 +56,7 @@ const AITipCard: React.FC = () => {
                 <h3 className="text-xl font-bold text-white flex items-center gap-3 text-glow">
                     <Sparkles className="w-6 h-6 text-violet-300"/> AI Tip of the Day
                 </h3>
-                <button onClick={fetchTip} disabled={loading} className="p-2 -mt-1 -mr-1 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50">
+                <button onClick={fetchTip} disabled={loading} className="p-2 -mt-1 -mr-1 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50" title="Generate a new AI tip">
                     <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
             </div>
@@ -50,19 +70,48 @@ const AITipCard: React.FC = () => {
 };
 
 
-const QuickCreateCard: React.FC<{ setActiveTab: (tab: Tab) => void }> = ({ setActiveTab }) => (
-    <div className="interactive-card h-full flex flex-col">
-        <h3 className="text-xl font-bold text-white mb-4 text-glow">Quick Create</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-grow content-center">
-            <button onClick={() => setActiveTab(Tab.Ideas)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><Lightbulb className="w-4 h-4 text-violet-300"/> Idea</button>
-            <button onClick={() => setActiveTab(Tab.Prompt)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><Wand className="w-4 h-4 text-violet-300"/> Prompt</button>
-            <button onClick={() => setActiveTab(Tab.Video)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><Video className="w-4 h-4 text-violet-300"/> Video</button>
-            <button onClick={() => setActiveTab(Tab.AnimationCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><Clapperboard className="w-4 h-4 text-violet-300"/> Animation</button>
-            <button onClick={() => setActiveTab(Tab.GifCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><Gif className="w-4 h-4 text-violet-300"/> GIF</button>
-            <button onClick={() => setActiveTab(Tab.LogoCreator)} className="flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"><PenTool className="w-4 h-4 text-violet-300"/> Logo</button>
+const QuickCreateCard: React.FC<{ setActiveTab: (tab: Tab) => void }> = ({ setActiveTab }) => {
+    const { user } = useAuth();
+
+    const handleQuickCreateClick = (tab: Tab) => {
+        if (proTabs.includes(tab) && user?.plan !== 'pro') {
+            setActiveTab(Tab.Pricing);
+        } else {
+            setActiveTab(tab);
+        }
+    };
+    
+    const createButtons = [
+        { tab: Tab.Ideas, icon: Lightbulb, label: 'Idea', title: 'Generate content ideas and scripts' },
+        { tab: Tab.Prompt, icon: Wand, label: 'Prompt', title: 'Craft the perfect AI prompt' },
+        { tab: Tab.Video, icon: Video, label: 'Video', title: 'Create videos from text or images (Pro Feature)' },
+        { tab: Tab.AnimationCreator, icon: Clapperboard, label: 'Animation', title: 'Generate custom animations (Pro Feature)' },
+        { tab: Tab.GifCreator, icon: Gif, label: 'GIF', title: 'Create animated GIFs (Pro Feature)' },
+        { tab: Tab.LogoCreator, icon: PenTool, label: 'Logo', title: 'Design a logo for your brand (Pro Feature)' }
+    ];
+
+    return (
+        <div className="interactive-card h-full flex flex-col">
+            <h3 className="text-xl font-bold text-white mb-4 text-glow">Quick Create</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-grow content-center">
+                {createButtons.map(btn => {
+                    const isPro = proTabs.includes(btn.tab);
+                    return (
+                        <button 
+                            key={btn.tab} 
+                            onClick={() => handleQuickCreateClick(btn.tab)} 
+                            className="relative flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"
+                            title={btn.title}
+                        >
+                            <btn.icon className="w-4 h-4 text-violet-300"/> {btn.label}
+                            {isPro && user?.plan !== 'pro' && <ProChip isButton />}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
     const iconBase = "w-5 h-5"; // Made icon slightly larger
@@ -78,6 +127,7 @@ const YourChannelsCard: React.FC<{
     channels: Channel[]; 
     onChannelClick: (channelId: string) => void; 
 }> = ({ channels, onChannelClick }) => {
+    const { user } = useAuth();
     const [enrichedChannels, setEnrichedChannels] = useState<EnrichedChannel[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -114,7 +164,7 @@ const YourChannelsCard: React.FC<{
                         const growthColor = growthValue > 0 ? 'text-green-400' : growthValue < 0 ? 'text-red-400' : 'text-slate-400';
 
                         return (
-                            <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-violet-rich/20 p-4 rounded-lg transition-colors border border-slate-700/50 hover:border-violet-light">
+                            <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-violet-rich/20 p-4 rounded-lg transition-colors border border-slate-700/50 hover:border-violet-light" title={`View detailed analytics for ${channel.url.split('/').pop() || channel.url}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                         {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500 flex-shrink-0" /> : <TikTok className="w-6 h-6 text-white flex-shrink-0" />}
@@ -145,7 +195,14 @@ const YourChannelsCard: React.FC<{
                                         </div>
                                     </div>
                                 </div>
-                                <p className="text-center text-xs text-slate-500 pt-2">Click to view full analytics</p>
+                                <p className="text-center text-xs text-slate-500 pt-2 flex items-center justify-center gap-2">
+                                    Click to view full analytics
+                                    {user?.plan !== 'pro' && (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-yellow-400/10 text-yellow-300 border border-yellow-400/20 px-1.5 py-0.5 rounded-full">
+                                            <Star className="w-2.5 h-2.5" /> PRO
+                                        </span>
+                                    )}
+                                </p>
                             </button>
                         )
                     })}
@@ -166,8 +223,20 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
     if (!user) return null;
 
     const handleChannelClick = (channelId: string) => {
+        if (proTabs.includes(Tab.Analytics) && user.plan !== 'pro') {
+            setActiveTab(Tab.Pricing);
+            return;
+        }
         setActiveAnalyticsChannelId(channelId);
         setActiveTab(Tab.Analytics);
+    };
+
+    const handleBrandConnectClick = () => {
+        if (proTabs.includes(Tab.BrandConnect) && user.plan !== 'pro') {
+            setActiveTab(Tab.Pricing);
+        } else {
+            setActiveTab(Tab.BrandConnect);
+        }
     };
 
     return (
@@ -181,12 +250,15 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
                 <YourChannelsCard channels={user.channels || []} onChannelClick={handleChannelClick} />
                 <AITipCard />
                 <QuickCreateCard setActiveTab={setActiveTab} />
-                <button onClick={() => setActiveTab(Tab.BrandConnect)} className="interactive-card w-full text-left flex flex-col justify-center">
+                <button onClick={handleBrandConnectClick} className="interactive-card w-full text-left flex flex-col justify-center" title="Find brand sponsors and generate personalized pitches with AI (Pro Feature)">
                      <div className="flex items-center gap-4 mb-3">
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-rich to-violet flex items-center justify-center text-white">
                             <Briefcase className="w-8 h-8"/>
                         </div>
-                        <h3 className="text-3xl font-bold text-white text-glow">Brand Connect</h3>
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-3xl font-bold text-white text-glow">Brand Connect</h3>
+                             {user.plan !== 'pro' && <ProChip />}
+                        </div>
                     </div>
                     <p className="text-slate-400 text-lg">Find brand sponsors and generate personalized pitches with AI.</p>
                 </button>

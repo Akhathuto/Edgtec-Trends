@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { User, ActivityLog } from '../types.ts';
@@ -112,12 +113,14 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex bg-slate-800/60 p-1.5 rounded-full border border-slate-700/50">
                     <button
                         onClick={() => setActiveTab('overview')}
+                        title="View platform overview and statistics"
                         className={`flex items-center justify-center gap-2 py-2 px-6 text-sm font-semibold rounded-full transition-colors ${activeTab === 'overview' ? 'bg-violet text-white shadow-md' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
                     >
                         <Activity className="w-5 h-5" /> Overview
                     </button>
                     <button
                         onClick={() => setActiveTab('users')}
+                        title="Manage all users on the platform"
                         className={`flex items-center justify-center gap-2 py-2 px-6 text-sm font-semibold rounded-full transition-colors ${activeTab === 'users' ? 'bg-violet text-white shadow-md' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
                     >
                         <UserIcon className="w-5 h-5" /> User Management
@@ -129,19 +132,19 @@ const AdminDashboard: React.FC = () => {
                  <div className="space-y-8 animate-fade-in">
                     {/* Stats */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl">
+                        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl" title={`There are currently ${stats.total} users registered.`}>
                             <h4 className="text-sm font-medium text-slate-400">Total Users</h4>
                             <p className="text-3xl font-bold text-white">{stats.total}</p>
                         </div>
-                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl">
+                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl" title={`${stats.free} users are on the Free plan.`}>
                             <h4 className="text-sm font-medium text-slate-400">Free Plan</h4>
                             <p className="text-3xl font-bold text-white">{stats.free}</p>
                         </div>
-                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl">
+                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl" title={`${stats.starter} users are on the Starter plan.`}>
                             <h4 className="text-sm font-medium text-slate-400">Starter Plan</h4>
                             <p className="text-3xl font-bold text-white">{stats.starter}</p>
                         </div>
-                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl">
+                         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-5 shadow-xl" title={`${stats.pro} users are on the Pro plan.`}>
                             <h4 className="text-sm font-medium text-slate-400">Pro Plan</h4>
                             <p className="text-3xl font-bold text-white">{stats.pro}</p>
                         </div>
@@ -202,6 +205,7 @@ const AdminDashboard: React.FC = () => {
                                                 <select
                                                     defaultValue={managedUser.plan}
                                                     onChange={(e) => handlePlanChange(managedUser.id, e.target.value as User['plan'])}
+                                                    title={`Change ${managedUser.name}'s subscription plan`}
                                                     className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-light transition-colors"
                                                 >
                                                     <option value="free">Free</option>
@@ -214,6 +218,7 @@ const AdminDashboard: React.FC = () => {
                                                     defaultValue={managedUser.role}
                                                     onChange={(e) => handleRoleChange(managedUser.id, e.target.value as 'admin' | 'user')}
                                                     disabled={user?.id === managedUser.id}
+                                                    title={`Change ${managedUser.name}'s role (User or Admin)`}
                                                     className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <option value="user">User</option>

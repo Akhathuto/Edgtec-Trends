@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
@@ -454,7 +456,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {conversationStarters.map((starter, i) => (
-                        <button key={i} onClick={() => handleUserMessageSend(starter)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
+                        <button key={i} onClick={() => handleUserMessageSend(starter)} title={`Send this prompt: "${starter}"`} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
                            {starter}
                         </button>
                     ))}
@@ -468,6 +470,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            title="Type your message to Nolo"
             placeholder="Ask me anything about content creation..."
             disabled={loading}
             className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none overflow-y-hidden shadow-inner"

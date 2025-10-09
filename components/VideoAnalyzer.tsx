@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { analyzeVideoUrl } from '../services/geminiService.ts';
 import { VideoAnalysis } from '../types.ts';
@@ -62,11 +64,13 @@ const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ initialInput }) => {
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="Paste a YouTube or TikTok video URL..."
+                        title="Paste the URL of the video you want to analyze"
                         className="form-input flex-grow"
                     />
                     <button
                         onClick={() => handleAnalyze()}
                         disabled={loading}
+                        title="Start AI analysis of the video"
                         className="button-primary flex items-center justify-center"
                     >
                         {loading ? <Spinner /> : <><Search className="w-5 h-5 mr-2" /> Analyze Video</>}

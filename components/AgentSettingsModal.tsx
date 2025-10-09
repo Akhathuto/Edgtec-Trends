@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { AgentSettings } from '../types.ts';
 import Modal from './Modal.tsx';
@@ -37,8 +39,8 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="AI Agent Settings" footer={
         <div className="flex justify-end gap-4">
-          <button onClick={onClose} className="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors">Cancel</button>
-          <button onClick={handleSave} className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">Save Settings</button>
+          <button onClick={onClose} title="Close settings without saving" className="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors">Cancel</button>
+          <button onClick={handleSave} title="Save the new agent settings" className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">Save Settings</button>
         </div>
     }>
       <div className="space-y-6 text-slate-300">
@@ -50,6 +52,7 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
             id="agent-model"
             value={model}
             onChange={(e) => setModel(e.target.value as AgentSettings['model'])}
+            title="Choose the underlying AI model for the agents"
             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
           >
             <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Balanced)</option>
@@ -72,6 +75,7 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
             step="0.1"
             value={temperature}
             onChange={(e) => setTemperature(parseFloat(e.target.value))}
+            title="Adjust the creativity of the AI's responses. Lower is more predictable, higher is more creative."
             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet"
           />
           <div className="flex justify-between text-xs text-slate-500 mt-1">
