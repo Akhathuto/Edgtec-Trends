@@ -61,7 +61,7 @@ const ChatMessageContent: React.FC<{
             <button
                 onClick={() => onAction(service, details)}
                 className="mt-3 w-full flex items-center justify-center text-sm bg-violet-600 hover:bg-violet-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            >
+             >
                 <Zap className="w-4 h-4 mr-2" /> Take Action: {serviceName}
             </button>
         );
@@ -347,7 +347,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-4 flex flex-col animate-slide-in-up">
           <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Your AI Team</h2>
-              <button onClick={() => setIsSettingsModalOpen(true)} title="AI Agent Settings" className="p-2 rounded-full hover:bg-slate-700/50 transition-colors">
+              <button onClick={() => setIsSettingsModalOpen(true)} title="Configure AI model and creativity settings for all agents" className="p-2 rounded-full hover:bg-slate-700/50 transition-colors">
                   <Sliders className="w-5 h-5 text-slate-400"/>
               </button>
           </div>
@@ -359,8 +359,9 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-8"
+              title="Filter agents by name, description, or keywords"
             />
-            {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2"><X className="w-4 h-4"/></button>}
+            {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2" title="Clear search"><X className="w-4 h-4"/></button>}
           </div>
           <div className="space-y-3 overflow-y-auto">
             {filteredAgents.map(agent => (
@@ -368,6 +369,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                 key={agent.id}
                 onClick={() => switchAgent(agent)}
                 className={`w-full text-left p-4 rounded-lg border-2 transition-all ${activeAgent.id === agent.id ? `bg-violet-500/20 border-violet-500` : 'bg-slate-800/50 border-transparent hover:border-slate-600'}`}
+                title={`Switch to ${agent.name}: ${agent.description}`}
               >
                 <div className="flex items-start gap-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${activeAgent.id === agent.id ? 'bg-violet-500' : 'bg-slate-700'}`}>
@@ -405,7 +407,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
               </div>
               <h2 className="text-xl font-bold text-center">Chat with {activeAgent.name}</h2>
             </div>
-            <button onClick={handleClearChat} title="Clear conversation" className="p-2 rounded-full hover:bg-slate-700/50">
+            <button onClick={handleClearChat} title="Clear conversation history with this agent" className="p-2 rounded-full hover:bg-slate-700/50">
               <Trash2 className="w-5 h-5 text-slate-400"/>
             </button>
           </header>
@@ -440,7 +442,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
           <div className="p-4 border-t border-slate-700/50 flex-shrink-0 space-y-4">
             <div className="grid grid-cols-2 gap-2">
               {activeAgent.starterPrompts.map((prompt, i) => (
-                <button key={i} onClick={() => handleSendMessage(prompt)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300">
+                <button key={i} onClick={() => handleSendMessage(prompt)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300" title={`Send this prompt: "${prompt}"`}>
                   {prompt}
                 </button>
               ))}
@@ -455,12 +457,14 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                 disabled={loading}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"
                 rows={1}
+                title={`Type your message to ${activeAgent.name}`}
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 <button
                   onClick={() => handleSendMessage(input)}
                   disabled={loading || !input.trim()}
                   className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50"
+                  title="Send message"
                 >
                   {loading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
                 </button>
