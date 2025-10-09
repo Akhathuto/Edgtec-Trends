@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders, Zap } from './Icons.tsx';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders, Zap, User as UserIcon, Image as ImageIcon, X } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
+import { Tab, HistoryItem } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 
 const loadingMessages = [
@@ -32,19 +32,23 @@ interface VideoGeneratorProps {
 }
 
 const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
-    const { user, logActivity, addContentToHistory } = useAuth();
+    const { user, logActivity, addContentToHistory, getContentHistory } = useAuth();
     const { showToast } = useToast();
     const [prompt, setPrompt] = useState('');
     const [basePrompt, setBasePrompt] = useState('');
     const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'YouTube Shorts'>('YouTube');
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imageBase64, setImageBase64] = useState<{ data: string, mimeType: string } | null>(null);
+    const [imageBase64, setImageBase64] = useState<{ data: string, mimeType: string, url?: string } | null>(null);
     const [loading, setLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
     const [error, setError] = useState<string | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [operation, setOperation] = useState<any | null>(null);
     const [selectedTemplate, setSelectedTemplate] = useState(videoTemplates[0].name);
+    
+    // Avatar state
+    const [myAvatars, setMyAvatars] = useState<HistoryItem[]>([]);
+    const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
 
     // AI Prompt Enhancers
     const [selectedStyle, setSelectedStyle] = useState('');
@@ -59,6 +63,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    
+    useEffect(() => {
+        const history = getContentHistory();
+        const avatars = history.filter(item => item.type === 'Avatar');
+        setMyAvatars(avatars);
+    }, [getContentHistory, user]);
 
     // Effect to update the final prompt when enhancers are used
     useEffect(() => {
@@ -88,13 +98,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
     }, [basePrompt, selectedStyle, selectedEffect, selectedCamera, platform]);
 
 
-    const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string }> => {
+    const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string, url: string }> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
                 const result = reader.result as string;
                 const base64Data = result.split(',')[1];
-                resolve({ data: base64Data, mimeType: file.type });
+                resolve({ data: base64Data, mimeType: file.type, url: result });
             };
             reader.onerror = error => reject(error);
             reader.readAsDataURL(file);
@@ -109,12 +119,37 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                 return;
             }
             setError(null);
+            setSelectedAvatarId(null);
             setImageFile(file);
             const base64 = await fileToBase64(file);
             setImageBase64(base64);
         }
     };
     
+    const handleAvatarSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const avatarId = event.target.value;
+        setSelectedAvatarId(avatarId);
+        
+        if (avatarId) {
+            const selectedAvatar = myAvatars.find(avatar => avatar.id === avatarId);
+            if (selectedAvatar) {
+                setImageFile(null); // Clear file selection
+                setImageBase64({
+                    data: selectedAvatar.content.avatarBase64,
+                    mimeType: 'image/png', // Avatars are saved as png
+                });
+            }
+        } else {
+            setImageBase64(null);
+        }
+    };
+
+    const handleClearImage = () => {
+        setImageFile(null);
+        setImageBase64(null);
+        setSelectedAvatarId(null);
+    };
+
     const cleanupIntervals = () => {
         if (pollingInterval.current) clearInterval(pollingInterval.current);
         if (loadingMessageInterval.current) clearInterval(loadingMessageInterval.current);
@@ -211,8 +246,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         setOperation(null);
         setPrompt('');
         setBasePrompt('');
-        setImageFile(null);
-        setImageBase64(null);
+        handleClearImage();
         setSelectedTemplate(videoTemplates[0].name);
         setSelectedStyle('');
         setSelectedEffect('');
@@ -406,17 +440,49 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-center w-full">
-                           <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
-                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <UploadCloud className="w-8 h-8 mb-4 text-slate-400" />
-                                    <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Click to upload an image</span> (optional)</p>
-                                    <p className="text-xs text-slate-500">PNG, JPG or JPEG (MAX. 4MB)</p>
+                         <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
+                            <h4 className="text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-violet-400" /> Add Image or Avatar (Optional)</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-full border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <UploadCloud className="w-8 h-8 mb-4 text-slate-400" />
+                                            <p className="mb-2 text-sm text-slate-400"><span className="font-semibold">Upload Image</span></p>
+                                            <p className="text-xs text-slate-500">PNG, JPG (MAX. 4MB)</p>
+                                        </div>
+                                        <input id="dropzone-file" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
+                                    </label>
                                 </div>
-                                <input id="dropzone-file" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
-                            </label>
+                                <div>
+                                    {myAvatars.length > 0 ? (
+                                        <div className="h-full flex flex-col">
+                                            <label htmlFor="avatar-select" className="block text-sm font-medium text-slate-300 mb-2">Or select from My Avatars</label>
+                                            <select id="avatar-select" value={selectedAvatarId || ''} onChange={handleAvatarSelect} className="form-select" title="Select one of your previously created avatars to include in the video (Pro Feature)">
+                                                <option value="">Choose an Avatar...</option>
+                                                {myAvatars.map(avatar => ( <option key={avatar.id} value={avatar.id}>{avatar.summary}</option> ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex flex-col justify-center items-center text-center p-4 bg-slate-800/50 rounded-lg">
+                                            <UserIcon className="w-8 h-8 text-slate-500 mb-2"/>
+                                            <p className="text-sm text-slate-400">No avatars created yet.</p>
+                                            <button onClick={() => setActiveTab(Tab.AvatarCreator)} className="text-xs text-violet-400 hover:underline mt-1" title="Go to the Avatar Creator">Create one now</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                             {imageBase64 && (
+                                <div className="mt-4">
+                                    <h5 className="text-sm font-medium text-slate-300 mb-2">Image Preview:</h5>
+                                    <div className="relative w-32 h-32 bg-black/20 rounded-lg p-1">
+                                        <img src={imageBase64.url || `data:image/png;base64,${imageBase64.data}`} alt="Preview" className="w-full h-full object-contain rounded"/>
+                                        <button onClick={handleClearImage} className="absolute -top-2 -right-2 p-1 bg-slate-700 rounded-full text-white hover:bg-red-500" title="Remove the selected image or avatar">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        {imageFile && <p className="text-center text-sm text-green-400">Image selected: {imageFile.name}</p>}
 
                         <button
                             onClick={handleGenerate}

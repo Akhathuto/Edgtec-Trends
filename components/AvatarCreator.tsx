@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
 import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile } from '../services/geminiService.ts';
 import Spinner from './Spinner.tsx';
@@ -6,7 +6,7 @@ import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, MessageSquare,
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { Tab } from '../types.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
-import { avatarStyles, genders, shotTypes, voices, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
+import { avatarStyles, genders, shotTypes, voices, hairStyles, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -179,15 +179,17 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const [avatarStyle, setAvatarStyle] = useState(avatarStyles[0]);
     const [hairStyle, setHairStyle] = useState(hairStyles[0]);
     const [hairColor, setHairColor] = useState('Cosmic Purple');
-    const [eyeColor, setEyeColor] = useState(eyeColors[1]);
+    const [eyeColor, setEyeColor] = useState('Green');
     const [facialHair, setFacialHair] = useState(facialHairOptions[0]);
     const [glasses, setGlasses] = useState(glassesOptions[0]);
     const [otherFacialFeatures, setOtherFacialFeatures] = useState('');
     const [clothingTop, setClothingTop] = useState('Leather Jacket');
+    const [outerwear, setOuterwear] = useState('');
     const [clothingBottom, setClothingBottom] = useState('');
     const [clothingShoes, setClothingShoes] = useState('');
     const [accessoriesHat, setAccessoriesHat] = useState('');
     const [accessoriesJewelry, setAccessoriesJewelry] = useState('');
+    const [handheldItem, setHandheldItem] = useState('');
     const [extraDetails, setExtraDetails] = useState('');
     const [background, setBackground] = useState('Neon-lit alleyway');
     const [shotType, setShotType] = useState(shotTypes[0]);
@@ -218,10 +220,22 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     }>({ stream: null, inputAudioContext: null, outputAudioContext: null, scriptProcessor: null, sources: new Set(), nextStartTime: 0 });
 
     const faceDetails = [ facialHair !== 'None' ? facialHair : '', glasses !== 'None' ? glasses : '', otherFacialFeatures ].filter(Boolean).join(', ');
-    const clothingString = [ clothingTop ? `Top: ${clothingTop}` : '', clothingBottom ? `Bottom: ${clothingBottom}` : '', shotType === 'Full Body Shot' && clothingShoes ? `Shoes: ${clothingShoes}` : '' ].filter(Boolean).join(', ');
-    const accessoriesString = [ accessoriesHat ? `Hat: ${accessoriesHat}` : '', accessoriesJewelry ? `Jewelry: ${accessoriesJewelry}` : '' ].filter(Boolean).join(', ');
+    const clothingString = [ clothingTop ? `Top: ${clothingTop}` : '', outerwear ? `Outerwear: ${outerwear}` : '', clothingBottom ? `Bottom: ${clothingBottom}` : '', shotType === 'Full Body Shot' && clothingShoes ? `Shoes: ${clothingShoes}` : '' ].filter(Boolean).join(', ');
+    const accessoriesString = [ accessoriesHat ? `Hat: ${accessoriesHat}` : '', accessoriesJewelry ? `Jewelry: ${accessoriesJewelry}` : '', handheldItem ? `Holding: ${handheldItem}` : '' ].filter(Boolean).join(', ');
     const systemInstruction = `You are an AI avatar. Your appearance is '${avatarStyle}' and you are a ${gender}. Your features are: Hair: ${hairStyle}, ${hairColor}. Eyes: ${eyeColor}. Face: ${faceDetails || 'not specified'}. Clothing: ${clothingString || 'not specified'}. Accessories: ${accessoriesString || 'not specified'}. Other Details: ${extraDetails}. The background is '${background}'. Your personality is '${personality}'. Embody this persona. Keep your responses conversational and relatively brief.`;
-    
+
+    const avatarAnimationClass = useMemo(() => {
+        if (phase !== 'interact') return 'animate-avatar-breathing';
+        if (interactionMode === 'voice') {
+            if (status === 'SPEAKING') return 'animate-avatar-speaking';
+            if (status === 'LISTENING') return 'animate-avatar-listening';
+        }
+        if (interactionMode === 'text' && isTextLoading) {
+            return 'animate-avatar-speaking';
+        }
+        return 'animate-avatar-breathing';
+    }, [phase, interactionMode, status, isTextLoading]);
+
     const fileToBase64 = (file: File): Promise<{ data: string, mimeType: string, url: string }> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -287,7 +301,16 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 addContentToHistory({
                     type: 'Avatar',
                     summary: `Avatar: ${generationMode === 'scratch' ? [hairStyle, hairColor, clothingTop].filter(Boolean).join(', ') : `from photo, ${avatarStyle} style`}`,
-                    content: { /* content... */ }
+                    content: {
+                        generationMode,
+                        sourceImage: generationMode === 'photo' ? sourceImageBase64?.url : null,
+                        avatarBase64: result,
+                        settings: {
+                            gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses,
+                            otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, outerwear,
+                            accessoriesHat, accessoriesJewelry, handheldItem, extraDetails, background, shotType, personality
+                        }
+                    }
                 });
                 logActivity(`generated a ${avatarStyle} avatar`, 'User');
             } else {
@@ -299,7 +322,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         } finally {
             setLoading(false);
         }
-    }, [generationMode, sourceImageBase64, gender, avatarStyle, hairStyle, hairColor, eyeColor, faceDetails, clothingString, accessoriesString, extraDetails, background, shotType, personality, addContentToHistory, logActivity]);
+    }, [generationMode, sourceImageBase64, gender, avatarStyle, hairStyle, hairColor, eyeColor, faceDetails, clothingString, accessoriesString, extraDetails, background, shotType, personality, addContentToHistory, logActivity, clothingTop, outerwear, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, handheldItem]);
     
     const handleSurpriseMe = async () => {
         setIsSurprising(true);
@@ -310,7 +333,9 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
             setHairColor(profile.hairColor); setEyeColor(profile.eyeColor); setFacialHair(profile.facialHair);
             setGlasses(profile.glasses); setOtherFacialFeatures(profile.otherFacialFeatures);
             setClothingTop(profile.clothingTop); setClothingBottom(profile.clothingBottom); setClothingShoes(profile.clothingShoes);
+            setOuterwear(profile.outerwear);
             setAccessoriesHat(profile.accessoriesHat); setAccessoriesJewelry(profile.accessoriesJewelry);
+            setHandheldItem(profile.handheldItem);
             setExtraDetails(profile.extraDetails); setBackground(profile.background); setShotType(profile.shotType); setPersonality(profile.personality);
             showToast("Avatar profile randomized!");
         } catch (e: any) {
@@ -324,10 +349,31 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         if (!editPrompt.trim() || !avatarBase64) { showToast('Please enter an edit instruction.'); return; }
         setIsEditingAvatar(true); setError(null);
         try {
+            const originalAvatarForHistory = avatarBase64; // Capture current avatar before edit
             const editedAvatar = await generateAvatarFromPhoto(avatarBase64, 'image/png', editPrompt);
-            if (editedAvatar) { setAvatarBase64(editedAvatar); setEditPrompt(''); showToast("Avatar updated!"); } 
-            else { throw new Error("The AI didn't return an edited image. Try a different prompt."); }
-        } catch (e: any) { setError(e.message); } 
+            if (editedAvatar) {
+                setAvatarBase64(editedAvatar);
+                setEditPrompt('');
+                showToast("Avatar updated!");
+
+                // Add to history
+                addContentToHistory({
+                    type: 'Image Edit', // Re-using Image Edit type for consistency
+                    summary: `Avatar edit: "${editPrompt.substring(0, 30)}..."`,
+                    content: {
+                        originalImageUrl: `data:image/png;base64,${originalAvatarForHistory}`,
+                        editedImageBase64: editedAvatar,
+                        mimeType: 'image/png',
+                        prompt: editPrompt,
+                        aiNote: 'Avatar quick edit'
+                    }
+                });
+                logActivity(`edited their avatar with prompt: "${editPrompt.substring(0, 30)}..."`, 'Edit');
+
+            } else {
+                throw new Error("The AI didn't return an edited image. Try a different prompt.");
+            }
+        } catch (e: any) { setError(e.message); }
         finally { setIsEditingAvatar(false); }
     };
     
@@ -366,9 +412,12 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                     return newHistory;
                 });
             }
+             if (fullResponse) {
+                addContentToHistory({ type: 'Avatar Conversation', summary: `Chat with ${avatarStyle} avatar`, content: { userInput: currentInput, avatarResponse: fullResponse } });
+            }
         } catch (err) { setError('An error occurred during the chat.'); setTranscript(prev => [...prev, { source: 'avatar', text: "Sorry, I'm having trouble connecting." }]); } 
         finally { setIsTextLoading(false); }
-    }, [isTextLoading, textInput]);
+    }, [isTextLoading, textInput, avatarStyle, addContentToHistory]);
 
     const handleStartLiveConversation = useCallback(async () => {
         setInteractionMode('voice'); setStatus('CONNECTING...'); setTranscript([]);
@@ -397,11 +446,25 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                         r.scriptProcessor.connect(r.inputAudioContext!.destination);
                     },
                     onmessage: async (msg: LiveServerMessage) => {
-                        if (msg.serverContent?.turnComplete) {
-                            addContentToHistory({ type: 'Avatar Conversation', summary: `Chat with ${avatarStyle} avatar`, content: { userInput: msg.serverContent?.inputTranscription?.text, avatarResponse: msg.serverContent?.outputTranscription?.text } });
-                            setTranscript(prev => [...prev, { source: 'user', text: msg.serverContent!.inputTranscription!.text }, { source: 'avatar', text: msg.serverContent!.outputTranscription!.text }]);
+                        const { serverContent } = msg;
+                        if (serverContent?.turnComplete && serverContent.inputTranscription?.text && serverContent.outputTranscription?.text) {
+                            const userInput = serverContent.inputTranscription.text;
+                            const avatarResponse = serverContent.outputTranscription.text;
+                            addContentToHistory({ type: 'Avatar Conversation', summary: `Chat with ${avatarStyle} avatar`, content: { userInput, avatarResponse } });
+                            setTranscript(prev => [...prev, { source: 'user', text: userInput }, { source: 'avatar', text: avatarResponse }]);
                         }
-                        const audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData.data;
+
+                        if (serverContent?.interrupted) {
+                            for (const source of r.sources.values()) {
+                                source.stop();
+                                r.sources.delete(source);
+                            }
+                            r.nextStartTime = 0;
+                        }
+                        
+                        // FIX: Added optional chaining `?.` to safely access `.data` and prevent crash
+                        // when a message part is not an `inlineData` object (e.g., it's a text part).
+                        const audio = serverContent?.modelTurn?.parts[0]?.inlineData?.data;
                         if (audio) {
                             setStatus('SPEAKING');
                             r.nextStartTime = Math.max(r.nextStartTime, r.outputAudioContext!.currentTime);
@@ -420,7 +483,7 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                 },
             });
             await sessionPromiseRef.current;
-        } catch (err: any) { setError(`Failed to start: ${err.message}.`); setPhase('interact'); cleanupAudio(); }
+        } catch (err: any) { setError(`Failed to start: ${err.message}. Please check microphone permissions.`); setPhase('interact'); cleanupAudio(); }
     }, [voice, systemInstruction, cleanupAudio, addContentToHistory, avatarStyle]);
 
     const handleEndConversation = useCallback(() => {
@@ -436,7 +499,9 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         const link = document.createElement('a');
         link.href = `data:image/png;base64,${avatarBase64}`;
         link.download = `utrend_avatar_${Date.now()}.png`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     };
 
     const handleStartOver = () => {
@@ -446,6 +511,27 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         setError(null);
         setSourceImageBase64(null);
         setEditPrompt('');
+    
+        // Reset form fields to default
+        setGender(genders[0]);
+        setAvatarStyle(avatarStyles[0]);
+        setHairStyle(hairStyles[0]);
+        setHairColor('Cosmic Purple');
+        setEyeColor('Green');
+        setFacialHair(facialHairOptions[0]);
+        setGlasses(glassesOptions[0]);
+        setOtherFacialFeatures('');
+        setClothingTop('Leather Jacket');
+        setOuterwear('');
+        setClothingBottom('');
+        setClothingShoes('');
+        setAccessoriesHat('');
+        setAccessoriesJewelry('');
+        setHandheldItem('');
+        setExtraDetails('');
+        setBackground('Neon-lit alleyway');
+        setShotType(shotTypes[0]);
+        setPersonality('A cynical detective with a heart of gold.');
     };
     
     if (user?.plan !== 'pro') {
@@ -509,19 +595,36 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                             <CollapsibleSection title="Appearance" icon={<Eye className="w-5 h-5 text-violet-300" />}>
                                 <CustomSelect label="Hair Style" value={hairStyle} onChange={setHairStyle} options={hairStyles} title="Choose the avatar's hairstyle" />
                                 <div><label className="input-label">Hair Color</label><input type="text" value={hairColor} onChange={e => setHairColor(e.target.value)} placeholder="e.g., Electric Blue" className="form-input" title="Specify the avatar's hair color"/></div>
-                                <CustomSelect label="Eye Color" value={eyeColor} onChange={setEyeColor} options={eyeColors} title="Select the avatar's eye color" />
+                                <div>
+                                    <label className="input-label">Eye Color</label>
+                                    <input type="text" value={eyeColor} onChange={e => setEyeColor(e.target.value)} placeholder="e.g., Emerald Green" className="form-input" title="Describe the avatar's eye color"/>
+                                </div>
                                 <CustomSelect label="Facial Hair" value={facialHair} onChange={setFacialHair} options={facialHairOptions} title="Choose the avatar's facial hair style" />
                                 <CustomSelect label="Glasses" value={glasses} onChange={setGlasses} options={glassesOptions} title="Choose the avatar's eyewear" />
                                 <div><label className="input-label">Other Features</label><input type="text" value={otherFacialFeatures} onChange={e => setOtherFacialFeatures(e.target.value)} placeholder="e.g., Freckles, scars" className="form-input" title="Add any other distinguishing facial features"/></div>
                             </CollapsibleSection>
-                            <CollapsibleSection title="Outfit & Scene" icon={<Image className="w-5 h-5 text-violet-300" />}>
+                            <CollapsibleSection title="Outfit & Accessories" icon={<Wand className="w-5 h-5 text-violet-300" />}>
                                 <div><label className="input-label">Top</label><input type="text" value={clothingTop} onChange={e => setClothingTop(e.target.value)} placeholder="e.g., Leather Jacket" className="form-input" title="Describe the top the avatar is wearing"/></div>
+                                <div><label className="input-label">Outerwear</label><input type="text" value={outerwear} onChange={e => setOuterwear(e.target.value)} placeholder="e.g., Trench coat" className="form-input" title="Describe any outerwear (jacket, coat)"/></div>
                                 <div><label className="input-label">Bottoms</label><input type="text" value={clothingBottom} onChange={e => setClothingBottom(e.target.value)} placeholder="e.g., Jeans" className="form-input" title="Describe the bottoms the avatar is wearing"/></div>
                                 <div><label className="input-label">Shoes</label><input type="text" value={clothingShoes} onChange={e => setClothingShoes(e.target.value)} placeholder="e.g., Sneakers" className="form-input" title="Describe the shoes the avatar is wearing (for full body shots)"/></div>
                                 <div><label className="input-label">Hat</label><input type="text" value={accessoriesHat} onChange={e => setAccessoriesHat(e.target.value)} placeholder="e.g., Beanie, fedora" className="form-input" title="Add a hat or other headwear"/></div>
                                 <div><label className="input-label">Jewelry</label><input type="text" value={accessoriesJewelry} onChange={e => setAccessoriesJewelry(e.target.value)} placeholder="e.g., Necklace" className="form-input" title="Add any jewelry or piercings"/></div>
-                                <div><label className="input-label">Other Details</label><input type="text" value={extraDetails} onChange={e => setExtraDetails(e.target.value)} placeholder="e.g., Tattoos" className="form-input" title="Add any extra visual details to the avatar or outfit"/></div>
-                                <div className="sm:col-span-2"><label className="input-label">Background</label><input type="text" value={background} onChange={e => setBackground(e.target.value)} placeholder="e.g., Neon-lit alleyway" className="form-input" title="Describe the background scene for the avatar image"/></div>
+                                <div><label className="input-label">Handheld Item</label><input type="text" value={handheldItem} onChange={e => setHandheldItem(e.target.value)} placeholder="e.g., Coffee cup, book" className="form-input" title="Add an item for the avatar to hold"/></div>
+                                <div className="sm:col-span-2"><label className="input-label">Other Details</label><input type="text" value={extraDetails} onChange={e => setExtraDetails(e.target.value)} placeholder="e.g., Tattoos on arms" className="form-input" title="Add any extra visual details to the avatar or outfit"/></div>
+                            </CollapsibleSection>
+                             <CollapsibleSection title="Background" icon={<Image className="w-5 h-5 text-violet-300" />}>
+                                <div className="sm:col-span-2">
+                                    <label className="input-label">Background Scene</label>
+                                    <input 
+                                        type="text" 
+                                        value={background} 
+                                        onChange={e => setBackground(e.target.value)} 
+                                        placeholder="e.g., A neon-lit cyberpunk city, a serene forest" 
+                                        className="form-input" 
+                                        title="Describe the background scene for the avatar image"
+                                    />
+                                </div>
                             </CollapsibleSection>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 pt-2"><button onClick={handleSurpriseMe} disabled={isSurprising || loading} className="button-secondary w-full" title="Generate a completely random avatar profile for inspiration"><Wand className="w-5 h-5 mr-2"/> Surprise Me!</button><button onClick={handleGenerate} disabled={loading || isSurprising} className="button-primary w-full !py-3 !text-base" title="Create the avatar based on your current settings"><UserIcon className="w-5 h-5 mr-2"/> Generate Avatar</button></div>
@@ -547,7 +650,14 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-4">
                             <div className="relative">
-                                <img src={`data:image/png;base64,${avatarBase64}`} alt="Generated Avatar" className="w-full aspect-square object-contain rounded-lg bg-slate-900/30 animate-avatar-breathing" />
+                                <img src={`data:image/png;base64,${avatarBase64}`} alt="Generated Avatar" className={`w-full aspect-square object-contain rounded-lg bg-slate-900/30 ${avatarAnimationClass}`} />
+                                {((interactionMode === 'voice' && status === 'SPEAKING') || (interactionMode === 'text' && isTextLoading)) && (
+                                    <div 
+                                        className="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-[12%] h-[6%] bg-black/25 rounded-full blur-sm animate-lip-sync"
+                                        style={{ transformOrigin: 'center' }}
+                                        aria-hidden="true"
+                                    ></div>
+                                )}
                                 {interactionMode === 'voice' && <div className="absolute bottom-4 left-1/2 -translate-x-1/2"><StatusIndicator status={status} /></div>}
                             </div>
                             <div className="mt-4 flex flex-col gap-3">

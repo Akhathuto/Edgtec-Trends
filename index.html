@@ -43,6 +43,9 @@
               'text-fade-cycle': 'text-fade-cycle 2.5s ease-in-out infinite',
               'pulse-bg': 'pulse-bg 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'avatar-breathing': 'avatar-breathing 5s ease-in-out infinite',
+              'avatar-speaking': 'avatar-speaking 1.5s ease-in-out infinite',
+              'avatar-listening': 'avatar-listening 3s ease-in-out infinite',
+              'lip-sync': 'lip-sync 0.2s ease-out infinite alternate',
             },
             keyframes: {
               'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -70,9 +73,24 @@
                 '0%, 100%': { filter: 'brightness(1) drop-shadow(0 0 5px rgba(167, 139, 250, 0.1))', transform: 'scale(1)' },
                 '50%': { filter: 'brightness(1.05) drop-shadow(0 0 15px rgba(167, 139, 250, 0.3))', transform: 'scale(1.01)' },
               },
+              'avatar-speaking': {
+                  '0%, 100%': { filter: 'brightness(1.05) drop-shadow(0 0 15px rgba(167, 139, 250, 0.4))' },
+                  '50%': { filter: 'brightness(1.2) drop-shadow(0 0 25px rgba(167, 139, 250, 0.7))' },
+              },
+              'avatar-listening': {
+                  '0%, 100%': { transform: 'rotate(0deg) scale(1.01)', filter: 'brightness(1.05) drop-shadow(0 0 15px rgba(167, 139, 250, 0.2))' },
+                  '50%': { transform: 'rotate(-2deg) scale(1.015)', filter: 'brightness(1.05) drop-shadow(0 0 15px rgba(167, 139, 250, 0.2))' },
+              },
+              'lip-sync': {
+                'from': { transform: 'scaleY(0.1)' },
+                'to': { transform: 'scaleY(0.7)' },
+              },
               'chat-bubble-in': {
                 'from': { opacity: '0', transform: 'translateY(10px) scale(0.95)' },
                 'to': { opacity: '1', transform: 'translateY(0) scale(1)' },
+              },
+              'blink': {
+                '50%': { opacity: '0' },
               },
             },
             boxShadow: {
@@ -172,6 +190,14 @@
       .chat-bubble { animation: chat-bubble-in 0.3s ease-out forwards; }
       .neural-point { animation: neural-pulse 1.5s infinite ease-in-out; }
       .neural-line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: neural-draw 4s infinite ease-in-out; }
+      .blinking-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1em;
+        background-color: #a78bfa; /* violet-light */
+        animation: blink 1s step-end infinite;
+        vertical-align: text-bottom;
+      }
       @keyframes neural-pulse { 0%, 100% { r: 2; opacity: 0.4; } 50% { r: 4; opacity: 1; } }
       @keyframes neural-draw { 0% { stroke-dashoffset: 1000; } 50% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1000; } }
     </style>

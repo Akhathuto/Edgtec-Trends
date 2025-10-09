@@ -282,8 +282,10 @@ export interface AvatarProfile {
     clothingTop: string;
     clothingBottom: string;
     clothingShoes: string;
+    outerwear: string;
     accessoriesHat: string;
     accessoriesJewelry: string;
+    handheldItem: string;
     extraDetails: string;
     background: string;
     shotType: string;

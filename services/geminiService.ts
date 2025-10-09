@@ -448,7 +448,18 @@ export async function getChannelAnalytics(channelUrl: string, platform: 'YouTube
         contents: `Analyze the ${platform} channel at ${channelUrl}. Provide channel name, platform, follower count, total views, total likes, follower trend ('up'/'down'/'stable'), views trend, an AI summary of the channel's content, and list the 3 most recent videos with title, view count, and URL. Use Google Search. Your response must be a single valid JSON object with keys: 'channelName', 'platform', 'followerCount', 'totalViews', 'totalLikes', 'followerTrend', 'viewsTrend', 'aiSummary', 'recentVideos'.`,
         config: { tools: [{ googleSearch: {} }] }
     });
-    return parseJsonResponse(response.text, {} as ChannelAnalyticsData);
+    // FIX: Implemented a safer fallback object to prevent crashes when JSON parsing fails.
+    return parseJsonResponse(response.text, {
+        channelName: 'N/A',
+        platform: 'YouTube',
+        followerCount: 'N/A',
+        totalViews: 'N/A',
+        totalLikes: 'N/A',
+        followerTrend: 'stable',
+        viewsTrend: 'stable',
+        aiSummary: 'Analysis failed. Please try again.',
+        recentVideos: []
+    } as ChannelAnalyticsData);
 }
 
 export async function generateChannelOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<string[]> {
@@ -477,7 +488,13 @@ export async function generateChannelGrowthPlan(channelUrl: string, platform: 'Y
         contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Analyze and provide recommendations for: Content Strategy, SEO & Discoverability, Audience Engagement, and Thumbnail Critique. For each section, provide an 'analysis' text and a 'recommendations' array of strings. Your response must be a valid JSON object.`,
         config: { tools: [{ googleSearch: {} }] }
     });
-    return parseJsonResponse(response.text, {} as ChannelGrowthPlan);
+    // FIX: Implemented a safer fallback object to prevent crashes when JSON parsing fails.
+    return parseJsonResponse(response.text, {
+        contentStrategy: { analysis: 'Analysis failed. Please try again.', recommendations: [] },
+        seoAndDiscoverability: { analysis: 'Analysis failed. Please try again.', recommendations: [] },
+        audienceEngagement: { analysis: 'Analysis failed. Please try again.', recommendations: [] },
+        thumbnailCritique: { analysis: 'Analysis failed. Please try again.', recommendations: [] }
+    } as ChannelGrowthPlan);
 }
 
 export async function findSponsorshipOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<SponsorshipOpportunity[]> {
@@ -506,7 +523,14 @@ export async function analyzeVideoUrl(url: string): Promise<VideoAnalysis> {
         contents: `Analyze the video at this URL: ${url}. Provide the video title, an AI summary, a content analysis (what makes it good/bad), an engagement analysis (why people are reacting), and an array of 3-4 specific improvement suggestions. Your response must be a valid JSON object.`,
         config: { tools: [{ googleSearch: {} }] }
     });
-    return parseJsonResponse(response.text, {} as VideoAnalysis);
+    // FIX: Implemented a safer fallback object to prevent crashes when JSON parsing fails.
+    return parseJsonResponse(response.text, {
+        title: 'Analysis Failed',
+        aiSummary: 'Could not analyze the video. Please check the URL and try again.',
+        contentAnalysis: 'N/A',
+        engagementAnalysis: 'N/A',
+        improvementSuggestions: []
+    } as VideoAnalysis);
 }
 
 export async function repurposeVideoContent(url: string): Promise<RepurposedContent> {
@@ -628,8 +652,10 @@ export async function generateRandomAvatarProfile(): Promise<AvatarProfile> {
         - clothingTop: A top clothing item.
         - clothingBottom: A bottom clothing item.
         - clothingShoes: A type of shoe.
+        - outerwear: A type of outerwear (jacket, coat, etc.), or empty string.
         - accessoriesHat: A type of hat, or empty string.
         - accessoriesJewelry: A type of jewelry, or empty string.
+        - handheldItem: An item the avatar is holding (book, coffee, etc.), or empty string.
         - extraDetails: Any other extra visual details, or empty string.
         - background: A scene for the background.
         - shotType: Choose from ${shotTypes.join(', ')}.
@@ -652,8 +678,10 @@ export async function generateRandomAvatarProfile(): Promise<AvatarProfile> {
                     clothingTop: { type: Type.STRING },
                     clothingBottom: { type: Type.STRING },
                     clothingShoes: { type: Type.STRING },
+                    outerwear: { type: Type.STRING },
                     accessoriesHat: { type: Type.STRING },
                     accessoriesJewelry: { type: Type.STRING },
+                    handheldItem: { type: Type.STRING },
                     extraDetails: { type: Type.STRING },
                     background: { type: Type.STRING },
                     shotType: { type: Type.STRING },
@@ -661,12 +689,33 @@ export async function generateRandomAvatarProfile(): Promise<AvatarProfile> {
                 },
                  required: [
                     "gender", "avatarStyle", "hairStyle", "hairColor", "eyeColor", "facialHair",
-                    "glasses", "otherFacialFeatures", "clothingTop", "clothingBottom", "clothingShoes",
-                    "accessoriesHat", "accessoriesJewelry", "extraDetails", "background", "shotType", "personality"
+                    "glasses", "otherFacialFeatures", "clothingTop", "clothingBottom", "clothingShoes", "outerwear",
+                    "accessoriesHat", "accessoriesJewelry", "handheldItem", "extraDetails", "background", "shotType", "personality"
                 ]
             }
         }
     });
     
-    return parseJsonResponse(response.text, {} as AvatarProfile);
+    // FIX: Implemented a safer fallback object to prevent crashes when JSON parsing fails.
+    return parseJsonResponse(response.text, {
+        gender: genders[0],
+        avatarStyle: avatarStyles[0],
+        hairStyle: hairStyles[0],
+        hairColor: 'Black',
+        eyeColor: eyeColors[0],
+        facialHair: facialHairOptions[0],
+        glasses: glassesOptions[0],
+        otherFacialFeatures: '',
+        clothingTop: 'T-shirt',
+        clothingBottom: 'Jeans',
+        clothingShoes: 'Sneakers',
+        outerwear: '',
+        accessoriesHat: '',
+        accessoriesJewelry: '',
+        handheldItem: '',
+        extraDetails: '',
+        background: 'Simple color background',
+        shotType: shotTypes[0],
+        personality: 'A friendly and helpful persona.'
+    } as AvatarProfile);
 }
