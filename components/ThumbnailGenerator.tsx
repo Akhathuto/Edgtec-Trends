@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { generateThumbnailIdeas } from '../services/geminiService.ts';
 import { ThumbnailIdea, HistoryContentType } from '../types.ts';
 import Spinner from './Spinner.tsx';
@@ -6,7 +6,11 @@ import { Image, Lightbulb, Copy, Zap } from './Icons.tsx';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useToast } from '../contexts/ToastContext.tsx';
 
-const ThumbnailGenerator: React.FC = () => {
+interface ThumbnailGeneratorProps {
+  initialInput?: string | null;
+}
+
+const ThumbnailGenerator: React.FC<ThumbnailGeneratorProps> = ({ initialInput }) => {
     const { logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     const [title, setTitle] = useState('');
@@ -14,8 +18,9 @@ const ThumbnailGenerator: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [ideas, setIdeas] = useState<ThumbnailIdea[]>([]);
 
-    const handleGenerate = async () => {
-        if (!title.trim()) {
+    const handleGenerate = useCallback(async (titleOverride?: string) => {
+        const titleToGenerate = titleOverride || title;
+        if (!titleToGenerate.trim()) {
             setError('Please enter a video title.');
             return;
         }
@@ -23,14 +28,14 @@ const ThumbnailGenerator: React.FC = () => {
         setError(null);
         setIdeas([]);
         try {
-            const result = await generateThumbnailIdeas(title);
+            const result = await generateThumbnailIdeas(titleToGenerate);
             setIdeas(result);
-            logActivity(`generated thumbnail ideas for "${title}"`, 'Image');
+            logActivity(`generated thumbnail ideas for "${titleToGenerate}"`, 'Image');
             result.forEach(idea => {
                 addContentToHistory({
                     type: 'Thumbnail Idea' as HistoryContentType,
-                    summary: `Thumbnail idea for: ${title}`,
-                    content: { title, ...idea }
+                    summary: `Thumbnail idea for: ${titleToGenerate}`,
+                    content: { title: titleToGenerate, ...idea }
                 });
             });
         } catch (e: any) {
@@ -39,7 +44,14 @@ const ThumbnailGenerator: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [title, logActivity, addContentToHistory]);
+
+    useEffect(() => {
+        if (initialInput) {
+            setTitle(initialInput);
+            handleGenerate(initialInput);
+        }
+    }, [initialInput, handleGenerate]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -62,7 +74,7 @@ const ThumbnailGenerator: React.FC = () => {
                         className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner"
                     />
                     <button
-                        onClick={handleGenerate}
+                        onClick={() => handleGenerate()}
                         disabled={loading}
                         className="flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30"
                     >
