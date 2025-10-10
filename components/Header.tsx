@@ -1,9 +1,10 @@
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { UtrendLogo } from './Logo.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { LogOut, Star, User as UserIcon, ChevronDown } from './Icons.tsx';
-import { Tab } from '../types.ts';
+import { UtrendLogo } from './Logo';
+import { useAuth } from '../contexts/AuthContext';
+import { LogOut, Star, User as UserIcon, ChevronDown } from './Icons';
+import { Tab } from '../types';
 
 interface HeaderProps {
   setActiveTab: (tab: Tab) => void;

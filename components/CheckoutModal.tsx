@@ -1,11 +1,12 @@
+'use client';
 
 import React, { useState } from 'react';
-import { X, Star, CreditCard } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
-import { User } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { plans } from '../data/plans.ts';
+import { X, Star, CreditCard } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { User } from '../types';
+import Spinner from './Spinner';
+import { plans } from '../data/plans';
 
 interface CheckoutModalProps {
   isOpen: boolean;

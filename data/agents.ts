@@ -1,5 +1,17 @@
-import { Agent } from '../types.ts';
-import { Sparkles, BarChart2, DollarSign, Edit as EditIcon, Twitter, Gmail, GoogleDrive, Slack } from '../components/Icons.tsx';
+
+
+import { Agent, Type } from '../types';
+import { Sparkles, BarChart2, DollarSign, Edit as EditIcon, Twitter, Gmail, GoogleDrive, Slack } from '../components/Icons';
+
+const youtubeSearchDeclaration = {
+  name: 'youtubeSearch',
+  description: 'Search for YouTube videos about a specific topic to find trends, ideas, or competitor information.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: { query: { type: Type.STRING, description: 'The search query.' } },
+    required: ['query'],
+  },
+};
 
 export const agents: Agent[] = [
   {
@@ -8,7 +20,7 @@ export const agents: Agent[] = [
     description: 'Your go-to expert for brainstorming viral-worthy content ideas and spotting the next big trend.',
     icon: Sparkles,
     color: 'text-violet-400',
-    systemInstruction: `You are the Viral Visionary, an AI agent with a deep understanding of internet culture. Your expertise is brainstorming unique, high-potential video ideas. You are creative and witty. When you need up-to-date information on trends or new topics, use the googleSearch tool to find relevant information before answering. When you provide a great idea, suggest handing it off to the Creative Writer to get it scripted. Use the format: HANDOFF:[writer,"Based on this idea, write a full 60-second video script: '{idea_title}'"]`,
+    systemInstruction: `You are the Viral Visionary, an AI agent with a deep understanding of internet culture. Your expertise is brainstorming unique, high-potential video ideas. You are creative and witty. When you need up-to-date information on trends or new topics, use the youtubeSearch tool to find relevant information before answering. When you provide a great idea, suggest handing it off to the Creative Writer to get it scripted. Use the format: HANDOFF:[writer,"Based on this idea, write a full 60-second video script: '{idea_title}'"]`,
     starterPrompts: [
       'Give me 3 video ideas for a cooking channel.',
       'What\'s a unique angle for a tech review video?',
@@ -19,7 +31,7 @@ export const agents: Agent[] = [
         { name: 'X (Twitter)', icon: Twitter },
     ],
     tools: [
-        { googleSearch: {} },
+        { declaration: youtubeSearchDeclaration },
     ],
   },
   {
@@ -28,7 +40,7 @@ export const agents: Agent[] = [
     description: 'A data-driven specialist for SEO, keyword research, and audience growth strategies.',
     icon: BarChart2,
     color: 'text-blue-400',
-    systemInstruction: `You are the Growth Hacker, a data-obsessed AI agent focused on audience growth. You specialize in SEO, keyword optimization, and algorithmic strategy. Your advice is always actionable and backed by data-driven logic. When you need real-time data or competitor info, use the googleSearch tool. When a user asks for keywords, suggest using them to brainstorm ideas with the Viral Visionary. Use the format: HANDOFF:[visionary,"Brainstorm 3 video titles using these keywords: {keywords}"]`,
+    systemInstruction: `You are the Growth Hacker, a data-obsessed AI agent focused on audience growth. You specialize in SEO, keyword optimization, and algorithmic strategy. Your advice is always actionable and backed by data-driven logic. When you need real-time data or competitor info, use the youtubeSearch tool. When a user asks for keywords, suggest using them to brainstorm ideas with the Viral Visionary. Use the format: HANDOFF:[visionary,"Brainstorm 3 video titles using these keywords: {keywords}"]`,
     starterPrompts: [
       'How can I optimize my video titles for search?',
       'What are some good keywords for the term "vlogging"?',
@@ -40,7 +52,7 @@ export const agents: Agent[] = [
         { name: 'Google Drive', icon: GoogleDrive },
     ],
     tools: [
-        { googleSearch: {} },
+        { declaration: youtubeSearchDeclaration },
     ],
   },
   {

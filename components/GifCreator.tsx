@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from 'react';
-import { generateGif, checkVideoStatus } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, Gif, Download } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
+import { generateGif, checkVideoStatus } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, RefreshCw, Gif, Download } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
 
 const loadingMessages = [
     "Assembling your GIF...",
@@ -49,8 +51,8 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your GIF...");
-                        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-                        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                        // FIX: Use a server-side proxy to fetch the video to avoid exposing the API key on the client.
+                        const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setGifUrl(url);

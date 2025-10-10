@@ -1,12 +1,12 @@
-
+'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { repurposeVideoContent } from '../services/geminiService.ts';
-import { RepurposedContent } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { RefreshCw, Search, FileText, Copy } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { repurposeVideoContent } from '../services/geminiService';
+import { RepurposedContent } from '../types';
+import Spinner from './Spinner';
+import { RefreshCw, Search, FileText, Copy } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface RepurposeContentProps {
   initialInput?: string | null;

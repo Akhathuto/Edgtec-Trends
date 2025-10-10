@@ -1,12 +1,13 @@
+'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateContentIdeas, generateVideoScript } from '../services/geminiService.ts';
-import { ContentIdea } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Lightbulb, Youtube, TikTok, Star, FileText, Sparkles, Copy, Download } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
-import Modal from './Modal.tsx';
+import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
+import { ContentIdea } from '../types';
+import Spinner from './Spinner';
+import { Lightbulb, Youtube, TikTok, Star, FileText, Sparkles, Copy, Download } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import Modal from './Modal';
 
 interface ContentGeneratorProps {
   initialInput?: string | null;

@@ -1,6 +1,7 @@
+'use client';
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { User, AuthContextType, ActivityLog, KeywordUsage, Channel, HistoryItem } from '../types.ts';
+import { User, AuthContextType, ActivityLog, KeywordUsage, Channel, HistoryItem } from '../types';
 import { add, isAfter } from 'date-fns';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

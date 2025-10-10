@@ -1,10 +1,10 @@
-
+'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { User, ActivityLog } from '../types.ts';
-import { Sliders, User as UserIcon, Activity, Lightbulb, Star, Video, Search, MessageSquare, Trash2, Edit } from './Icons.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { useAuth } from '../contexts/AuthContext';
+import { User, ActivityLog } from '../types';
+import { Sliders, User as UserIcon, Activity, Lightbulb, Star, Video, Search, MessageSquare, Trash2, Edit } from './Icons';
+import { useToast } from '../contexts/ToastContext';
 import { formatDistanceToNow } from 'date-fns';
 
 const iconMap: { [key: string]: React.ReactNode } = {

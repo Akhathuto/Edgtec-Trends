@@ -1,8 +1,10 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { UtrendLogo } from './Logo.tsx';
-import Spinner from './Spinner.tsx';
-import { User } from '../types.ts';
+import { useAuth } from '../contexts/AuthContext';
+import { UtrendLogo } from './Logo';
+import Spinner from './Spinner';
+import { User } from '../types';
 
 const Login: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);

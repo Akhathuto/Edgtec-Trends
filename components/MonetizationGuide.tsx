@@ -1,9 +1,10 @@
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getMonetizationStrategies } from '../services/geminiService.ts';
-import { MonetizationStrategy } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Youtube, Film, DollarSign, Users, Target, CheckCircle, TikTok } from './Icons.tsx';
+import { getMonetizationStrategies } from '../services/geminiService';
+import { MonetizationStrategy } from '../types';
+import Spinner from './Spinner';
+import { Youtube, Film, DollarSign, Users, Target, CheckCircle, TikTok } from './Icons';
 
 const MonetizationGuide: React.FC = () => {
   const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');

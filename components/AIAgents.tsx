@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab, Agent as AgentType, AgentSettings } from '../types.ts';
-import { GoogleGenAI, Chat } from '@google/genai';
-import { Send, Sparkles, Trash2, Bot, Zap, Sliders, ChevronsRight, Search, X } from './Icons.tsx';
-import Spinner from './Spinner.tsx';
-import { agents } from '../data/agents.ts';
-import { useToast } from '../contexts/ToastContext.tsx';
-import AgentSettingsModal from './AgentSettingsModal.tsx';
-import { youtubeSearch } from '../services/geminiService.ts';
-
-// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
-// about mixed dynamic and static imports.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { useAuth } from '../contexts/AuthContext';
+import { Tab, Agent as AgentType, AgentSettings } from '../types';
+import { Send, Sparkles, Trash2, Bot, Zap, Sliders, ChevronsRight, Search, X } from './Icons';
+import Spinner from './Spinner';
+import { agents } from '../data/agents';
+import { useToast } from '../contexts/ToastContext';
+import AgentSettingsModal from './AgentSettingsModal';
+// FIX: Import the service to call the backend API route instead of handling Gemini logic on the client.
+import { sendMessageToAgent } from '../services/geminiService';
 
 interface AIAgentsProps {
   setActiveTab: (tab: Tab) => void;
@@ -97,7 +93,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   const { user, logActivity } = useAuth();
   const { showToast } = useToast();
   const [activeAgent, setActiveAgent] = useState<AgentType>(agents[0]);
-  const [chat, setChat] = useState<Chat | null>(null);
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -115,8 +110,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     temperature: 0.7,
   });
   
-  const availableTools = { youtubeSearch };
-
   useEffect(() => {
     if (user) {
         const savedSettings = localStorage.getItem(`utrend-agent-settings-${user.id}`);
@@ -126,122 +119,30 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
   }, [user]);
 
-  const initializeChat = useCallback((agent: AgentType, settings: AgentSettings, historyToRestore?: ChatMessage[]) => {
-    try {
-      const chatHistory = historyToRestore?.map(msg => {
-            if (msg.role === 'tool') {
-                return {
-                    role: 'model', // Gemini API expects a model role for function responses
-                    parts: [{ functionResponse: { name: msg.toolCall!.name, response: msg.toolResult } }]
-                };
-            }
-            return {
-                role: msg.role,
-                parts: [{ text: msg.content }],
-            };
-        });
-
-      const processedTools = agent.tools?.map(tool => {
-        if (tool.googleSearch) {
-            return { googleSearch: tool.googleSearch };
-        }
-        if (tool.declaration) {
-            return { functionDeclarations: [tool.declaration] };
-        }
-        return null;
-      }).filter(Boolean);
-
-      const chatInstance = ai.chats.create({
-        model: settings.model,
-        history: chatHistory,
-        config: {
-          systemInstruction: agent.systemInstruction,
-          temperature: settings.temperature,
-          // FIX: Per @google/genai guidelines, the 'tools' property should be inside the 'config' object for chat creation.
-          tools: processedTools && processedTools.length > 0 ? processedTools : undefined,
-        },
-      });
-      setChat(chatInstance);
-      return chatInstance;
-    } catch (e) {
-      console.error("Failed to initialize AI Chat:", e);
-      setError("Could not initialize the AI chat service. Please check API key and refresh.");
-      return null;
-    }
-  }, []);
-  
   const handleSendMessage = useCallback(async (message: string, agentOverride?: AgentType, historyOverride?: ChatMessage[]) => {
     const currentAgent = agentOverride || activeAgent;
-    let currentHistory = historyOverride || history;
+    const currentHistoryBase = historyOverride || history;
 
     if (!message.trim() || loading) return;
 
-    let chatInstance = chat;
-    if (agentOverride || !chat) { 
-        chatInstance = initializeChat(currentAgent, agentSettings, currentHistory);
-    }
-    if (!chatInstance) return;
-
     const newUserMessage: ChatMessage = { role: 'user', content: message };
-    currentHistory = [...currentHistory, newUserMessage];
-    setHistory(currentHistory);
+    const currentHistoryWithNewMessage = [...currentHistoryBase, newUserMessage];
+    setHistory(currentHistoryWithNewMessage);
     setLoading(true);
     setInput('');
     
     logActivity(`chatted with ${currentAgent.name}: "${message.substring(0, 30)}..."`, 'Bot');
 
     try {
-        let result = await chatInstance.sendMessage({ message });
-        let functionCalls = result.functionCalls;
-
-        while (functionCalls && functionCalls.length > 0) {
-            const functionResponses = [];
-            for (const functionCall of functionCalls) {
-                const { name, args } = functionCall;
-
-                const toolMessage: ChatMessage = { role: 'tool', content: `Using tool: ${name}...`, toolCall: { name, args } };
-                currentHistory = [...currentHistory, toolMessage];
-                setHistory(currentHistory);
-
-                let toolOutputResult;
-                if (name in availableTools) {
-                    const toolFn = availableTools[name as keyof typeof availableTools];
-                    toolOutputResult = toolFn(args as { query: string });
-                } else {
-                    toolOutputResult = `Error: Tool "${name}" not found.`;
-                }
-
-                functionResponses.push({
-                    functionResponse: {
-                        name,
-                        response: { result: toolOutputResult }
-                    }
-                });
-                
-                const toolResultWithMessage: ChatMessage = { ...toolMessage, toolResult: { result: toolOutputResult } };
-                currentHistory[currentHistory.length - 1] = toolResultWithMessage;
-                setHistory(currentHistory);
-            }
-
-            result = await chatInstance.sendMessage({
-                message: functionResponses
-            });
-
-            functionCalls = result.functionCalls;
-        }
-        
-        const finalResponse = result.text;
-        if (finalResponse) {
-            setHistory(prev => [...prev, { role: 'model', content: finalResponse }]);
-        }
-
-    } catch (e) {
-      console.error("Error sending message to agent:", e);
-       setHistory(prev => [...prev, { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
+        const responses = await sendMessageToAgent(currentAgent, currentHistoryWithNewMessage, agentSettings);
+        setHistory(prev => [...prev, ...responses]);
+    } catch (e: any) {
+        console.error("Error sending message to agent:", e);
+        setHistory(prev => [...prev, { role: 'model', content: "I'm sorry, I encountered an error. Please try again." }]);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-}, [activeAgent, chat, history, loading, agentSettings, initializeChat, logActivity]);
+}, [activeAgent, history, loading, agentSettings, logActivity]);
 
 
   const switchAgent = useCallback((agent: AgentType, initialPrompt?: string) => {
@@ -257,13 +158,12 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     }
     
     setHistory(initialHistory);
-    initializeChat(agent, agentSettings, initialHistory);
 
     if (initialPrompt) {
         handleSendMessage(initialPrompt, agent, initialHistory);
     }
 
-  }, [user?.id, initializeChat, agentSettings, handleSendMessage]);
+  }, [user?.id, agentSettings, handleSendMessage]);
 
   useEffect(() => {
     if (user) {
@@ -294,7 +194,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
         localStorage.setItem(`utrend-agent-settings-${user.id}`, JSON.stringify(newSettings));
         showToast('Agent settings saved!');
         setIsSettingsModalOpen(false);
-        initializeChat(activeAgent, newSettings, history);
     }
   };
   
@@ -308,7 +207,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   const handleClearChat = () => {
     const freshHistory: ChatMessage[] = [{ role: 'model', content: `Hello again from the ${activeAgent.name}! How can I help?` }];
     setHistory(freshHistory);
-    initializeChat(activeAgent, agentSettings, freshHistory);
   };
   
   const handleAction = (service: string, details: string) => {

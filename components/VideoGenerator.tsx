@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders, Zap, User as UserIcon, Image as ImageIcon, X } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab, HistoryItem } from '../types.ts';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { generateVideo, checkVideoStatus, generateTranscriptFromPrompt } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Video, Youtube, Film, YoutubeShorts, RefreshCw, Type, Filter, Clock, Star, FileText, Copy, TikTok, UploadCloud, Play, Pause, StopCircle, Download, Sliders, Zap, User as UserIcon, Image as ImageIcon, X } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab, HistoryItem } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 const loadingMessages = [
     "Kicking off the render...",
@@ -175,8 +177,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
-                        // FIX: Per @google/genai guidelines, the API key must be from process.env.API_KEY.
-                        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                        // FIX: Use a server-side proxy to fetch the video to avoid exposing the API key on the client.
+                        const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setVideoUrl(url);

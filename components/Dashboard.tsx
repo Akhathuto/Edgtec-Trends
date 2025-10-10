@@ -1,9 +1,10 @@
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab, Channel } from '../types.ts';
-import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool, TrendingUp, TrendingDown, Star } from './Icons.tsx';
-import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService.ts';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab, Channel } from '../types';
+import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool, TrendingUp, TrendingDown, Star } from './Icons';
+import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
 import Spinner from './Spinner';
 
 interface EnrichedChannel extends Channel {
@@ -41,8 +42,13 @@ const AITipCard: React.FC = () => {
     const fetchTip = useCallback(async () => {
         if (!user) return;
         setLoading(true);
-        const newTip = await generateDashboardTip(user.channels || []);
-        setTip(newTip);
+        try {
+            const newTip = await generateDashboardTip(user.channels || []);
+            setTip(newTip);
+        } catch (error) {
+            console.error("Failed to fetch AI tip:", error);
+            setTip("Could not fetch a tip right now. Please try again.");
+        }
         setLoading(false);
     }, [user]);
 
@@ -139,13 +145,18 @@ const YourChannelsCard: React.FC<{
                 return;
             }
             setLoading(true);
-            const snapshots = await getChannelSnapshots(channels);
-            const enriched = channels.map(channel => {
-                const snapshot = snapshots.find(s => s.id === channel.id);
-                return { ...channel, ...snapshot };
-            });
-            setEnrichedChannels(enriched);
-            setLoading(false);
+            try {
+                const snapshots = await getChannelSnapshots(channels);
+                const enriched = channels.map(channel => {
+                    const snapshot = snapshots.find(s => s.id === channel.id);
+                    return { ...channel, ...snapshot };
+                });
+                setEnrichedChannels(enriched);
+            } catch (error) {
+                console.error("Failed to fetch channel snapshots:", error);
+            } finally {
+                setLoading(false);
+            }
         };
         fetchSnapshots();
     }, [channels]);

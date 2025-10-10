@@ -1,8 +1,9 @@
+'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Tab } from '../types.ts';
-import { Search, ChevronDown, X, Star } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { Tab } from '../types';
+import { Search, ChevronDown, X, Star } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TabItem {
   id: Tab;

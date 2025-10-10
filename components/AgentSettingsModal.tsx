@@ -1,10 +1,10 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { AgentSettings } from '../types.ts';
-import Modal from './Modal.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { AgentSettings } from '../types';
+import Modal from './Modal';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface AgentSettingsModalProps {
   isOpen: boolean;

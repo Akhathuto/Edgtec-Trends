@@ -1,10 +1,12 @@
 
+'use client';
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { editVideo, checkVideoStatus } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, UploadCloud, RefreshCw, Download, Scissors, Sliders, Film } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
+import { editVideo, checkVideoStatus } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, UploadCloud, RefreshCw, Download, Scissors, Sliders, Film } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
 
 interface VideoEditorProps {
   setActiveTab: (tab: Tab) => void;
@@ -141,7 +143,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your edited video...");
-                        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                        const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setEditedVideoUrl(url);

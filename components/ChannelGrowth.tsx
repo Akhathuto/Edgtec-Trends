@@ -1,11 +1,12 @@
 
+'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { generateChannelGrowthPlan } from '../services/geminiService.ts';
-import { ChannelGrowthPlan, Tab } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext';
+import { generateChannelGrowthPlan } from '../services/geminiService';
+import { ChannelGrowthPlan, Tab } from '../types';
+import Spinner from './Spinner';
+import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons';
 
 interface ChannelGrowthProps {
   setActiveTab: (tab: Tab) => void;
@@ -56,7 +57,6 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
             return;
         }
 
-        // FIX: Ensure platform is compatible before making API call.
         if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
             setError(`Growth plans for "${selectedChannel.platform}" channels are not supported.`);
             return;

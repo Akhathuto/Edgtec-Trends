@@ -1,10 +1,11 @@
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { generateAnimation, checkVideoStatus } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, Clapperboard, RefreshCw, Download } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
+import { generateAnimation, checkVideoStatus } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, Clapperboard, RefreshCw, Download } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
 
 const loadingMessages = [
     "Warming up the animation studio...",
@@ -64,7 +65,8 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your animation...");
-                        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                        // FIX: Use the /api/download proxy to avoid exposing API key
+                        const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setAnimationUrl(url);

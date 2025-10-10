@@ -1,2 +1,2 @@
-// FIX: Removed reference to 'vite/client' which was causing a "Cannot find type definition file" error.
-// The project does not appear to use any client-specific Vite types that this reference provides.
+// This file is for Vite projects. Since this project uses Next.js, this file is not needed.
+// It has been cleared to resolve type definition errors.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, FileText } from './Icons.tsx';
+import { Shield, FileText } from './Icons';
 import { format } from 'date-fns';
 
 interface LegalPageProps {

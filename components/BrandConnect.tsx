@@ -1,12 +1,13 @@
 
+'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { findSponsorshipOpportunities, generateBrandPitch } from '../services/geminiService.ts';
-import { Tab, SponsorshipOpportunity, BrandPitch } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Star, Link, Briefcase, ChevronDown, Copy, FileText, Send } from './Icons.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { useAuth } from '../contexts/AuthContext';
+import { findSponsorshipOpportunities, generateBrandPitch } from '../services/geminiService';
+import { Tab, SponsorshipOpportunity, BrandPitch } from '../types';
+import Spinner from './Spinner';
+import { Star, Link, Briefcase, ChevronDown, Copy, FileText, Send } from './Icons';
+import { useToast } from '../contexts/ToastContext';
 
 interface BrandConnectProps {
   setActiveTab: (tab: Tab) => void;
@@ -86,7 +87,6 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
             return;
         }
 
-        // FIX: Ensure platform is compatible before making API call.
         if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
             setError(`Sponsor search for "${selectedChannel.platform}" channels is not supported.`);
             return;
@@ -119,7 +119,6 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
 
         const key = opportunity.brandName;
 
-        // FIX: Ensure platform is compatible before making API call.
         if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
             setPitchData(prev => ({ ...prev, [key]: { loading: false, error: 'Pitch generation is not supported for this platform.', pitch: null } }));
             return;

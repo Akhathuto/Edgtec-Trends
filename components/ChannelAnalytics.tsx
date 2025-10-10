@@ -1,11 +1,12 @@
 
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService.ts';
-import { ChannelAnalyticsData, Tab } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Star, BarChart2, Youtube, TikTok, Link, Lightbulb, TrendingUp, TrendingDown, ExternalLink } from './Icons.tsx';
+import { useAuth } from '../contexts/AuthContext';
+import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
+import { ChannelAnalyticsData, Tab } from '../types';
+import Spinner from './Spinner';
+import { Star, BarChart2, Youtube, TikTok, Link, Lightbulb, TrendingUp, TrendingDown, ExternalLink } from './Icons';
 
 interface ChannelAnalyticsProps {
   setActiveTab: (tab: Tab) => void;
@@ -65,8 +66,6 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
         if (selectedChannelId) {
             const channel = compatibleChannels.find(c => c.id === selectedChannelId);
             if (channel) {
-                // FIX: Cast channel.platform to the expected type. This is safe because
-                // `compatibleChannels` is filtered to only include 'YouTube' and 'TikTok' platforms.
                 handleAnalyze(channel.url, channel.platform as 'YouTube' | 'TikTok');
             }
         }
@@ -85,7 +84,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
             setCompetitorUrl(initialInput);
             handleCompetitorAnalyze(initialInput);
         }
-    }, [initialInput]);
+    }, [initialInput, handleCompetitorAnalyze]);
 
     const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
       switch (trend) {

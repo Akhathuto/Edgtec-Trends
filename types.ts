@@ -1,3 +1,4 @@
+
 import type React from 'react';
 
 export type PlanName = 'free' | 'starter' | 'pro';
@@ -290,4 +291,23 @@ export interface AvatarProfile {
     background: string;
     shotType: string;
     personality: string;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model' | 'tool';
+  content: string;
+  gifUrl?: string;
+  imageUrl?: string;
+  toolCall?: { name: string; args: any };
+  toolResult?: any;
+}
+
+// @google/genai doesn't export Type enum, so we define it locally for schema generation
+export enum Type {
+  STRING = 'STRING',
+  NUMBER = 'NUMBER',
+  INTEGER = 'INTEGER',
+  BOOLEAN = 'BOOLEAN',
+  ARRAY = 'ARRAY',
+  OBJECT = 'OBJECT',
 }

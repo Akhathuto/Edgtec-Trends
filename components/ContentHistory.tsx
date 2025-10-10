@@ -1,12 +1,12 @@
 
 
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { History, FileText, CheckCircle, Copy, Download } from './Icons.tsx';
-import { HistoryItem, HistoryContentType } from '../types.ts';
+import { useAuth } from '../contexts/AuthContext';
+import { History, FileText, CheckCircle, Copy, Download } from './Icons';
+import { HistoryItem, HistoryContentType } from '../types';
 import { format } from 'date-fns';
-import Modal from './Modal.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import Modal from './Modal';
+import { useToast } from '../contexts/ToastContext';
 
 const contentTypes: HistoryContentType[] = [
     'Content Idea',

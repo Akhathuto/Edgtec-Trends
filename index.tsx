@@ -1,21 +1,3 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import { AuthProvider } from './contexts/AuthContext.tsx';
-import { ToastProvider } from './contexts/ToastContext.tsx';
-
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </AuthProvider>
-  </React.StrictMode>
-);
+// This file is the entry point for standard Vite/CRA React projects, but it is not used by the Next.js App Router.
+// The root page component is `app/page.tsx`.
+// This file has been cleared to prevent conflicts with the Next.js development server.

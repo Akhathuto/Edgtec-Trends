@@ -1,51 +1,58 @@
+
+
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import Header from './Header.tsx';
-import Sidebar from './Sidebar.tsx';
-import TrendingTicker from './TrendingTicker.tsx';
-import { Tab } from '../types.ts';
+import { useAuth } from '../contexts/AuthContext';
+import Header from './Header';
+import Sidebar from './Sidebar';
+import TrendingTicker from './TrendingTicker';
+import { Tab } from '../types';
 import {
   LayoutDashboard, TrendingUp, Search, BarChart2, MessageSquare, Bot, History,
   Lightbulb, Video, DollarSign, FileText, Rocket, Briefcase, User as UserIcon, Star,
   HelpCircle, Mail, Info, Shield, Wand, Clapperboard, Gif, PenTool, Image, Scissors,
   Type as TypeIcon, MessageSquare as CommentIcon, RefreshCw
-} from './Icons.tsx';
+} from './Icons';
 
-import Dashboard from './Dashboard.tsx';
-import TrendDiscovery from './TrendDiscovery.tsx';
-import KeywordResearch from './KeywordResearch.tsx';
-import ChannelAnalytics from './ChannelAnalytics.tsx';
-import AIChat from './AIChat.tsx';
-import AIAgents from './AIAgents.tsx';
-import ContentHistory from './ContentHistory.tsx';
-import ContentGenerator from './ContentGenerator.tsx';
-import VideoGenerator from './VideoGenerator.tsx';
-import MonetizationGuide from './MonetizationGuide.tsx';
-import StrategyReport from './StrategyReport.tsx';
-import ChannelGrowth from './ChannelGrowth.tsx';
-import BrandConnect from './BrandConnect.tsx';
-import UserProfile from './UserProfile.tsx';
-import PricingPage from './PricingPage.tsx';
-import AdminDashboard from './AdminDashboard.tsx';
-import SupportPage from './SupportPage.tsx';
-import ContactPage from './ContactPage.tsx';
-import About from './About.tsx';
-import LegalPage from './LegalPage.tsx';
-import PromptGenerator from './PromptGenerator.tsx';
-import AnimationCreator from './AnimationCreator.tsx';
-import GifCreator from './GifCreator.tsx';
-import ImageEditor from './ImageEditor.tsx';
-import LogoCreator from './LogoCreator.tsx';
-import ImageGenerator from './ImageGenerator.tsx';
-import AvatarCreator from './AvatarCreator.tsx';
-import VideoEditor from './VideoEditor.tsx';
-import ThumbnailGenerator from './ThumbnailGenerator.tsx';
-import CommentResponder from './CommentResponder.tsx';
-import VideoAnalyzer from './VideoAnalyzer.tsx';
-import RepurposeContent from './RepurposeContent.tsx';
+import Dashboard from './Dashboard';
+import TrendDiscovery from './TrendDiscovery';
+import KeywordResearch from './KeywordResearch';
+import ChannelAnalytics from './ChannelAnalytics';
+// FIX: Changed to default import as AIChat has a default export.
+import AIChat from './AIChat';
+import AIAgents from './AIAgents';
+import ContentHistory from './ContentHistory';
+import ContentGenerator from './ContentGenerator';
+import VideoGenerator from './VideoGenerator';
+import MonetizationGuide from './MonetizationGuide';
+import StrategyReport from './StrategyReport';
+import ChannelGrowth from './ChannelGrowth';
+import BrandConnect from './BrandConnect';
+import UserProfile from './UserProfile';
+import PricingPage from './PricingPage';
+import AdminDashboard from './AdminDashboard';
+import SupportPage from './SupportPage';
+import ContactPage from './ContactPage';
+import About from './About';
+import LegalPage from './LegalPage';
+import PromptGenerator from './PromptGenerator';
+import AnimationCreator from './AnimationCreator';
+import GifCreator from './GifCreator';
+import ImageEditor from './ImageEditor';
+import LogoCreator from './LogoCreator';
+// FIX: Change to named import as ImageGenerator does not have a default export.
+import { ImageGenerator } from './ImageGenerator';
+// FIX: Changed to named import as AvatarCreator will be changed to a named export.
+import { AvatarCreator } from './AvatarCreator';
+import VideoEditor from './VideoEditor';
+import ThumbnailGenerator from './ThumbnailGenerator';
+import CommentResponder from './CommentResponder';
+import VideoAnalyzer from './VideoAnalyzer';
+import RepurposeContent from './RepurposeContent';
 
-import CheckoutModal from './CheckoutModal.tsx';
-import { User } from '../types.ts';
+import CheckoutModal from './CheckoutModal';
+import { User } from '../types';
 
 const AppLayout: React.FC = () => {
   const { user, upgradePlan } = useAuth();
@@ -99,7 +106,6 @@ const AppLayout: React.FC = () => {
     { id: Tab.ChannelGrowth, label: 'Channel Growth Plan', icon: <Rocket className="w-5 h-5 mr-3" />, title: 'Get a personalized growth plan' },
     { id: Tab.BrandConnect, label: 'Brand Connect', icon: <Briefcase className="w-5 h-5 mr-3" />, title: 'Find sponsors and generate pitches' },
     { id: Tab.VideoAnalyzer, label: 'Video Analyzer', icon: <Video className="w-5 h-5 mr-3" />, title: 'AI breakdown of any video' },
-    // FIX: Imported the missing RefreshCw icon.
     { id: Tab.RepurposeContent, label: 'Repurpose Content', icon: <RefreshCw className="w-5 h-5 mr-3" />, title: 'Turn one video into many assets' },
   ];
 

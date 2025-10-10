@@ -1,11 +1,12 @@
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link, Youtube, TikTok, Trash2 } from './Icons.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
-import Spinner from './Spinner.tsx';
-import { Channel } from '../types.ts';
-import { getChannelSnapshots } from '../services/geminiService.ts';
+import { useAuth } from '../contexts/AuthContext';
+import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link, Youtube, TikTok, Trash2 } from './Icons';
+import { useToast } from '../contexts/ToastContext';
+import Spinner from './Spinner';
+import { Channel } from '../types';
+import { getChannelSnapshots } from '../services/geminiService';
 
 interface UserProfileProps {
     onUpgradeClick: () => void;

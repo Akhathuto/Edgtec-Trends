@@ -1,17 +1,14 @@
 
 
 import React, { useState, useCallback } from 'react';
-import { GoogleGenAI } from '@google/genai';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import Spinner from './Spinner.tsx';
-import { MessageSquare, RefreshCw, Copy, Sparkles } from './Icons.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { useAuth } from '../contexts/AuthContext';
+import Spinner from './Spinner';
+import { MessageSquare, RefreshCw, Copy, Sparkles } from './Icons';
+import { useToast } from '../contexts/ToastContext';
+// FIX: Import the service function instead of using the Gemini SDK directly on the client.
+import { generateCommentResponse } from '../services/geminiService';
 
 const tones = ['Friendly', 'Professional', 'Witty', 'Grateful', 'Inquisitive'];
-
-// FIX: Initialized the GoogleGenAI client statically to resolve the Vite build warning
-// about mixed dynamic and static imports.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const CommentResponder: React.FC = () => {
     const { logActivity } = useAuth();
@@ -33,11 +30,9 @@ const CommentResponder: React.FC = () => {
         setResponse(null);
 
         try {
-            const geminiResponse = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: `Generate a concise, engaging, and ${tone.toLowerCase()} reply to the following user comment on a video: "${comment}". The reply should encourage further engagement. Do not include your own username or signature.`,
-            });
-            setResponse(geminiResponse.text);
+            // FIX: Use the service function to make a secure API call from the server.
+            const result = await generateCommentResponse(comment, tone);
+            setResponse(result);
             logActivity(`generated a ${tone} reply to a comment`, 'MessageSquare');
         } catch (e: any) {
             setError(e.message || 'An error occurred while generating the response.');

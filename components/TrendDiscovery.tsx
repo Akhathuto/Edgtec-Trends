@@ -1,11 +1,12 @@
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService.ts';
-import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { TrendingUp, Youtube, TikTok, Search, ExternalLink, Music, Users, Video as VideoIcon } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import UpgradeModal from './UpgradeModal.tsx';
+import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService';
+import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types';
+import Spinner from './Spinner';
+import { TrendingUp, Youtube, TikTok, Search, ExternalLink, Music, Users, Video as VideoIcon } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import UpgradeModal from './UpgradeModal';
 
 const countryOptions = ["Worldwide", "USA", "UK", "Canada", "Australia", "India", "South Africa"];
 const categoryOptions = ["All", "Gaming", "Music", "Entertainment", "Comedy", "Education", "Tech", "Beauty & Fashion", "Food"];

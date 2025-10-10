@@ -1,7 +1,8 @@
+'use client';
 
 import React from 'react';
-import { X, Star, CheckCircle } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { X, Star, CheckCircle } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UpgradeModalProps {
   isOpen: boolean;

@@ -1,6 +1,7 @@
+'use client';
 
 import React, { useEffect } from 'react';
-import { CheckCircle, X } from './Icons.tsx';
+import { CheckCircle, X } from './Icons';
 
 interface ToastProps {
   message: string;

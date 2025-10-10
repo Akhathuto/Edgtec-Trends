@@ -1,7 +1,8 @@
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Tab } from '../types.ts';
-import { ChevronDown, Wand, FileText } from './Icons.tsx';
+import { Tab } from '../types';
+import { ChevronDown, Wand, FileText } from './Icons';
 
 interface TabItem {
   id: Tab;

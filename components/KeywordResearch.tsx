@@ -1,10 +1,11 @@
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getKeywordAnalysis } from '../services/geminiService.ts';
-import { KeywordAnalysis } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Search, Lightbulb, TrendingUp } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { getKeywordAnalysis } from '../services/geminiService';
+import { KeywordAnalysis } from '../types';
+import Spinner from './Spinner';
+import { Search, Lightbulb, TrendingUp } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface KeywordResearchProps {
   initialInput?: string | null;

@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
-import { generateImage } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, Image as ImageIcon, Download } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
-import GalleryModal from './GalleryModal.tsx';
+import { generateImage } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, RefreshCw, Image as ImageIcon, Download } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
+import GalleryModal from './GalleryModal';
 
 const imageStyles = ['Photorealistic', 'Digital Art', 'Fantasy', 'Sci-Fi', 'Watercolor', 'Minimalist', 'Cyberpunk', 'Pixel Art'];
 const aspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4'];
@@ -13,7 +15,7 @@ interface ImageGeneratorProps {
   setActiveTab: (tab: Tab) => void;
 }
 
-const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
+export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [imageStyle, setImageStyle] = useState(imageStyles[0]);
@@ -200,4 +202,4 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
     );
 };
 
-export default ImageGenerator;
+// export default ImageGenerator; // Not a default export

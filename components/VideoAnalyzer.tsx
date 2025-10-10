@@ -1,11 +1,11 @@
-
+'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { analyzeVideoUrl } from '../services/geminiService.ts';
-import { VideoAnalysis } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Film, Search, Sparkles, ThumbsUp, Lightbulb, CheckCircle } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { analyzeVideoUrl } from '../services/geminiService';
+import { VideoAnalysis } from '../types';
+import Spinner from './Spinner';
+import { Film, Search, Sparkles, ThumbsUp, Lightbulb, CheckCircle } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface VideoAnalyzerProps {
   initialInput?: string | null;

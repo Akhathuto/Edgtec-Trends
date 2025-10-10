@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
-import { editImage } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Edit, Star, UploadCloud, RefreshCw, Download, Sliders, Trash2 } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
+import { editImage } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Edit, Star, UploadCloud, RefreshCw, Download, Sliders, Trash2 } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
 
 interface ImageEditorProps {
   setActiveTab: (tab: Tab) => void;

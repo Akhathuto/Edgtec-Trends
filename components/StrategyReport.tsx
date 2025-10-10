@@ -1,10 +1,11 @@
+'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateFullReport } from '../services/geminiService.ts';
-import { FullReport, Tab } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { FileText, Star, Download, Sparkles, Lightbulb, DollarSign } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { generateFullReport } from '../services/geminiService';
+import { FullReport, Tab } from '../types';
+import Spinner from './Spinner';
+import { FileText, Star, Download, Sparkles, Lightbulb, DollarSign } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface StrategyReportProps {
   setActiveTab: (tab: Tab) => void;

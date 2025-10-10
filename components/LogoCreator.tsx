@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
-import { generateLogo } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, PenTool, Download } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
-import GalleryModal from './GalleryModal.tsx';
+import { generateLogo } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, RefreshCw, PenTool, Download } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
+import GalleryModal from './GalleryModal';
 
 const logoStyles = ['Minimalist', 'Mascot', 'Abstract', 'Wordmark', 'Geometric', 'Vintage'];
 

@@ -1,13 +1,14 @@
 
 
+'use client';
+
 import React, { useState, useMemo } from 'react';
-// FIX: Imported the missing FileText icon.
 import {
   HelpCircle, ChevronDown, LayoutDashboard, TrendingUp, Lightbulb, Wand, BarChart2,
   Rocket, DollarSign, User as UserIcon, Search, MessageSquare, History, Bot, Film,
   RefreshCw, Briefcase, Star, Scissors, PenTool, Clapperboard, Gif, FileText
-} from './Icons.tsx';
-import { Tab } from '../types.ts';
+} from './Icons';
+import { Tab } from '../types';
 
 interface HelpTopic {
   title: string;

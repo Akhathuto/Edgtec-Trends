@@ -1,66 +1,15 @@
+
+
+'use client';
+
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenAiBlob, Chat } from '@google/genai';
-import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile } from '../services/geminiService.ts';
-import Spinner from './Spinner.tsx';
-import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, MessageSquare, Send, UploadCloud, Wand, Edit, ChevronDown, Image, X, Eye } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { Tab } from '../types.ts';
-import { useToast } from '../contexts/ToastContext.tsx';
-import { avatarStyles, genders, shotTypes, voices, hairStyles, facialHairOptions, glassesOptions } from '../data/avatarOptions.ts';
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-// --- Live API Audio Helper Functions ---
-function encode(bytes: Uint8Array) {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
-
-function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-
-async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-}
-
-function createBlob(data: Float32Array): GenAiBlob {
-  const l = data.length;
-  const int16 = new Int16Array(l);
-  for (let i = 0; i < l; i++) {
-    int16[i] = data[i] * 32768;
-  }
-  return {
-    data: encode(new Uint8Array(int16.buffer)),
-    mimeType: 'audio/pcm;rate=16000',
-  };
-}
-// --- End Helper Functions ---
+import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile, sendMessageToNolo } from '../services/geminiService';
+import Spinner from './Spinner';
+import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, MessageSquare, Send, UploadCloud, Wand, Edit, ChevronDown, Image, X, Eye } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { Tab } from '../types';
+import { useToast } from '../contexts/ToastContext';
+import { avatarStyles, genders, shotTypes, voices, hairStyles, facialHairOptions, glassesOptions } from '../data/avatarOptions';
 
 type InteractionMode = 'none' | 'voice' | 'text';
 type ConversationStatus = 'CONNECTING...' | 'LISTENING' | 'SPEAKING' | 'ENDED' | 'READY';
@@ -69,6 +18,11 @@ type CreatorPhase = 'design' | 'generating' | 'interact';
 interface TranscriptEntry {
     source: 'user' | 'avatar';
     text: string;
+}
+
+interface ChatMessage {
+    role: 'user' | 'model';
+    content: string;
 }
 
 interface AvatarCreatorProps {
@@ -163,7 +117,7 @@ const CollapsibleSection: React.FC<{ title: string; icon: React.ReactNode; child
 };
 
 
-const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
+export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
 
@@ -203,21 +157,11 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     // Conversation State
     const [interactionMode, setInteractionMode] = useState<InteractionMode>('none');
     const [voice, setVoice] = useState(voices[0]);
-    const [status, setStatus] = useState<ConversationStatus>('CONNECTING...');
+    const [status, setStatus] = useState<ConversationStatus>('READY');
     const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-    const sessionPromiseRef = useRef<Promise<any> | null>(null);
-    const textChatRef = useRef<Chat | null>(null);
+    const [textChatHistory, setTextChatHistory] = useState<ChatMessage[]>([]);
     const [textInput, setTextInput] = useState('');
     const [isTextLoading, setIsTextLoading] = useState(false);
-    
-    const audioResourcesRef = useRef<{
-        stream: MediaStream | null;
-        inputAudioContext: AudioContext | null;
-        outputAudioContext: AudioContext | null;
-        scriptProcessor: ScriptProcessorNode | null;
-        sources: Set<AudioBufferSourceNode>;
-        nextStartTime: number;
-    }>({ stream: null, inputAudioContext: null, outputAudioContext: null, scriptProcessor: null, sources: new Set(), nextStartTime: 0 });
 
     const faceDetails = [ facialHair !== 'None' ? facialHair : '', glasses !== 'None' ? glasses : '', otherFacialFeatures ].filter(Boolean).join(', ');
     const clothingString = [ clothingTop ? `Top: ${clothingTop}` : '', outerwear ? `Outerwear: ${outerwear}` : '', clothingBottom ? `Bottom: ${clothingBottom}` : '', shotType === 'Full Body Shot' && clothingShoes ? `Shoes: ${clothingShoes}` : '' ].filter(Boolean).join(', ');
@@ -377,120 +321,56 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
         finally { setIsEditingAvatar(false); }
     };
     
-    const cleanupAudio = useCallback(() => {
-        const r = audioResourcesRef.current;
-        r.stream?.getTracks().forEach(t => t.stop());
-        r.scriptProcessor?.disconnect();
-        r.inputAudioContext?.close().catch(console.error);
-        r.outputAudioContext?.close().catch(console.error);
-        r.sources.forEach(s => s.stop());
-        audioResourcesRef.current = { stream: null, inputAudioContext: null, outputAudioContext: null, scriptProcessor: null, sources: new Set(), nextStartTime: 0 };
-    }, []);
-
     const handleStartTextChat = useCallback(async () => {
         setInteractionMode('text');
-        setStatus('READY'); setTranscript([]);
+        setStatus('READY');
         const initialGreeting = "Hello! It's great to meet you. What's on your mind?";
-        textChatRef.current = ai.chats.create({ model: 'gemini-2.5-flash', config: { systemInstruction }, history: [{ role: 'model', parts: [{ text: initialGreeting }] }] });
-        setTranscript([{ source: 'avatar', text: initialGreeting }]);
-    }, [systemInstruction]);
+        // FIX: Added explicit ChatMessage[] type to prevent overly specific type inference.
+        const initialHistory: ChatMessage[] = [{ role: 'model', content: initialGreeting }];
+        setTextChatHistory(initialHistory);
+        setTranscript(initialHistory.map(m => ({ source: m.role === 'user' ? 'user' : 'avatar', text: m.content })));
+    }, []);
 
     const handleSendTextMessage = useCallback(async () => {
-        if (!textInput.trim() || isTextLoading || !textChatRef.current) return;
+        if (!textInput.trim() || isTextLoading) return;
         const currentInput = textInput;
-        setTextInput(''); setIsTextLoading(true);
-        setTranscript(prev => [...prev, { source: 'user', text: currentInput }]);
-        let fullResponse = '';
+        const newUserMessage: ChatMessage = { role: 'user', content: currentInput };
+        const updatedHistory = [...textChatHistory, newUserMessage];
+        setTextChatHistory(updatedHistory);
+        setTranscript(updatedHistory.map(m => ({ source: m.role === 'user' ? 'user' : 'avatar', text: m.content })));
+        
+        setTextInput('');
+        setIsTextLoading(true);
+        
         try {
-            const stream = await textChatRef.current.sendMessageStream({ message: currentInput });
-            setTranscript(prev => [...prev, { source: 'avatar', text: '' }]);
-            for await (const chunk of stream) {
-                fullResponse += chunk.text;
-                setTranscript(prev => {
-                    const newHistory = [...prev];
-                    newHistory[newHistory.length-1].text = fullResponse;
-                    return newHistory;
-                });
-            }
-             if (fullResponse) {
+            const fullResponse = await sendMessageToNolo(updatedHistory, systemInstruction);
+            if (fullResponse) {
+                const newAvatarMessage: ChatMessage = { role: 'model', content: fullResponse };
+                const finalHistory = [...updatedHistory, newAvatarMessage];
+                setTextChatHistory(finalHistory);
+                setTranscript(finalHistory.map(m => ({ source: m.role === 'user' ? 'user' : 'avatar', text: m.content })));
                 addContentToHistory({ type: 'Avatar Conversation', summary: `Chat with ${avatarStyle} avatar`, content: { userInput: currentInput, avatarResponse: fullResponse } });
             }
-        } catch (err) { setError('An error occurred during the chat.'); setTranscript(prev => [...prev, { source: 'avatar', text: "Sorry, I'm having trouble connecting." }]); } 
-        finally { setIsTextLoading(false); }
-    }, [isTextLoading, textInput, avatarStyle, addContentToHistory]);
+        } catch (err) {
+            setError('An error occurred during the chat.');
+            const errorMsg: ChatMessage = { role: 'model', content: "Sorry, I'm having trouble connecting." };
+            const finalHistory = [...updatedHistory, errorMsg];
+            setTextChatHistory(finalHistory);
+            setTranscript(finalHistory.map(m => ({ source: m.role === 'user' ? 'user' : 'avatar', text: m.content })));
+        } finally {
+            setIsTextLoading(false);
+        }
+    }, [isTextLoading, textInput, textChatHistory, systemInstruction, avatarStyle, addContentToHistory]);
 
+    // Voice chat is disabled to prevent app crash from client-side API usage.
     const handleStartLiveConversation = useCallback(async () => {
-        setInteractionMode('voice'); setStatus('CONNECTING...'); setTranscript([]);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const r = audioResourcesRef.current;
-            r.stream = stream;
-            r.inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-            r.outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-            sessionPromiseRef.current = ai.live.connect({
-                model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-                config: {
-                    responseModalities: [Modality.AUDIO], inputAudioTranscription: {}, outputAudioTranscription: {},
-                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
-                    systemInstruction,
-                },
-                callbacks: {
-                    onopen: () => {
-                        setStatus('LISTENING');
-                        const source = r.inputAudioContext!.createMediaStreamSource(stream);
-                        r.scriptProcessor = r.inputAudioContext!.createScriptProcessor(4096, 1, 1);
-                        r.scriptProcessor.onaudioprocess = (e) => {
-                            sessionPromiseRef.current?.then((s) => s.sendRealtimeInput({ media: createBlob(e.inputBuffer.getChannelData(0)) }));
-                        };
-                        source.connect(r.scriptProcessor);
-                        r.scriptProcessor.connect(r.inputAudioContext!.destination);
-                    },
-                    onmessage: async (msg: LiveServerMessage) => {
-                        const { serverContent } = msg;
-                        if (serverContent?.turnComplete && serverContent.inputTranscription?.text && serverContent.outputTranscription?.text) {
-                            const userInput = serverContent.inputTranscription.text;
-                            const avatarResponse = serverContent.outputTranscription.text;
-                            addContentToHistory({ type: 'Avatar Conversation', summary: `Chat with ${avatarStyle} avatar`, content: { userInput, avatarResponse } });
-                            setTranscript(prev => [...prev, { source: 'user', text: userInput }, { source: 'avatar', text: avatarResponse }]);
-                        }
-
-                        if (serverContent?.interrupted) {
-                            for (const source of r.sources.values()) {
-                                source.stop();
-                                r.sources.delete(source);
-                            }
-                            r.nextStartTime = 0;
-                        }
-                        
-                        // FIX: Added optional chaining `?.` to safely access `.data` and prevent crash
-                        // when a message part is not an `inlineData` object (e.g., it's a text part).
-                        const audio = serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-                        if (audio) {
-                            setStatus('SPEAKING');
-                            r.nextStartTime = Math.max(r.nextStartTime, r.outputAudioContext!.currentTime);
-                            const buffer = await decodeAudioData(decode(audio), r.outputAudioContext!, 24000, 1);
-                            const sourceNode = r.outputAudioContext!.createBufferSource();
-                            sourceNode.buffer = buffer;
-                            sourceNode.connect(r.outputAudioContext!.destination);
-                            sourceNode.addEventListener('ended', () => { r.sources.delete(sourceNode); if(r.sources.size === 0) setStatus('LISTENING'); });
-                            sourceNode.start(r.nextStartTime);
-                            r.nextStartTime += buffer.duration;
-                            r.sources.add(sourceNode);
-                        }
-                    },
-                    onerror: (e: ErrorEvent) => { console.error('Live error:', e); setError('A conversation error occurred.'); setPhase('interact'); setInteractionMode('none'); cleanupAudio(); },
-                    onclose: (e: CloseEvent) => { console.debug('Live closed'); setPhase('interact'); setInteractionMode('none'); cleanupAudio(); },
-                },
-            });
-            await sessionPromiseRef.current;
-        } catch (err: any) { setError(`Failed to start: ${err.message}. Please check microphone permissions.`); setPhase('interact'); cleanupAudio(); }
-    }, [voice, systemInstruction, cleanupAudio, addContentToHistory, avatarStyle]);
+        showToast("Voice chat is temporarily unavailable.");
+    }, [showToast]);
 
     const handleEndConversation = useCallback(() => {
-        sessionPromiseRef.current?.then(s => s.close()); cleanupAudio();
-        setInteractionMode('none'); setStatus('READY');
-        if (textChatRef.current) { textChatRef.current = null; }
-    }, [cleanupAudio]);
+        setInteractionMode('none'); 
+        setStatus('READY');
+    }, []);
 
     useEffect(() => () => handleEndConversation(), [handleEndConversation]);
 
@@ -658,58 +538,79 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
                                         aria-hidden="true"
                                     ></div>
                                 )}
-                                {interactionMode === 'voice' && <div className="absolute bottom-4 left-1/2 -translate-x-1/2"><StatusIndicator status={status} /></div>}
-                            </div>
-                            <div className="mt-4 flex flex-col gap-3">
-                                <button onClick={handleDownloadAvatar} className="button-secondary w-full" title="Download the generated avatar image as a PNG file"><Download className="w-4 h-4 mr-2"/> Download</button>
-                                <button onClick={handleStartOver} className="button-secondary w-full" title="Go back to the design screen to create a new avatar"><RefreshCw className="w-4 h-4 mr-2"/> Create New</button>
-                            </div>
-                        </div>
-                        <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-4">
-                            <h3 className="font-semibold text-slate-200 mb-2 flex items-center gap-2"><Edit className="w-5 h-5 text-violet-400"/> Quick Edit</h3>
-                            <div className="flex gap-2">
-                                <input type="text" value={editPrompt} onChange={e => setEditPrompt(e.target.value)} placeholder="e.g., make the hair blue" className="form-input" title="Describe a change, e.g., 'make the hair blue' or 'add sunglasses'"/>
-                                <button onClick={handleApplyEdit} disabled={isEditingAvatar} className="button-primary px-3" title="Apply the edit instruction to the current avatar">{isEditingAvatar ? <Spinner size="sm"/> : <Edit className="w-4 h-4"/>}</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="lg:col-span-3 bg-brand-glass border border-slate-700/50 rounded-2xl flex flex-col min-h-[70vh]">
-                        {interactionMode === 'none' ? (
-                            <div className="flex-grow flex flex-col justify-center items-center p-6 text-center animate-fade-in">
-                                <h3 className="text-2xl font-bold mb-4 text-white">Bring Your Avatar to Life</h3>
-                                <p className="text-slate-400 mb-6">Start a conversation to hear its voice and explore its personality.</p>
-                                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
-                                    <button onClick={handleStartLiveConversation} className="button-primary w-full !py-3 !text-base" title="Start a live voice conversation with your avatar"><Mic className="w-5 h-5 mr-2" /> Voice Chat</button>
-                                    <button onClick={handleStartTextChat} className="button-secondary w-full !py-3 !text-base" title="Start a text-based chat with your avatar"><MessageSquare className="w-5 h-5 mr-2" /> Text Chat</button>
-                                </div>
-                                <div className="mt-6 w-full max-w-sm">
-                                    <CustomSelect label="Voice Style" value={voice} onChange={setVoice} options={voices} title="Select the voice your avatar will use in conversation" />
-                                </div>
-                                {error && <p className="text-red-400 mt-4 text-sm">{error}</p>}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col flex-grow animate-fade-in">
-                                <div className="p-4 border-b border-slate-700/50 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg">{interactionMode === 'voice' ? 'Live Conversation' : 'Text Chat'}</h3>
-                                    <button onClick={handleEndConversation} className="button-danger px-3 py-1.5 text-sm" title="End the current conversation"><Phone className="w-4 h-4 mr-2"/> End</button>
-                                </div>
-                                <div className="flex-grow p-4 space-y-4 overflow-y-auto">
-                                    {transcript.length === 0 && <p className="text-center text-slate-500">Your conversation will appear here...</p>}
-                                    {transcript.map((entry, i) => (
-                                        <div key={i} className={`flex items-start gap-3 chat-bubble ${entry.source === 'user' ? 'justify-end' : ''}`}>
-                                            {entry.source === 'avatar' && <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 mt-1"><img src={`data:image/png;base64,${avatarBase64}`} className="w-full h-full rounded-full"/></div>}
-                                            <p className={`px-4 py-2 rounded-2xl max-w-md ${entry.source === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>{entry.text}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                                {interactionMode === 'text' && (
-                                    <div className="p-4 border-t border-slate-700/50">
-                                        <div className="relative">
-                                            <input type="text" value={textInput} onChange={e => setTextInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()} placeholder="Type your message..." disabled={isTextLoading} className="form-input pr-12" title="Type your message to the avatar"/>
-                                            <button onClick={handleSendTextMessage} disabled={isTextLoading || !textInput.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-violet disabled:opacity-50" title="Send message">{isTextLoading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}</button>
+                                {interactionMode === 'none' && (
+                                     <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+                                        <h3 className="text-xl font-bold">Interact</h3>
+                                        <div className="flex gap-4 mt-4">
+                                            <button onClick={handleStartLiveConversation} className="interaction-button" title="Start a live voice conversation"><Mic className="w-5 h-5"/></button>
+                                            <button onClick={handleStartTextChat} className="interaction-button" title="Start a text-based chat"><MessageSquare className="w-5 h-5"/></button>
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                            <div className="mt-4 space-y-3">
+                                <div className="flex justify-center">{ interactionMode !== 'none' && <StatusIndicator status={status} /> }</div>
+                                <div className="flex gap-3">
+                                    <button onClick={handleDownloadAvatar} className="button-secondary w-full" title="Download this avatar image"><Download className="w-4 h-4 mr-2"/> Download</button>
+                                    <button onClick={handleStartOver} className="button-secondary w-full" title="Go back to the design phase"><RefreshCw className="w-4 h-4 mr-2"/> Start Over</button>
+                                </div>
+                                <div className="pt-3 border-t border-slate-700">
+                                    <p className="text-sm font-semibold text-slate-200 mb-2">Quick Edit:</p>
+                                    <div className="flex gap-2">
+                                        <input type="text" value={editPrompt} onChange={e => setEditPrompt(e.target.value)} placeholder="e.g., 'give him a red hat'" className="form-input" disabled={isEditingAvatar} title="Describe a quick change to the avatar's appearance"/>
+                                        <button onClick={handleApplyEdit} disabled={isEditingAvatar} className="button-primary" title="Apply the edit"><Edit className="w-4 h-4"/></button>
+                                    </div>
+                                     {isEditingAvatar && <div className="flex justify-center mt-2"><Spinner size="sm"/></div>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="lg:col-span-3 bg-brand-glass border border-slate-700/50 rounded-2xl p-4 flex flex-col">
+                         {interactionMode === 'none' && (
+                            <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
+                                <MessageSquare className="w-16 h-16 text-slate-600 mb-4" />
+                                <h3 className="text-xl font-bold text-slate-200">Start a Conversation</h3>
+                                <p className="text-slate-400 max-w-sm">Hover over your avatar and choose an interaction mode to bring it to life. Chat via voice or text.</p>
+                            </div>
+                        )}
+                         {(interactionMode === 'text' || interactionMode === 'voice') && (
+                            <>
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="font-bold text-slate-100 text-lg">Conversation Transcript</h3>
+                                    <button onClick={handleEndConversation} className="px-3 py-1 text-sm bg-red-500/20 text-red-300 rounded-full hover:bg-red-500/40 transition-colors">End Session</button>
+                                </div>
+                                <div className="flex-grow bg-slate-900/40 rounded-lg p-4 space-y-4 overflow-y-auto min-h-64 border border-slate-700/50">
+                                    {transcript.map((entry, index) => (
+                                        <div key={index} className={`flex items-start gap-3 ${entry.source === 'user' ? 'justify-end' : ''}`}>
+                                            {entry.source === 'avatar' && <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>}
+                                            <p className={`text-sm px-3 py-2 rounded-xl ${entry.source === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 rounded-bl-none'}`}>
+                                                {entry.text}
+                                            </p>
+                                        </div>
+                                    ))}
+                                    {isTextLoading && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><UserIcon className="w-4 h-4 text-violet-300"/></div>
+                                            <div className="px-3 py-2 rounded-xl bg-slate-700"><Spinner size="sm"/></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                         )}
+                         {interactionMode === 'text' && (
+                            <div className="relative mt-4">
+                                <input
+                                    type="text"
+                                    value={textInput}
+                                    onChange={e => setTextInput(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleSendTextMessage()}
+                                    placeholder="Type your message..."
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-4 pr-12"
+                                    disabled={isTextLoading}
+                                />
+                                <button onClick={handleSendTextMessage} disabled={!textInput.trim() || isTextLoading} className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-violet rounded-full disabled:bg-slate-600">
+                                    <Send className="w-4 h-4 text-white"/>
+                                </button>
                             </div>
                         )}
                     </div>
@@ -719,4 +620,5 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
     );
 };
 
-export default AvatarCreator;
+// FIX: Changed to named export and removed default export.
+// export default AvatarCreator;

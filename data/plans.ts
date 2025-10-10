@@ -1,5 +1,6 @@
 
-import { Plan } from '../types.ts';
+
+import { Plan } from '../types';
 
 export const plans: Plan[] = [
   {

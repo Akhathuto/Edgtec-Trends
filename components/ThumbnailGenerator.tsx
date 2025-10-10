@@ -1,11 +1,12 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateThumbnailIdeas } from '../services/geminiService.ts';
-import { ThumbnailIdea, HistoryContentType } from '../types.ts';
-import Spinner from './Spinner.tsx';
-import { Image, Lightbulb, Copy, Zap } from './Icons.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx';
-import { useToast } from '../contexts/ToastContext.tsx';
+import { generateThumbnailIdeas } from '../services/geminiService';
+import { ThumbnailIdea, HistoryContentType } from '../types';
+import Spinner from './Spinner';
+import { Image, Lightbulb, Copy, Zap } from './Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface ThumbnailGeneratorProps {
   initialInput?: string | null;

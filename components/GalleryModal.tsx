@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { X } from './Icons.tsx';
+import { X } from './Icons';
 
 interface GalleryModalProps {
   isOpen: boolean;

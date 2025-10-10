@@ -1,7 +1,8 @@
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getTickerTrends } from '../services/geminiService.ts';
-import { TrendingUp, X } from './Icons.tsx';
+import { getTickerTrends } from '../services/geminiService';
+import { TrendingUp, X } from './Icons';
 
 const TrendingTicker: React.FC = () => {
     const [trends, setTrends] = useState<string[]>([]);
@@ -9,8 +10,12 @@ const TrendingTicker: React.FC = () => {
 
     useEffect(() => {
         const fetchTrends = async () => {
-            const result = await getTickerTrends();
-            setTrends(result);
+            try {
+                const result = await getTickerTrends();
+                setTrends(result);
+            } catch (error) {
+                console.error("Failed to fetch ticker trends:", error);
+            }
         };
         fetchTrends();
     }, []);
