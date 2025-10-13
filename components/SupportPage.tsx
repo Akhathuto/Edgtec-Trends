@@ -1,7 +1,3 @@
-
-
-'use client';
-
 import React, { useState, useMemo } from 'react';
 import {
   HelpCircle, ChevronDown, LayoutDashboard, TrendingUp, Lightbulb, Wand, BarChart2,

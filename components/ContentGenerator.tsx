@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
 import { ContentIdea } from '../types';

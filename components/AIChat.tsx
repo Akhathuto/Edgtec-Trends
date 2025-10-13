@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
@@ -62,7 +61,7 @@ const GifPicker: React.FC<{ onSelect: (url: string) => void; }> = ({ onSelect })
 };
 
 
-const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
+export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const { user, logActivity } = useAuth();
   const { showToast } = useToast();
   const [history, setHistory] = useState<ChatMessage[]>([]);
@@ -372,27 +371,36 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask Nolo anything..."
                     disabled={loading}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-36 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"
                     rows={1}
+                    title="Type your message to Nolo"
                 />
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {recognitionRef.current && (
+                        <button onClick={handleToggleRecording} title={isRecording ? 'Stop recording' : 'Start recording'} className={`p-2 rounded-full hover:bg-slate-700/50 ${isRecording ? 'bg-red-500/20 animate-pulse' : ''}`}>
+                            <Mic className={`w-5 h-5 ${isRecording ? 'text-red-400' : 'text-slate-400'}`}/>
+                        </button>
+                    )}
+                    <button onClick={() => setIsGifPickerOpen(!isGifPickerOpen)} title="Send a GIF" className="p-2 rounded-full hover:bg-slate-700/50">
+                        <Gif className="w-5 h-5 text-slate-400"/>
+                    </button>
+                    <button onClick={() => fileInputRef.current?.click()} title="Attach an image" className="p-2 rounded-full hover:bg-slate-700/50">
+                        <Paperclip className="w-5 h-5 text-slate-400"/>
+                    </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden"/>
-                    <button onClick={() => fileInputRef.current?.click()} title="Attach Image" className="p-2 rounded-full hover:bg-slate-700/50"><Paperclip className="w-5 h-5 text-slate-400"/></button>
-                    <button onClick={handleToggleRecording} title="Voice Input" className={`p-2 rounded-full hover:bg-slate-700/50 ${isRecording ? 'bg-red-500/20' : ''}`}><Mic className={`w-5 h-5 ${isRecording ? 'text-red-400' : 'text-slate-400'}`}/></button>
-                    <div className="relative">
-                        <button onClick={() => setIsGifPickerOpen(!isGifPickerOpen)} title="Send a GIF" className="p-2 rounded-full hover:bg-slate-700/50"><Gif className="w-5 h-5 text-slate-400"/></button>
-                        {isGifPickerOpen && <GifPicker onSelect={handleGifSelect} />}
-                    </div>
-                </div>
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <button onClick={handleFormSubmit} disabled={loading || (!input.trim() && !imageFile)} className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50" title="Send message">
+
+                    <button
+                        onClick={handleFormSubmit}
+                        disabled={loading || (!input.trim() && !imageFile)}
+                        className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50"
+                        title="Send message"
+                    >
                         {loading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
                     </button>
                 </div>
+                {isGifPickerOpen && <GifPicker onSelect={handleGifSelect} />}
             </div>
         </div>
     </div>
   );
 };
-
-export default AIChat;

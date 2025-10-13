@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 import { X, Star, CreditCard } from './Icons';
 import { useAuth } from '../contexts/AuthContext';

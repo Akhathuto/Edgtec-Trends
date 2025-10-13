@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useRef, useEffect } from 'react';
 import { UtrendLogo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';

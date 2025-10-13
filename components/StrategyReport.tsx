@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateFullReport } from '../services/geminiService';
 import { FullReport, Tab } from '../types';

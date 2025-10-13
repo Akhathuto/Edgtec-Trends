@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { plans } from '../data/plans';
 import { CheckCircle, Star } from './Icons';

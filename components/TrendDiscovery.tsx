@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService';
 import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types';

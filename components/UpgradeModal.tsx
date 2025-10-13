@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { X, Star, CheckCircle } from './Icons';
 import { useAuth } from '../contexts/AuthContext';

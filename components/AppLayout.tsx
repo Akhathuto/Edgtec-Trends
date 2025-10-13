@@ -19,8 +19,8 @@ import Dashboard from './Dashboard';
 import TrendDiscovery from './TrendDiscovery';
 import KeywordResearch from './KeywordResearch';
 import ChannelAnalytics from './ChannelAnalytics';
-// FIX: Changed to default import as AIChat has a default export.
-import AIChat from './AIChat';
+// FIX: Changed to named import for consistency.
+import { AIChat } from './AIChat';
 import AIAgents from './AIAgents';
 import ContentHistory from './ContentHistory';
 import ContentGenerator from './ContentGenerator';

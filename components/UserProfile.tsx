@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link, Youtube, TikTok, Trash2 } from './Icons';

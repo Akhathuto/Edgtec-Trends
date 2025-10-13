@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService';
 import { KeywordAnalysis } from '../types';

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { getTickerTrends } from '../services/geminiService';
 import { TrendingUp, X } from './Icons';
