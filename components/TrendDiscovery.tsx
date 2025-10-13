@@ -1,260 +1,101 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getRealtimeTrends, getTrendingContent, findTrends } from '../services/geminiService';
-import { User, TrendingChannel, TrendingTopic, TrendingVideo, TrendingCreator, TrendingMusic, GroundingSource } from '../types';
+import { getRealtimeTrends, findTrends } from '../services/geminiService';
+import { TrendingChannel, TrendingTopic, GroundingSource } from '../types';
 import Spinner from './Spinner';
-import { TrendingUp, Youtube, TikTok, Search, ExternalLink, Music, Users, Video as VideoIcon } from './Icons';
+import { TrendingUp, Youtube, TikTok, Search, ExternalLink } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import UpgradeModal from './UpgradeModal';
+import ErrorDisplay from './ErrorDisplay';
 
-const countryOptions = ["Worldwide", "USA", "UK", "Canada", "Australia", "India", "South Africa"];
-const categoryOptions = ["All", "Gaming", "Music", "Entertainment", "Comedy", "Education", "Tech", "Beauty & Fashion", "Food"];
-const platformOptions: ('YouTube' | 'TikTok')[] = ['YouTube', 'TikTok'];
-
-type ContentType = 'videos' | 'music' | 'creators' | 'topics';
-
-interface TrendDiscoveryProps {
-  initialInput?: string | null;
-}
-
-const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
+const TrendDiscovery: React.FC = () => {
     const { user } = useAuth();
-    const [channels, setChannels] = useState<TrendingChannel[]>([]);
-    const [topics, setTopics] = useState<TrendingTopic[]>([]);
-    const [loadingSnapshot, setLoadingSnapshot] = useState(true);
+    const [realtime, setRealtime] = useState<{ channels: TrendingChannel[], topics: TrendingTopic[] }>({ channels: [], topics: [] });
+    const [realtimeLoading, setRealtimeLoading] = useState(true);
+    const [country, setCountry] = useState(user?.country || 'USA');
     const [error, setError] = useState<string | null>(null);
 
-    // Filters
-    const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
-    const [country, setCountry] = useState('Worldwide');
-    const [category, setCategory] = useState('All');
-    const [contentType, setContentType] = useState<ContentType>('videos');
-    const [content, setContent] = useState<any[]>([]);
-    const [loadingContent, setLoadingContent] = useState(false);
-    
-    // Search
+    // Search state
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<{ text: string, sources: GroundingSource[] } | null>(null);
-    const [loadingSearch, setLoadingSearch] = useState(false);
-    
-    // Modal
-    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-    
-    const fetchSnapshot = useCallback(async () => {
-        if (!user) return;
-        setLoadingSnapshot(true);
+
+    useEffect(() => {
+        const fetchRealtime = async () => {
+            if (!user) return;
+            setRealtimeLoading(true);
+            setError(null);
+            try {
+                const result = await getRealtimeTrends(user.plan, country);
+                setRealtime(result);
+            } catch (e: any) {
+                setError(e.message || "Failed to fetch real-time trends.");
+            } finally {
+                setRealtimeLoading(false);
+            }
+        };
+        fetchRealtime();
+    }, [user, country]);
+
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) return;
+        setSearchLoading(true);
+        setSearchResult(null);
         setError(null);
         try {
-            const data = await getRealtimeTrends(user.plan, 'Worldwide');
-            setChannels(data.channels);
-            setTopics(data.topics);
+            const result = await findTrends(searchTerm, searchPlatform, country, 'All');
+            const sources = result.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => c.web).filter((c:any) => c.uri && c.title) || [];
+            setSearchResult({ text: result.text, sources });
         } catch (e: any) {
-            setError(e.message);
+            setError(e.message || "Failed to perform trend search.");
         } finally {
-            setLoadingSnapshot(false);
+            setSearchLoading(false);
         }
-    }, [user]);
-
-    const fetchContent = useCallback(async () => {
-        if (!user) return;
-        setLoadingContent(true);
-        try {
-            const data = await getTrendingContent(contentType, user.plan, country, category, platform);
-            setContent(data);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingContent(false);
-        }
-    }, [user, contentType, country, category, platform]);
-    
-    const handleSearch = useCallback(async (term?: string) => {
-        const termToSearch = term || searchTerm;
-        if (!termToSearch.trim()) return;
-        if (user?.plan === 'free') {
-            setIsUpgradeModalOpen(true);
-            return;
-        }
-        setLoadingSearch(true);
-        setSearchResult(null);
-        try {
-            const response = await findTrends(termToSearch, platform, country, category);
-            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => c.web) || [];
-            setSearchResult({ text: response.text, sources });
-        } catch (e: any) {
-             setError(e.message);
-        } finally {
-            setLoadingSearch(false);
-        }
-    }, [searchTerm, user?.plan, platform, country, category]);
-    
-    useEffect(() => {
-        if (initialInput) {
-            setSearchTerm(initialInput);
-            handleSearch(initialInput);
-        }
-    }, [initialInput, handleSearch]);
-
-    useEffect(() => {
-        fetchSnapshot();
-    }, [fetchSnapshot]);
-
-    useEffect(() => {
-        fetchContent();
-    }, [fetchContent]);
-
-    const renderContentCards = () => {
-        switch (contentType) {
-            case 'videos':
-                return (content as TrendingVideo[]).map((v, i) => (
-                    <a href={v.videoUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col group animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
-                        <div className="overflow-hidden rounded-lg mb-3">
-                           <img src={v.thumbnailUrl} alt={v.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
-                        </div>
-                        <h4 className="font-bold text-white flex-grow line-clamp-2">{v.title}</h4>
-                        <p className="text-sm text-slate-400 mt-1">{v.channelName}</p>
-                        <div className="flex justify-between items-center mt-2 text-xs text-slate-500">
-                            <span>{v.viewCount}</span>
-                            <span>{v.publishedTime}</span>
-                        </div>
-                    </a>
-                ));
-            case 'music':
-                return (content as TrendingMusic[]).map((m, i) => (
-                    <div key={i} className="interactive-card flex flex-col justify-between animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
-                         <div>
-                            <h4 className="font-bold text-white text-lg">{m.trackTitle}</h4>
-                            <p className="text-sm text-slate-400">{m.artistName}</p>
-                             <p className="text-xs text-slate-300 mt-2">{m.reason}</p>
-                        </div>
-                        <p className="text-violet-300 font-bold text-right mt-2">{m.videosUsingSound}</p>
-                    </div>
-                ));
-            case 'creators':
-                 return (content as TrendingCreator[]).map((c, i) => (
-                    <a href={c.channelUrl} target="_blank" rel="noopener noreferrer" key={i} className="interactive-card flex flex-col justify-between group animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
-                         <div>
-                            <h4 className="font-bold text-white text-lg group-hover:text-violet-300 transition-colors">{c.name}</h4>
-                            <p className="text-sm text-slate-400">{c.category}</p>
-                             <p className="text-xs text-slate-300 mt-2">{c.reason}</p>
-                        </div>
-                        <p className="text-violet-300 font-bold text-right mt-2">{c.subscriberCount}</p>
-                    </a>
-                ));
-            case 'topics':
-                 return (content as TrendingTopic[]).map((t, i) => (
-                    <div key={i} className="interactive-card animate-fade-in-down opacity-0" style={{ animationDelay: `${i * 75}ms` }}>
-                        <h4 className="font-bold text-white text-lg">{t.name}</h4>
-                        <p className="text-sm text-slate-400">{t.description}</p>
-                    </div>
-                ));
-            default: return null;
-        }
-    }
+    };
     
     return (
         <div className="animate-slide-in-up space-y-8">
-            <div className="text-center">
-                <h2 className="text-3xl font-bold text-white text-glow">Trend Discovery</h2>
-                <p className="text-slate-400 mt-1">Stay ahead of the curve with real-time social media trends.</p>
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
+                    <TrendingUp className="w-6 h-6 text-violet-400" /> Trend Discovery
+                </h2>
+                <p className="text-center text-slate-400 mb-6">Find what's hot right now on YouTube and TikTok.</p>
+                <ErrorDisplay message={error} />
             </div>
-            
-             <section>
-                <h3 className="text-xl font-bold mb-4 text-slate-200">Today's Snapshot</h3>
-                 {loadingSnapshot && <div className="flex justify-center"><Spinner /></div>}
-                 {error && <p className="text-red-400 text-center">{error}</p>}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-brand-glass p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">Trending Channels</h4>
-                        <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                            {channels.map((c, i) => (
-                                <li key={i} className="flex items-center justify-between text-sm p-2 bg-slate-800/50 rounded">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        {c.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500 flex-shrink-0"/> : <TikTok className="w-4 h-4 text-white flex-shrink-0"/>}
-                                        <span className="truncate">{c.name}</span>
-                                    </div>
-                                    <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline flex-shrink-0 ml-2">View</a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                     <div className="bg-brand-glass p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">Trending Topics</h4>
-                         <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                            {topics.map((t, i) => (
-                                <li key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded">
-                                    {t.platform === 'YouTube' ? <Youtube className="w-4 h-4 text-red-500 flex-shrink-0"/> : <TikTok className="w-4 h-4 text-white flex-shrink-0"/>}
-                                    <span className="truncate">{t.name}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            
-            <section>
-                <h3 className="text-xl font-bold mb-4 text-slate-200">Explore Trends</h3>
-                <div className="bg-brand-glass p-4 rounded-lg mb-4">
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <select onChange={(e) => setPlatform(e.target.value as any)} value={platform} className="form-select" title="Filter trends by platform">
-                            {platformOptions.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                        <select onChange={(e) => setCountry(e.target.value)} value={country} className="form-select" title="Filter trends by country">
-                            {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                        <select onChange={(e) => setCategory(e.target.value)} value={category} className="form-select" title="Filter trends by content category">
-                            {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                    <div className="segmented-control-wrapper mt-4">
-                        <button onClick={() => setContentType('videos')} className={`tab-button ${contentType === 'videos' ? 'active' : ''}`} title="Show trending videos"><VideoIcon className="w-4 h-4 mr-2"/> Videos</button>
-                        <button onClick={() => setContentType('music')} className={`tab-button ${contentType === 'music' ? 'active' : ''}`} title="Show trending music and sounds"><Music className="w-4 h-4 mr-2"/> Music</button>
-                        <button onClick={() => setContentType('creators')} className={`tab-button ${contentType === 'creators' ? 'active' : ''}`} title="Show trending creators"><Users className="w-4 h-4 mr-2"/> Creators</button>
-                    </div>
-                </div>
-                {loadingContent ? <div className="flex justify-center p-8"><Spinner size="lg" /></div> : 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {renderContentCards()}
-                    </div>
-                }
-            </section>
 
-             <section>
-                <h3 className="text-xl font-bold mb-4 text-slate-200">Analyze Any Trend</h3>
-                <div className="bg-brand-glass p-4 rounded-lg">
-                    <div className="flex gap-4">
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            placeholder="e.g., 'AI in video editing'"
-                            className="form-input flex-grow"
-                            title="Analyze a specific trend, topic, or keyword (Starter/Pro Feature)"
-                        />
-                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="button-primary flex-shrink-0" title="Start analysis (Starter/Pro Feature)">
-                            {loadingSearch ? <Spinner size="sm"/> : <Search className="w-5 h-5"/>}
-                        </button>
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                <h3 className="text-xl font-bold text-violet-300 mb-4">Today's Snapshot</h3>
+                {realtimeLoading ? <div className="flex justify-center"><Spinner /></div> : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 className="font-semibold mb-2">Trending Channels</h4>
+                            <div className="space-y-2">{realtime.channels.map((c, i) => <div key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded-md"> {c.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : <TikTok className="w-5 h-5" />} <span className="font-semibold">{c.name}</span> <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-auto"><ExternalLink className="w-4 h-4"/></a> </div>)}</div>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-2">Trending Topics</h4>
+                            <div className="space-y-2">{realtime.topics.map((t, i) => <div key={i} className="p-2 bg-slate-800/50 rounded-md"> <p className="font-semibold text-sm">{t.name}</p> <p className="text-xs text-slate-400">{t.description}</p> </div>)}</div>
+                        </div>
                     </div>
+                )}
+            </div>
+
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                <h3 className="text-xl font-bold text-violet-300 mb-4">Search Any Topic</h3>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g., 'AI in gaming'" className="form-input flex-grow"/>
+                    <button onClick={handleSearch} disabled={searchLoading} className="button-primary"><Search className="w-5 h-5 mr-2"/> {searchLoading ? <Spinner/> : 'Search'}</button>
                 </div>
                 {searchResult && (
-                    <div className="mt-4 bg-brand-glass p-4 rounded-lg animate-fade-in">
-                        <div className="prose prose-invert max-w-none prose-p:text-slate-300" dangerouslySetInnerHTML={{ __html: searchResult.text.replace(/\n/g, '<br/>') }}></div>
+                    <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <p className="text-slate-300 whitespace-pre-wrap">{searchResult.text}</p>
                         {searchResult.sources.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-slate-700">
-                                <h4 className="font-semibold text-sm mb-2 text-slate-300">Sources:</h4>
-                                <ul className="flex flex-wrap gap-2">
-                                    {searchResult.sources.map((s, i) => (
-                                        s && s.uri && <li key={i}><a href={s.uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-slate-700/50 hover:bg-slate-600/50 px-2 py-1 rounded text-blue-400">
-                                            {s.title} <ExternalLink className="w-3 h-3"/>
-                                        </a></li>
-                                    ))}
-                                </ul>
+                            <div className="mt-4 pt-3 border-t border-slate-700">
+                                <h5 className="text-xs font-semibold text-slate-400 mb-2">Sources:</h5>
+                                <div className="flex flex-wrap gap-2">{searchResult.sources.map((s, i) => <a key={i} href={s.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-slate-700 text-blue-300 px-2 py-1 rounded hover:bg-slate-600">{s.title || new URL(s.uri).hostname}</a>)}</div>
                             </div>
                         )}
                     </div>
                 )}
-            </section>
-            
-            <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />
+            </div>
         </div>
     );
 };

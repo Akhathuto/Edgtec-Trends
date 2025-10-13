@@ -1,47 +1,39 @@
-
-
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import Spinner from './Spinner';
-import { MessageSquare, RefreshCw, Copy, Sparkles } from './Icons';
-import { useToast } from '../contexts/ToastContext';
-// FIX: Import the service function instead of using the Gemini SDK directly on the client.
 import { generateCommentResponse } from '../services/geminiService';
+import Spinner from './Spinner';
+import { MessageSquare, Copy } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
+import { useToast } from '../contexts/ToastContext';
 
-const tones = ['Friendly', 'Professional', 'Witty', 'Grateful', 'Inquisitive'];
+const tones = ['Friendly', 'Witty', 'Professional', 'Enthusiastic', 'Grateful'];
 
 const CommentResponder: React.FC = () => {
-    const { logActivity } = useAuth();
     const { showToast } = useToast();
     const [comment, setComment] = useState('');
     const [tone, setTone] = useState(tones[0]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [response, setResponse] = useState<string | null>(null);
+    const [response, setResponse] = useState('');
 
     const handleGenerate = useCallback(async () => {
         if (!comment.trim()) {
             setError('Please enter a comment to respond to.');
             return;
         }
-
         setLoading(true);
         setError(null);
-        setResponse(null);
+        setResponse('');
 
         try {
-            // FIX: Use the service function to make a secure API call from the server.
             const result = await generateCommentResponse(comment, tone);
             setResponse(result);
-            logActivity(`generated a ${tone} reply to a comment`, 'MessageSquare');
         } catch (e: any) {
             setError(e.message || 'An error occurred while generating the response.');
         } finally {
             setLoading(false);
         }
-    }, [comment, tone, logActivity]);
-
+    }, [comment, tone]);
+    
     const handleCopy = () => {
         if (response) {
             navigator.clipboard.writeText(response);
@@ -50,77 +42,37 @@ const CommentResponder: React.FC = () => {
     };
 
     return (
-        <div className="animate-slide-in-up max-w-2xl mx-auto">
+        <div className="animate-slide-in-up space-y-8">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
                     <MessageSquare className="w-6 h-6 text-violet-400" /> AI Comment Responder
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Craft the perfect reply to any comment in seconds.</p>
-
+                <p className="text-center text-slate-400 mb-6">Generate engaging replies to your audience's comments.</p>
+                
                 <div className="space-y-4">
+                    <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Paste a user's comment here..." className="form-input h-24" />
                     <div>
-                        <label htmlFor="comment-input" className="block text-sm font-medium text-slate-300 mb-1">Comment to reply to:</label>
-                        <textarea
-                            id="comment-input"
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            title="Enter the comment you want to reply to"
-                            placeholder="e.g., 'This was the best video I've seen all week!'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none h-24 shadow-inner"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Response Tone:</label>
+                        <label className="input-label">Response Tone</label>
                         <div className="flex flex-wrap gap-2">
-                            {tones.map(t => (
-                                <button
-                                    key={t}
-                                    onClick={() => setTone(t)}
-                                    title={`Set response tone to ${t}`}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-colors ${tone === t ? 'bg-violet text-white' : 'bg-slate-700/50 hover:bg-slate-600/50'}`}
-                                >
-                                    {t}
-                                </button>
-                            ))}
+                            {tones.map(t => <button key={t} onClick={() => setTone(t)} className={`px-3 py-1.5 text-sm rounded-full transition-colors ${tone === t ? 'bg-violet text-white font-semibold' : 'bg-slate-700 hover:bg-slate-600'}`}>{t}</button>)}
                         </div>
                     </div>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={loading}
-                        title="Generate an AI-powered reply"
-                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                    >
-                        {loading ? <Spinner /> : <><Sparkles className="w-5 h-5 mr-2" /> Generate Reply</>}
-                    </button>
-                    <ErrorDisplay message={error} />
+                    <button onClick={handleGenerate} disabled={loading} className="button-primary w-full">{loading ? <Spinner/> : 'Generate Reply'}</button>
                 </div>
-
-                {response && (
-                    <div className="mt-6 pt-6 border-t border-slate-700/50 animate-fade-in">
-                        <h3 className="font-bold text-lg text-slate-200 mb-2">Generated Reply:</h3>
-                        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                            <p className="text-slate-300 whitespace-pre-wrap">{response}</p>
-                        </div>
-                        <div className="mt-4 flex gap-4">
-                            <button
-                                onClick={handleCopy}
-                                title="Copy the generated reply"
-                                className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white"
-                            >
-                                <Copy className="w-4 h-4 mr-2" /> Copy
-                            </button>
-                            <button
-                                onClick={handleGenerate}
-                                disabled={loading}
-                                title="Generate a new reply with the same settings"
-                                className="w-full flex items-center justify-center text-sm font-semibold py-2 px-4 rounded-lg transition-colors bg-slate-700 hover:bg-slate-600 text-white"
-                            >
-                                <RefreshCw className="w-4 h-4 mr-2" /> Regenerate
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
+
+            {(loading || response) && (
+                 <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-fade-in">
+                    <h3 className="text-xl font-bold text-violet-300 mb-2">Generated Reply</h3>
+                    {loading ? <div className="space-y-2"><div className="h-4 w-full bg-slate-700 rounded animate-pulse"></div><div className="h-4 w-3/4 bg-slate-700 rounded animate-pulse"></div></div> : (
+                        <div>
+                            <p className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-slate-300">{response}</p>
+                            <button onClick={handleCopy} className="button-secondary mt-4"><Copy className="w-4 h-4 mr-2"/> Copy</button>
+                        </div>
+                    )}
+                 </div>
+            )}
         </div>
     );
 };

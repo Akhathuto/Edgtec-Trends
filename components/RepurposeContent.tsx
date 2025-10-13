@@ -1,132 +1,78 @@
-'use client';
-
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { repurposeVideoContent } from '../services/geminiService';
 import { RepurposedContent } from '../types';
 import Spinner from './Spinner';
-import { RefreshCw, Search, FileText, Copy } from './Icons';
-import { useAuth } from '../contexts/AuthContext';
+import { RefreshCw, Link, Twitter, FileText } from './Icons';
+import ErrorDisplay from './ErrorDisplay';
 import { useToast } from '../contexts/ToastContext';
 
-interface RepurposeContentProps {
-  initialInput?: string | null;
-}
-
-const RepurposeContent: React.FC<RepurposeContentProps> = ({ initialInput }) => {
-    const { logActivity, addContentToHistory } = useAuth();
+const RepurposeContent: React.FC = () => {
     const { showToast } = useToast();
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [content, setContent] = useState<RepurposedContent | null>(null);
 
-    const handleRepurpose = useCallback(async (urlOverride?: string) => {
-        const urlToRepurpose = urlOverride || url;
-        if (!urlToRepurpose.trim().toLowerCase().startsWith('http')) {
-            setError('Please enter a valid video URL (e.g., from YouTube or TikTok).');
+    const handleRepurpose = useCallback(async () => {
+        if (!url.trim()) {
+            setError('Please enter a video URL.');
             return;
         }
         setLoading(true);
         setError(null);
         setContent(null);
+
         try {
-            const result = await repurposeVideoContent(urlToRepurpose);
+            const result = await repurposeVideoContent(url);
             setContent(result);
-            logActivity(`repurposed content from: ${urlToRepurpose}`, 'RefreshCw');
-            addContentToHistory({
-                type: 'Repurposed Content',
-                summary: `Repurposed content from video URL`,
-                content: result
-            });
         } catch (e: any) {
             setError(e.message || 'An error occurred while repurposing content.');
-            console.error(e);
         } finally {
             setLoading(false);
         }
-    }, [url, logActivity, addContentToHistory]);
+    }, [url]);
 
-    useEffect(() => {
-        if (initialInput) {
-            setUrl(initialInput);
-            handleRepurpose(initialInput);
-        }
-    }, [initialInput, handleRepurpose]);
-
-    const handleCopy = (text: string) => {
+    const handleCopy = (text: string, type: string) => {
         navigator.clipboard.writeText(text);
-        showToast('Content copied to clipboard!');
-    };
+        showToast(`${type} copied to clipboard!`);
+    }
 
     return (
-        <div className="animate-slide-in-up">
+        <div className="animate-slide-in-up space-y-8">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
-                    <RefreshCw className="w-6 h-6 text-violet-400" /> AI Content Repurposer
+                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
+                    <RefreshCw className="w-6 h-6 text-violet-400" /> Repurpose Content
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Turn one video into a blog post, tweet thread, and LinkedIn post.</p>
+                <p className="text-center text-slate-400 mb-6">Turn one video into multiple assets.</p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <input
-                        type="url"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="Paste a YouTube or TikTok video URL..."
-                        title="Paste the URL of the video to repurpose"
-                        className="form-input flex-grow"
-                    />
-                    <button
-                        onClick={() => handleRepurpose()}
-                        disabled={loading}
-                        title="Generate repurposed content from this video"
-                        className="button-primary flex items-center justify-center"
-                    >
-                        {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Repurpose</>}
-                    </button>
+                    <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Enter video URL..." className="form-input flex-grow"/>
+                    <button onClick={handleRepurpose} disabled={loading} className="button-primary">{loading ? <Spinner/> : 'Repurpose'}</button>
                 </div>
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loading && (
-                <div className="text-center py-10">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">AI is creating new content formats for you...</p>
-                </div>
+                <div className="text-center py-10"><Spinner size="lg" /><p className="mt-4 text-slate-300">Repurposing content...</p></div>
             )}
-            
+
             {content && (
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-                    {/* Blog Post */}
-                    <div className="interactive-card lg:col-span-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="card-title"><FileText className="w-5 h-5 text-violet-300" /> Blog Post</h3>
-                            <button onClick={() => handleCopy(content.blogPost)} title="Copy blog post" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
-                        </div>
-                        <div className="prose prose-sm prose-invert max-w-none text-slate-300 bg-slate-800/50 p-3 rounded-md border border-slate-700 max-h-80 overflow-y-auto">
-                            <p>{content.blogPost}</p>
-                        </div>
+                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-fade-in space-y-6">
+                    <div>
+                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><FileText /> Blog Post</h3>
+                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.blogPost.replace(/\n/g, '<br/>') }}></div>
+                        <button onClick={() => handleCopy(content.blogPost, 'Blog Post')} className="button-secondary mt-2">Copy</button>
                     </div>
-                    
-                    <div className="space-y-6">
-                        {/* Tweet Thread */}
-                        <div className="interactive-card">
-                             <div className="flex justify-between items-center mb-2">
-                                <h3 className="card-title">Tweet Thread</h3>
-                                <button onClick={() => handleCopy(content.tweetThread.join('\n\n'))} title="Copy tweet thread" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
-                            </div>
-                            <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                                {content.tweetThread.map((tweet, i) => (
-                                    <p key={i} className="text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md border border-slate-700">{i+1}/ {tweet}</p>
-                                ))}
-                            </div>
+                     <div>
+                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Twitter /> Tweet Thread</h3>
+                        <div className="space-y-2 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            {content.tweetThread.map((tweet, i) => <p key={i} className="text-sm border-b border-slate-700 pb-2 last:border-b-0">{i + 1}. {tweet}</p>)}
                         </div>
-                        {/* LinkedIn Post */}
-                         <div className="interactive-card">
-                             <div className="flex justify-between items-center mb-2">
-                                <h3 className="card-title">LinkedIn Post</h3>
-                                <button onClick={() => handleCopy(content.linkedInPost)} title="Copy LinkedIn post" className="button-copy"><Copy className="w-4 h-4 mr-1"/> Copy</button>
-                            </div>
-                            <p className="text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md border border-slate-700 max-h-40 overflow-y-auto">{content.linkedInPost}</p>
-                        </div>
+                        <button onClick={() => handleCopy(content.tweetThread.join('\n\n'), 'Tweet Thread')} className="button-secondary mt-2">Copy</button>
+                    </div>
+                     <div>
+                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Link /> LinkedIn Post</h3>
+                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.linkedInPost.replace(/\n/g, '<br/>') }}></div>
+                        <button onClick={() => handleCopy(content.linkedInPost, 'LinkedIn Post')} className="button-secondary mt-2">Copy</button>
                     </div>
                 </div>
             )}

@@ -1,311 +1,196 @@
-'use client';
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab, Channel } from '../types';
-import { Briefcase, RefreshCw, Sparkles, Link, Users, Eye, Youtube, TikTok, Lightbulb, Video, Wand, Clapperboard, Gif, PenTool, TrendingUp, TrendingDown, Star } from './Icons';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
+import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown } from './Icons';
 import Spinner from './Spinner';
 
-interface EnrichedChannel extends Channel {
-    followerCount?: string;
-    totalViews?: string;
-    followerTrend?: 'up' | 'down' | 'stable';
-    viewsTrend?: 'up' | 'down' | 'stable';
-    weeklyViewGrowth?: string;
+interface DashboardProps {
+  setActiveTab: (tab: Tab) => void;
+  setActiveAnalyticsChannelId: (id: string | null) => void;
 }
 
-const proTabs: Tab[] = [
-  Tab.Chat, Tab.Analytics, Tab.Report, Tab.ChannelGrowth, Tab.BrandConnect,
-  Tab.Video, Tab.AnimationCreator, Tab.GifCreator, Tab.ImageEditor, Tab.LogoCreator,
-  Tab.ImageGenerator, Tab.AvatarCreator, Tab.VideoEditor
-];
-
-const ProChip: React.FC<{ isButton?: boolean }> = ({ isButton = false }) => (
-    isButton ?
-    <span className="absolute -top-1.5 -right-1.5 flex items-center gap-1 text-[10px] font-bold bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 px-1.5 py-0.5 rounded-full">
-        <Star className="w-2.5 h-2.5" />
-        PRO
-    </span>
-    :
-    <span className="flex items-center gap-1 text-xs font-bold bg-yellow-400/10 text-yellow-300 border border-yellow-400/20 px-2 py-1 rounded-full">
-        <Star className="w-3 h-3" /> PRO
-    </span>
+const QuickCreateButton: React.FC<{ icon: React.ReactNode; label: string; tab: Tab; onClick: (tab: Tab) => void }> = ({ icon, label, tab, onClick }) => (
+    <button
+        onClick={() => onClick(tab)}
+        className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-800/50 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300 hover:text-white text-sm font-semibold text-center"
+        title={`Go to ${label}`}
+    >
+        {icon}
+        <span>{label}</span>
+    </button>
 );
 
-
-const AITipCard: React.FC = () => {
-    const { user } = useAuth();
-    const [tip, setTip] = useState('');
-    const [loading, setLoading] = useState(true);
-
-    const fetchTip = useCallback(async () => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            const newTip = await generateDashboardTip(user.channels || []);
-            setTip(newTip);
-        } catch (error) {
-            console.error("Failed to fetch AI tip:", error);
-            setTip("Could not fetch a tip right now. Please try again.");
-        }
-        setLoading(false);
-    }, [user]);
-
-    useEffect(() => {
-        fetchTip();
-    }, [fetchTip]);
-
-    return (
-        <div className="interactive-card flex flex-col h-full">
-            <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-bold text-white flex items-center gap-3 text-glow">
-                    <Sparkles className="w-6 h-6 text-violet-300"/> AI Tip of the Day
-                </h3>
-                <button onClick={fetchTip} disabled={loading} className="p-2 -mt-1 -mr-1 rounded-full hover:bg-slate-700/50 transition-colors disabled:opacity-50" title="Generate a new AI tip">
-                    <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                </button>
-            </div>
-             {loading ? (
-                <div className="flex-grow flex items-center justify-center"><Spinner /></div>
-            ) : (
-                <p className="text-slate-300 flex-grow">{tip}</p>
-            )}
-        </div>
-    );
-};
-
-
-const QuickCreateCard: React.FC<{ setActiveTab: (tab: Tab) => void }> = ({ setActiveTab }) => {
-    const { user } = useAuth();
-
-    const handleQuickCreateClick = (tab: Tab) => {
-        if (proTabs.includes(tab) && user?.plan !== 'pro') {
-            setActiveTab(Tab.Pricing);
-        } else {
-            setActiveTab(tab);
-        }
-    };
-    
-    const createButtons = [
-        { tab: Tab.Ideas, icon: Lightbulb, label: 'Idea', title: 'Generate content ideas and scripts' },
-        { tab: Tab.Prompt, icon: Wand, label: 'Prompt', title: 'Craft the perfect AI prompt' },
-        { tab: Tab.Video, icon: Video, label: 'Video', title: 'Create videos from text or images (Pro Feature)' },
-        { tab: Tab.AnimationCreator, icon: Clapperboard, label: 'Animation', title: 'Generate custom animations (Pro Feature)' },
-        { tab: Tab.GifCreator, icon: Gif, label: 'GIF', title: 'Create animated GIFs (Pro Feature)' },
-        { tab: Tab.LogoCreator, icon: PenTool, label: 'Logo', title: 'Design a logo for your brand (Pro Feature)' }
-    ];
-
-    return (
-        <div className="interactive-card h-full flex flex-col">
-            <h3 className="text-xl font-bold text-white mb-4 text-glow">Quick Create</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-grow content-center">
-                {createButtons.map(btn => {
-                    const isPro = proTabs.includes(btn.tab);
-                    return (
-                        <button 
-                            key={btn.tab} 
-                            onClick={() => handleQuickCreateClick(btn.tab)} 
-                            className="relative flex items-center justify-center gap-2 p-3 bg-slate-800/60 hover:bg-violet-rich/20 rounded-lg transition-colors text-sm border border-transparent hover:border-violet-light"
-                            title={btn.title}
-                        >
-                            <btn.icon className="w-4 h-4 text-violet-300"/> {btn.label}
-                            {isPro && user?.plan !== 'pro' && <ProChip isButton />}
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
-
-const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
-    const iconBase = "w-5 h-5"; // Made icon slightly larger
-    switch (trend) {
-        case 'up': return <TrendingUp className={`${iconBase} text-green-400`} />;
-        case 'down': return <TrendingDown className={`${iconBase} text-red-400`} />;
-        case 'stable': return <span className="font-bold text-slate-500 w-5 h-5 flex items-center justify-center">-</span>;
-        default: return <div className="w-5 h-5"></div>; // Placeholder for alignment
-    }
-};
-
-const ChannelCardSkeleton = () => (
-    <div className="bg-slate-800/60 p-4 rounded-lg animate-pulse">
-        <div className="flex items-center gap-3 mb-3">
-            <div className="w-6 h-6 bg-slate-700/50 rounded-full"></div>
-            <div className="h-5 w-32 bg-slate-700/50 rounded"></div>
-        </div>
-        <div className="grid grid-cols-3 gap-4 text-center border-t border-b border-slate-700/50 py-4">
-            <div>
-                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
-                <div className="h-6 w-16 mx-auto bg-slate-700/50 rounded"></div>
-            </div>
-            <div>
-                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
-                <div className="h-6 w-16 mx-auto bg-slate-700/50 rounded"></div>
-            </div>
-            <div className="border-l border-slate-700/50 pl-4">
-                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
-                <div className="h-6 w-10 mx-auto bg-slate-700/50 rounded"></div>
-            </div>
-        </div>
-        <div className="h-3 w-40 mx-auto mt-2 bg-slate-700/50 rounded"></div>
-    </div>
-);
-
-
-const YourChannelsCard: React.FC<{ 
-    channels: Channel[]; 
-    onChannelClick: (channelId: string) => void; 
-}> = ({ channels, onChannelClick }) => {
-    const { user } = useAuth();
-    const [enrichedChannels, setEnrichedChannels] = useState<EnrichedChannel[]>([]);
+const ChannelSnapshotCard: React.FC<{ channel: Channel; onAnalyze: () => void; }> = ({ channel, onAnalyze }) => {
+    const [snapshot, setSnapshot] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchSnapshots = async () => {
-            if (channels.length === 0) {
-                setLoading(false);
-                setEnrichedChannels([]);
-                return;
-            }
+        const fetchSnapshot = async () => {
             setLoading(true);
             try {
-                const snapshots = await getChannelSnapshots(channels);
-                const enriched = channels.map(channel => {
-                    const snapshot = snapshots.find(s => s.id === channel.id);
-                    return { ...channel, ...snapshot };
-                });
-                setEnrichedChannels(enriched);
+                const result = await getChannelSnapshots([channel]);
+                if (result && result[0]) {
+                    setSnapshot(result[0]);
+                }
             } catch (error) {
-                console.error("Failed to fetch channel snapshots:", error);
+                console.error(`Failed to fetch snapshot for ${channel.url}`, error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchSnapshots();
-    }, [channels]);
+        fetchSnapshot();
+    }, [channel]);
+
+    const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
+        switch (trend) {
+            case 'up': return <TrendingUp className="w-4 h-4 text-green-400" />;
+            case 'down': return <TrendingDown className="w-4 h-4 text-red-400" />;
+            default: return <span className="w-4 h-4 text-slate-500 font-bold">-</span>;
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-4 animate-pulse">
+                <div className="h-6 w-3/4 bg-slate-700 rounded mb-4"></div>
+                <div className="flex justify-between gap-4">
+                    <div className="h-10 w-1/3 bg-slate-700 rounded"></div>
+                    <div className="h-10 w-1/3 bg-slate-700 rounded"></div>
+                    <div className="h-10 w-1/3 bg-slate-700 rounded"></div>
+                </div>
+            </div>
+        )
+    }
 
     return (
-        <div className="interactive-card h-full">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2 text-glow"><Link className="w-5 h-5"/> Your Channels</h3>
-            {loading ? (
-                <div className="space-y-4">
-                    <ChannelCardSkeleton />
-                    {channels.length > 1 && <ChannelCardSkeleton />}
+        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-4 transition-all hover:border-violet-500 hover:shadow-glow-md">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500" /> : <TikTok className="w-6 h-6 text-white" />}
+                    <h3 className="font-bold text-lg truncate">{channel.url.split('/').pop()}</h3>
                 </div>
-            ) : enrichedChannels.length === 0 ? (
-                 <p className="text-slate-400 text-sm">Connect your channels in your profile to see stats here.</p>
-            ) : (
-                <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-                    {enrichedChannels.map(channel => {
-                        const growthValue = channel.weeklyViewGrowth ? parseFloat(channel.weeklyViewGrowth) : 0;
-                        const growthColor = growthValue > 0 ? 'text-green-400' : growthValue < 0 ? 'text-red-400' : 'text-slate-400';
-
-                        return (
-                            <button key={channel.id} onClick={() => onChannelClick(channel.id)} className="w-full text-left bg-slate-800/60 hover:bg-violet-rich/20 p-4 rounded-lg transition-colors border border-slate-700/50 hover:border-violet-light" title={`View detailed analytics for ${channel.url.split('/').pop() || channel.url}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500 flex-shrink-0" /> : <TikTok className="w-6 h-6 text-white flex-shrink-0" />}
-                                        <span className="font-semibold truncate" title={channel.url}>{channel.url.split('/').pop() || channel.url}</span>
-                                    </div>
-                                </div>
-                                
-                                <div className="grid grid-cols-3 gap-4 text-center border-t border-b border-slate-700/50 py-4">
-                                     <div>
-                                        <p className="text-xs text-slate-400 mb-1">Followers</p>
-                                        <div className="flex items-center justify-center gap-1.5 font-bold text-slate-100 text-xl">
-                                            {channel.followerCount || 'N/A'}
-                                            {renderTrendIcon(channel.followerTrend)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-400 mb-1">Total Views</p>
-                                        <div className="flex items-center justify-center gap-1.5 font-bold text-slate-100 text-xl">
-                                            {channel.totalViews || 'N/A'}
-                                            {renderTrendIcon(channel.viewsTrend)}
-                                        </div>
-                                    </div>
-                                     <div className="border-l border-slate-700/50 pl-4">
-                                        <p className="text-xs text-slate-400 mb-1">7-Day Growth</p>
-                                        <div className={`text-xl font-bold flex items-center justify-center gap-1 ${growthColor}`}>
-                                            {growthValue > 0 ? <TrendingUp className="w-5 h-5"/> : growthValue < 0 ? <TrendingDown className="w-5 h-5"/> : null}
-                                            {channel.weeklyViewGrowth || 'N/A'}
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="text-center text-xs text-slate-500 pt-2 flex items-center justify-center gap-2">
-                                    Click to view full analytics
-                                    {user?.plan !== 'pro' && (
-                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-yellow-400/10 text-yellow-300 border border-yellow-400/20 px-1.5 py-0.5 rounded-full">
-                                            <Star className="w-2.5 h-2.5" /> PRO
-                                        </span>
-                                    )}
-                                </p>
-                            </button>
-                        )
-                    })}
+                <button onClick={onAnalyze} className="text-xs font-semibold text-violet-400 hover:underline">Full Analytics</button>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <p className="text-xs text-slate-400">Followers</p>
+                    <div className="text-lg font-bold flex items-center justify-center gap-1">{snapshot?.followerCount || 'N/A'} {renderTrendIcon(snapshot?.followerTrend)}</div>
                 </div>
-            )}
+                <div>
+                    <p className="text-xs text-slate-400">Total Views</p>
+                    <div className="text-lg font-bold flex items-center justify-center gap-1">{snapshot?.totalViews || 'N/A'} {renderTrendIcon(snapshot?.viewsTrend)}</div>
+                </div>
+                 <div>
+                    <p className="text-xs text-slate-400">Weekly Growth</p>
+                    <p className="text-lg font-bold">{snapshot?.weeklyViewGrowth || 'N/A'}</p>
+                </div>
+            </div>
         </div>
     );
-};
-
-interface DashboardProps {
-    setActiveTab: (tab: Tab) => void;
-    setActiveAnalyticsChannelId: (id: string | null) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsChannelId }) => {
     const { user } = useAuth();
-    
-    if (!user) return null;
+    const [tip, setTip] = useState('');
+    const [tipLoading, setTipLoading] = useState(true);
 
-    const handleChannelClick = (channelId: string) => {
-        if (proTabs.includes(Tab.Analytics) && user.plan !== 'pro') {
-            setActiveTab(Tab.Pricing);
-            return;
-        }
+    useEffect(() => {
+        const fetchTip = async () => {
+            if (user) {
+                setTipLoading(true);
+                try {
+                    const result = await generateDashboardTip(user.channels || []);
+                    setTip(result);
+                } catch (error) {
+                    console.error("Failed to fetch dashboard tip:", error);
+                    setTip("Could not load a tip right now. Try exploring the tools!");
+                } finally {
+                    setTipLoading(false);
+                }
+            }
+        };
+        fetchTip();
+    }, [user]);
+
+    const handleChannelAnalyze = (channelId: string) => {
         setActiveAnalyticsChannelId(channelId);
         setActiveTab(Tab.Analytics);
-    };
-
-    const handleBrandConnectClick = () => {
-        if (proTabs.includes(Tab.BrandConnect) && user.plan !== 'pro') {
-            setActiveTab(Tab.Pricing);
-        } else {
-            setActiveTab(Tab.BrandConnect);
-        }
-    };
+    }
 
     return (
         <div className="animate-slide-in-up space-y-8">
             <div>
-                <h1 className="text-4xl lg:text-5xl font-bold text-white text-glow">Welcome back, {user.name}!</h1>
-                <p className="text-slate-400 mt-2 text-lg">Here's your Creator Hub. Let's make something great today.</p>
+                <h1 className="text-3xl font-bold">Welcome back, {user?.name.split(' ')[0]}!</h1>
+                <p className="text-slate-400">Here's your command center for content creation.</p>
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <YourChannelsCard channels={user.channels || []} onChannelClick={handleChannelClick} />
+
+            {/* AI Tip of the Day */}
+            <div className="bg-gradient-to-r from-violet-900/50 to-slate-900/50 border border-violet-700/50 rounded-xl p-6 shadow-glow-violet flex items-start gap-4">
+                <Sparkles className="w-8 h-8 text-violet-300 flex-shrink-0 mt-1" />
+                <div>
+                    <h2 className="text-xl font-bold text-violet-300">AI Tip of the Day</h2>
+                    {tipLoading ? <div className="h-5 w-3/4 bg-slate-700/50 rounded mt-2 animate-pulse"></div> : <p className="text-slate-300 mt-1">{tip}</p>}
                 </div>
-                <AITipCard />
-                <div className="lg:col-span-2">
-                    <QuickCreateCard setActiveTab={setActiveTab} />
-                </div>
-                <button onClick={handleBrandConnectClick} className="interactive-card w-full text-left flex flex-col justify-center" title="Find brand sponsors and generate personalized pitches with AI (Pro Feature)">
-                     <div className="flex items-center gap-4 mb-3">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-rich to-violet flex items-center justify-center text-white shadow-lg shadow-violet-900/50">
-                            <Briefcase className="w-8 h-8"/>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-2xl md:text-3xl font-bold text-white text-glow">Brand Connect</h3>
-                             {user.plan !== 'pro' && <ProChip />}
-                        </div>
+            </div>
+
+            {/* Your Channels */}
+            {user?.channels && user.channels.length > 0 && (
+                <div>
+                    <h2 className="text-2xl font-bold mb-4">Your Channels</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {user.channels.map(channel => (
+                           <ChannelSnapshotCard key={channel.id} channel={channel} onAnalyze={() => handleChannelAnalyze(channel.id)} />
+                        ))}
                     </div>
-                    <p className="text-slate-300 text-lg">Find brand sponsors and generate personalized pitches with AI.</p>
-                </button>
+                </div>
+            )}
+
+            {/* Quick Create */}
+            <div>
+                <h2 className="text-2xl font-bold mb-4">Quick Create</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <QuickCreateButton icon={<Lightbulb className="w-8 h-8 text-yellow-300" />} label="Content Idea" tab={Tab.Ideas} onClick={setActiveTab} />
+                    <QuickCreateButton icon={<Video className="w-8 h-8 text-red-300" />} label="Video" tab={Tab.Video} onClick={setActiveTab} />
+                    <QuickCreateButton icon={<DollarSign className="w-8 h-8 text-green-300" />} label="Monetization" tab={Tab.Monetization} onClick={setActiveTab} />
+                    <QuickCreateButton icon={<FileText className="w-8 h-8 text-blue-300" />} label="Full Report" tab={Tab.Report} onClick={setActiveTab} />
+                    <QuickCreateButton icon={<Rocket className="w-8 h-8 text-rose-400" />} label="Growth Plan" tab={Tab.ChannelGrowth} onClick={setActiveTab} />
+                    <QuickCreateButton icon={<Briefcase className="w-8 h-8 text-cyan-300" />} label="Brand Connect" tab={Tab.BrandConnect} onClick={setActiveTab} />
+                </div>
             </div>
+
+             {/* Main Tools */}
+            <div>
+                <h2 className="text-2xl font-bold mb-4">Explore Tools</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     <button onClick={() => setActiveTab(Tab.Trends)} className="interactive-card text-left">
+                        <TrendingUp className="w-6 h-6 text-violet-400 mb-2"/>
+                        <h3 className="font-bold text-lg">Trend Discovery</h3>
+                        <p className="text-sm text-slate-400">Find what's hot right now on YouTube and TikTok.</p>
+                     </button>
+                      <button onClick={() => setActiveTab(Tab.Keywords)} className="interactive-card text-left">
+                        <Search className="w-6 h-6 text-violet-400 mb-2"/>
+                        <h3 className="font-bold text-lg">Keyword Research</h3>
+                        <p className="text-sm text-slate-400">Uncover high-potential keywords and SEO opportunities.</p>
+                     </button>
+                      <button onClick={() => setActiveTab(Tab.Analytics)} className="interactive-card text-left">
+                        <BarChart2 className="w-6 h-6 text-violet-400 mb-2"/>
+                        <h3 className="font-bold text-lg">Channel Analytics</h3>
+                        <p className="text-sm text-slate-400">Analyze your channels and your competitors.</p>
+                     </button>
+                      <button onClick={() => setActiveTab(Tab.Chat)} className="interactive-card text-left">
+                        <MessageSquare className="w-6 h-6 text-violet-400 mb-2"/>
+                        <h3 className="font-bold text-lg">AI Chat (Nolo)</h3>
+                        <p className="text-sm text-slate-400">Your AI co-pilot for brainstorming and strategy.</p>
+                     </button>
+                      <button onClick={() => setActiveTab(Tab.Agents)} className="interactive-card text-left">
+                        <Bot className="w-6 h-6 text-violet-400 mb-2"/>
+                        <h3 className="font-bold text-lg">AI Agents</h3>
+                        <p className="text-sm text-slate-400">Consult with a team of specialized AI experts.</p>
+                     </button>
+                </div>
+            </div>
+
         </div>
     );
 };
