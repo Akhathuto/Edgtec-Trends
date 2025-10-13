@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useRef, useEffect } from 'react';
 import { generateGif, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';

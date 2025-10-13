@@ -1,7 +1,3 @@
-
-
-'use client';
-
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile, sendMessageToNolo } from '../services/geminiService';
 import Spinner from './Spinner';
