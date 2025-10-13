@@ -45,7 +45,8 @@ export interface HistoryItem {
     content: any;
 }
 
-export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Generated Image' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply' | 'Avatar' | 'Avatar Conversation';
+// FIX: Add 'Generated Video' type for history logging.
+export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Generated Image' | 'Generated Video' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply' | 'Avatar' | 'Avatar Conversation';
 
 export interface AuthContextType {
   user: User | null;

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Tab } from '../types';
 import { Search, ChevronDown, X, Star } from './Icons';
