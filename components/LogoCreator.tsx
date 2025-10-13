@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -7,6 +8,7 @@ import { Star, RefreshCw, PenTool, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 import GalleryModal from './GalleryModal';
+import ErrorDisplay from './ErrorDisplay';
 
 const logoStyles = ['Minimalist', 'Mascot', 'Abstract', 'Wordmark', 'Geometric', 'Vintage'];
 
@@ -14,7 +16,8 @@ interface LogoCreatorProps {
   setActiveTab: (tab: Tab) => void;
 }
 
-const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
+// FIX: Changed to a named export to resolve module resolution error.
+export const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [logoStyle, setLogoStyle] = useState(logoStyles[0]);
@@ -139,7 +142,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                     </div>
                 )}
                 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loading && (
@@ -177,7 +180,7 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleStartOver}
                             className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
-                            title="Clear the form and start a new logo design"
+                            title="Clear the prompt and settings to start over"
                         >
                            Start Over
                         </button>
@@ -201,5 +204,3 @@ const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
         </div>
     );
 };
-
-export default LogoCreator;

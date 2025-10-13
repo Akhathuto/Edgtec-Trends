@@ -8,6 +8,7 @@ import { useToast } from '../contexts/ToastContext';
 import AgentSettingsModal from './AgentSettingsModal';
 // FIX: Import the service to call the backend API route instead of handling Gemini logic on the client.
 import { sendMessageToAgent } from '../services/geminiService';
+import ErrorDisplay from './ErrorDisplay';
 
 interface AIAgentsProps {
   setActiveTab: (tab: Tab) => void;
@@ -310,7 +311,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
             </button>
           </header>
           
-          {error && <div className="p-4 text-center text-red-400 bg-red-500/10">{error}</div>}
+          <ErrorDisplay message={error} />
 
           <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
             {history.map((msg, index) => (

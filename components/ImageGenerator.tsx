@@ -7,6 +7,7 @@ import { Star, RefreshCw, Image as ImageIcon, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
 import GalleryModal from './GalleryModal';
+import ErrorDisplay from './ErrorDisplay';
 
 const imageStyles = ['Photorealistic', 'Digital Art', 'Fantasy', 'Sci-Fi', 'Watercolor', 'Minimalist', 'Cyberpunk', 'Pixel Art'];
 const aspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4'];
@@ -139,7 +140,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                     </div>
                 )}
                 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loading && (

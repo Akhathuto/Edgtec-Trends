@@ -1,8 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./index.html",
+    "./*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./contexts/**/*.{js,ts,jsx,tsx,mdx}",
+    "./data/**/*.{js,ts,jsx,tsx,mdx}",
+    "./services/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -11,6 +15,7 @@ module.exports = {
         'violet-dark': '#7C3AED',
         'violet-light': '#A78BFA',
         'violet-rich': '#6D28D9',
+        'cyan': '#22d3ee',
       },
       animation: {
         'fade-in': 'fade-in 0.5s ease-in-out forwards',
@@ -26,13 +31,15 @@ module.exports = {
         'avatar-speaking': 'avatar-speaking 1.5s ease-in-out infinite',
         'avatar-listening': 'avatar-listening 3s ease-in-out infinite',
         'lip-sync': 'lip-sync 0.2s ease-out infinite alternate',
+        'sidebar-open': 'sidebar-open 0.3s ease-out forwards',
+        'sidebar-close': 'sidebar-close 0.3s ease-out forwards',
       },
       keyframes: {
         'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
         'slide-in-up': { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
-        'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.5))' } },
+        'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 6px rgba(167, 139, 250, 0.4))' } },
         'breathing': {
           '0%, 100%': { opacity: 0.2, transform: 'scale(0.98)' },
           '50%': { opacity: 0.4, transform: 'scale(1)' },
@@ -72,13 +79,24 @@ module.exports = {
         'blink': {
           '50%': { opacity: '0' },
         },
+        'sidebar-open': {
+          'from': { transform: 'translateX(-100%)' },
+          'to': { transform: 'translateX(0)' }
+        },
+        'sidebar-close': {
+          'from': { transform: 'translateX(0)' },
+          'to': { transform: 'translateX(-100%)' }
+        },
       },
       boxShadow: {
         'glow-md': '0 0 15px rgba(167, 139, 250, 0.2)',
         'glow-lg': '0 0 25px rgba(167, 139, 250, 0.3)',
         'glow-violet': '0 0 40px rgba(139, 92, 246, 0.3)',
+        'glow-cyan': '0 0 40px rgba(34, 211, 238, 0.3)',
       }
     }
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

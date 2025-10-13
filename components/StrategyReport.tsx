@@ -95,7 +95,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Full Strategy Reports</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Get a comprehensive, AI-powered content strategy document combining trend analysis, content ideas, and monetization strategies.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30" title="View subscription plans to upgrade">
+                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary" title="View subscription plans to upgrade">
                     View Plans
                 </button>
             </div>
@@ -115,7 +115,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
                         placeholder="Enter your topic..."
-                        className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner md:col-span-2"
+                        className="form-input md:col-span-2"
                         title="Enter the main topic for your strategy report (Pro Feature)"
                     />
                     <div>
@@ -133,8 +133,8 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                         <button
                           onClick={() => handleGenerate()}
                           disabled={loading}
-                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
-                          title="Generate a comprehensive strategy report for your topic (Pro Feature)"
+                          className="button-primary w-full"
+                          title="Generate a comprehensive strategy report for your topic (Pro feature)"
                         >
                           {loading ? <Spinner /> : 'Generate Report'}
                         </button>
@@ -154,7 +154,7 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-2xl font-bold text-white text-glow">Your Report for "{topic}"</h3>
-                        <button onClick={handleDownload} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors" title="Download the full report as a Markdown file">
+                        <button onClick={handleDownload} className="button-secondary" title="Download the full report as a Markdown file">
                             <Download className="w-4 h-4" /> Download Report
                         </button>
                     </div>

@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
@@ -9,7 +11,9 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+// FIX: Removed React.FC for better type inference with modern React.
+// FIX: Changed component signature to use React.PropsWithChildren to resolve typing error for children prop.
+export const ToastProvider = ({ children }: React.PropsWithChildren) => {
   const [message, setMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   

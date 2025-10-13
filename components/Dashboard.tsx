@@ -129,6 +129,31 @@ const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
     }
 };
 
+const ChannelCardSkeleton = () => (
+    <div className="bg-slate-800/60 p-4 rounded-lg animate-pulse">
+        <div className="flex items-center gap-3 mb-3">
+            <div className="w-6 h-6 bg-slate-700/50 rounded-full"></div>
+            <div className="h-5 w-32 bg-slate-700/50 rounded"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4 text-center border-t border-b border-slate-700/50 py-4">
+            <div>
+                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
+                <div className="h-6 w-16 mx-auto bg-slate-700/50 rounded"></div>
+            </div>
+            <div>
+                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
+                <div className="h-6 w-16 mx-auto bg-slate-700/50 rounded"></div>
+            </div>
+            <div className="border-l border-slate-700/50 pl-4">
+                <div className="h-3 w-12 mx-auto mb-2 bg-slate-700/50 rounded"></div>
+                <div className="h-6 w-10 mx-auto bg-slate-700/50 rounded"></div>
+            </div>
+        </div>
+        <div className="h-3 w-40 mx-auto mt-2 bg-slate-700/50 rounded"></div>
+    </div>
+);
+
+
 const YourChannelsCard: React.FC<{ 
     channels: Channel[]; 
     onChannelClick: (channelId: string) => void; 
@@ -165,7 +190,10 @@ const YourChannelsCard: React.FC<{
         <div className="interactive-card h-full">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2 text-glow"><Link className="w-5 h-5"/> Your Channels</h3>
             {loading ? (
-                <div className="flex items-center justify-center h-full"><Spinner /></div>
+                <div className="space-y-4">
+                    <ChannelCardSkeleton />
+                    {channels.length > 1 && <ChannelCardSkeleton />}
+                </div>
             ) : enrichedChannels.length === 0 ? (
                  <p className="text-slate-400 text-sm">Connect your channels in your profile to see stats here.</p>
             ) : (
@@ -253,25 +281,29 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
     return (
         <div className="animate-slide-in-up space-y-8">
             <div>
-                <h1 className="text-4xl font-bold text-white text-glow">Welcome back, {user.name}!</h1>
-                <p className="text-slate-400 mt-1">Here's your Creator Hub. Let's get started.</p>
+                <h1 className="text-4xl lg:text-5xl font-bold text-white text-glow">Welcome back, {user.name}!</h1>
+                <p className="text-slate-400 mt-2 text-lg">Here's your Creator Hub. Let's make something great today.</p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <YourChannelsCard channels={user.channels || []} onChannelClick={handleChannelClick} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <YourChannelsCard channels={user.channels || []} onChannelClick={handleChannelClick} />
+                </div>
                 <AITipCard />
-                <QuickCreateCard setActiveTab={setActiveTab} />
+                <div className="lg:col-span-2">
+                    <QuickCreateCard setActiveTab={setActiveTab} />
+                </div>
                 <button onClick={handleBrandConnectClick} className="interactive-card w-full text-left flex flex-col justify-center" title="Find brand sponsors and generate personalized pitches with AI (Pro Feature)">
                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-rich to-violet flex items-center justify-center text-white">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-rich to-violet flex items-center justify-center text-white shadow-lg shadow-violet-900/50">
                             <Briefcase className="w-8 h-8"/>
                         </div>
                         <div className="flex items-center gap-3">
-                            <h3 className="text-3xl font-bold text-white text-glow">Brand Connect</h3>
+                            <h3 className="text-2xl md:text-3xl font-bold text-white text-glow">Brand Connect</h3>
                              {user.plan !== 'pro' && <ProChip />}
                         </div>
                     </div>
-                    <p className="text-slate-400 text-lg">Find brand sponsors and generate personalized pitches with AI.</p>
+                    <p className="text-slate-300 text-lg">Find brand sponsors and generate personalized pitches with AI.</p>
                 </button>
             </div>
         </div>

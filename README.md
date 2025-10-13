@@ -51,6 +51,7 @@ This is a modern React application built with Vite.
 
 -   Node.js (version 18.x or later) and npm.
 -   A Google Gemini API key.
+-   Vercel CLI (for local development with serverless functions): `npm i -g vercel`
 
 ### Setup & Running
 
@@ -63,20 +64,20 @@ This is a modern React application built with Vite.
 2.  **API Key Configuration:**
     > **⚠️ IMPORTANT:** This project requires a Google Gemini API key.
     >
-    > **For local development:**
-    > 1.  Create a file named `.env` in the project root.
+    > 1.  Create a file named `.env.local` in the project root.
     > 2.  Add your API key to this file: `API_KEY=YOUR_API_KEY_HERE`
     >
     > **For deployment (e.g., Vercel):**
     >    Set an environment variable named `API_KEY` with your API key in your deployment service's settings.
 
 3.  **Run the development server:**
+    Use the Vercel CLI to run the Vite dev server and the serverless functions together:
     ```bash
-    npm run dev
+    vercel dev
     ```
 
 4.  **Open in browser:**
-    Open your browser and navigate to the local address provided by Vite (e.g., `http://localhost:5173`). The application should now be running.
+    Open your browser and navigate to the local address provided by the Vercel CLI (e.g., `http://localhost:3000`). The application should now be running.
 
 ## ✨ Key Features
 
@@ -154,11 +155,12 @@ Consult your personal team of AI experts, each with a unique specialty to guide 
 
 ## 💻 Technology Stack
 
-- **Core Framework:** React (via CDN)
-- **Language:** TypeScript (transpiled in-browser by the execution environment)
-- **AI Integration:** Google Gemini API (`@google/genai` via CDN)
-- **Styling:** Tailwind CSS (via JIT CDN)
-- **Date Handling:** `date-fns` (via CDN)
+- **Core Framework:** React
+- **Build Tool:** Vite
+- **Language:** TypeScript
+- **AI Integration:** Google Gemini API (`@google/genai`) via a secure server-side proxy
+- **Styling:** Tailwind CSS
+- **Deployment:** Vercel (recommended)
 
 ---
 

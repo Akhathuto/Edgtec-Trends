@@ -1,4 +1,5 @@
 
+
 import type React from 'react';
 
 export type PlanName = 'free' | 'starter' | 'pro';
@@ -302,12 +303,17 @@ export interface ChatMessage {
   toolResult?: any;
 }
 
-// @google/genai doesn't export Type enum, so we define it locally for schema generation
+// FIX: Update local Type enum to match the full definition from the @google/genai guidelines
+// and clarify in the comment why it's defined locally.
+// The @google/genai package is not a client-side dependency, so we define the Type enum
+// locally for creating function declaration schemas on the client.
 export enum Type {
+  TYPE_UNSPECIFIED = 'TYPE_UNSPECIFIED',
   STRING = 'STRING',
   NUMBER = 'NUMBER',
   INTEGER = 'INTEGER',
   BOOLEAN = 'BOOLEAN',
   ARRAY = 'ARRAY',
   OBJECT = 'OBJECT',
+  NULL = 'NULL',
 }

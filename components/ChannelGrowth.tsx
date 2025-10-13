@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -7,6 +8,7 @@ import { generateChannelGrowthPlan } from '../services/geminiService';
 import { ChannelGrowthPlan, Tab } from '../types';
 import Spinner from './Spinner';
 import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons';
+import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelGrowthProps {
   setActiveTab: (tab: Tab) => void;
@@ -32,6 +34,28 @@ const GrowthSection: React.FC<{ title: string; icon: React.ReactNode; analysis: 
                  </ul>
             </div>
         </div>
+    </div>
+);
+
+const GrowthPlanSkeleton = () => (
+    <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl animate-pulse space-y-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+          <div className="h-6 w-48 bg-slate-700/50 rounded mb-4"></div>
+          <div className="space-y-4">
+            <div>
+              <div className="h-5 w-32 bg-slate-700/50 rounded mb-2"></div>
+              <div className="h-4 w-full bg-slate-700/50 rounded mb-2"></div>
+              <div className="h-4 w-5/6 bg-slate-700/50 rounded"></div>
+            </div>
+            <div>
+              <div className="h-5 w-40 bg-slate-700/50 rounded mb-3"></div>
+              <div className="h-4 w-full bg-slate-700/50 rounded mb-2"></div>
+              <div className="h-4 w-full bg-slate-700/50 rounded mb-2"></div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
 );
 
@@ -143,17 +167,12 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                     </button>
                 </div>
 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
-            {loading && (
-                <div className="text-center py-10">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">Analyzing your channel and crafting your growth plan...</p>
-                </div>
-            )}
+            {loading && <GrowthPlanSkeleton />}
 
-            {plan && (
+            {!loading && plan && (
                  <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 sm:p-8 shadow-xl backdrop-blur-xl animate-fade-in space-y-6">
                     <GrowthSection 
                         title="Content Strategy"

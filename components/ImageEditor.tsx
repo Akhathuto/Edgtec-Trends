@@ -6,6 +6,7 @@ import Spinner from './Spinner';
 import { Edit, Star, UploadCloud, RefreshCw, Download, Sliders, Trash2 } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import ErrorDisplay from './ErrorDisplay';
 
 interface ImageEditorProps {
   setActiveTab: (tab: Tab) => void;
@@ -255,7 +256,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
             </div>
         )}
         
-        {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+        <ErrorDisplay message={error} className="mt-4" />
       </div>
     </div>
   );

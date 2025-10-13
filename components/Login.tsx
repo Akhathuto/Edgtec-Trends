@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UtrendLogo } from './Logo';
 import Spinner from './Spinner';
 import { User } from '../types';
+import ErrorDisplay from './ErrorDisplay';
 
 const Login: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
@@ -42,9 +43,9 @@ const Login: React.FC = () => {
                      <p className="text-slate-400">Your AI-powered content suite for creators.</p>
                 </div>
                 
-                <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-8 shadow-glow-violet">
+                <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-8 shadow-2xl shadow-violet-900/30">
                     <h2 className="text-2xl font-bold text-center mb-6 text-glow">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
-                    {error && <p className="bg-red-500/20 text-red-300 text-center text-sm p-3 rounded-lg mb-4">{error}</p>}
+                    <ErrorDisplay message={error} className="mb-4" />
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {!isLoginView && (
                             <div>
@@ -56,7 +57,7 @@ const Login: React.FC = () => {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Full Name"
                                     required
-                                    className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
+                                    className="form-input"
                                 />
                             </div>
                         )}
@@ -69,7 +70,7 @@ const Login: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email Address"
                                 required
-                                className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
+                                className="form-input"
                             />
                         </div>
                         <div>
@@ -82,7 +83,7 @@ const Login: React.FC = () => {
                                 placeholder="Password"
                                 required
                                 minLength={6}
-                                className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light focus:bg-slate-800/50 transition-all shadow-inner"
+                                className="form-input"
                             />
                         </div>
 
@@ -100,7 +101,7 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:scale-105"
+                            className="button-primary w-full"
                         >
                             {loading ? <Spinner /> : (isLoginView ? 'Sign In' : 'Sign Up')}
                         </button>

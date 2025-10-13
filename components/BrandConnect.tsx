@@ -8,6 +8,7 @@ import { Tab, SponsorshipOpportunity, BrandPitch } from '../types';
 import Spinner from './Spinner';
 import { Star, Link, Briefcase, ChevronDown, Copy, FileText, Send } from './Icons';
 import { useToast } from '../contexts/ToastContext';
+import ErrorDisplay from './ErrorDisplay';
 
 interface BrandConnectProps {
   setActiveTab: (tab: Tab) => void;
@@ -61,6 +62,21 @@ const getCardStyle = (scoreString: string) => {
     if (value >= 75) return 'border-yellow-400/50 bg-yellow-500/5';
     return 'border-slate-700/50';
 };
+
+const OpportunitySkeleton = () => (
+    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-pulse flex flex-col">
+      <div className="flex justify-between items-start gap-4">
+        <div className="flex-1">
+          <div className="h-6 w-3/4 bg-slate-700/50 rounded mb-2"></div>
+          <div className="h-4 w-1/2 bg-slate-700/50 rounded mb-3"></div>
+        </div>
+        <div className="w-16 h-16 bg-slate-700/50 rounded-full"></div>
+      </div>
+      <div className="h-4 w-full bg-slate-700/50 rounded mb-2"></div>
+      <div className="h-4 w-5/6 bg-slate-700/50 rounded mb-4"></div>
+      <div className="h-10 w-full bg-slate-700/50 rounded-lg mt-auto"></div>
+    </div>
+);
 
 
 const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
@@ -208,13 +224,12 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
                     </button>
                 </div>
 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loadingOpportunities && (
-                <div className="text-center py-10">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">Scanning for brand opportunities...</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => <OpportunitySkeleton key={i} />)}
                 </div>
             )}
             

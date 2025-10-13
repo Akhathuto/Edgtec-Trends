@@ -6,6 +6,7 @@ import Spinner from './Spinner';
 import { Star, RefreshCw, Gif, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
     "Assembling your GIF...",
@@ -51,8 +52,8 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your GIF...");
-                        // FIX: Use a server-side proxy to fetch the video to avoid exposing the API key on the client.
                         const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
+                        if (!response.ok) throw new Error('Failed to download GIF from proxy.');
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setGifUrl(url);
@@ -110,22 +111,13 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
         setPrompt('');
     }
     
-    const handleDownload = async (url: string, filename: string) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            setError("Failed to download GIF. Please try again.");
-            console.error(err);
-        }
+    const handleDownload = (url: string, filename: string) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     if (user?.plan !== 'pro') {
@@ -173,7 +165,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     </div>
                 )}
                 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loading && (

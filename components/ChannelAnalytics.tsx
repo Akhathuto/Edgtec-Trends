@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -7,6 +6,7 @@ import { getChannelAnalytics, generateChannelOpportunities } from '../services/g
 import { ChannelAnalyticsData, Tab } from '../types';
 import Spinner from './Spinner';
 import { Star, BarChart2, Youtube, TikTok, Link, Lightbulb, TrendingUp, TrendingDown, ExternalLink } from './Icons';
+import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelAnalyticsProps {
   setActiveTab: (tab: Tab) => void;
@@ -14,6 +14,32 @@ interface ChannelAnalyticsProps {
   setActiveChannelId: (id: string | null) => void;
   initialInput?: string | null;
 }
+
+const ChannelAnalyticsSkeleton = () => (
+    <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-pulse space-y-6">
+        <header>
+            <div className="h-8 w-1/2 mb-2 bg-slate-700/50 rounded"></div>
+            <div className="h-5 w-24 bg-slate-700/50 rounded"></div>
+        </header>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="h-24 bg-slate-700/50 rounded-lg"></div>
+            <div className="h-24 bg-slate-700/50 rounded-lg"></div>
+            <div className="h-24 bg-slate-700/50 rounded-lg"></div>
+            <div className="h-24 bg-slate-700/50 rounded-lg"></div>
+        </div>
+        <div>
+            <div className="h-6 w-48 mb-3 bg-slate-700/50 rounded"></div>
+            <div className="h-4 w-full mb-2 bg-slate-700/50 rounded"></div>
+            <div className="h-4 w-3/4 bg-slate-700/50 rounded"></div>
+        </div>
+        <div>
+            <div className="h-6 w-64 mb-3 bg-slate-700/50 rounded"></div>
+            <div className="h-4 w-full mb-2 bg-slate-700/50 rounded"></div>
+            <div className="h-4 w-full mb-2 bg-slate-700/50 rounded"></div>
+            <div className="h-4 w-5/6 bg-slate-700/50 rounded"></div>
+        </div>
+    </div>
+);
 
 const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activeChannelId, setActiveChannelId, initialInput }) => {
     const { user } = useAuth();
@@ -150,10 +176,10 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
                  </div>
             </div>
             
-            {loading && <div className="text-center py-10"><Spinner size="lg" /><p className="mt-4 text-slate-300">Analyzing channel...</p></div>}
-            {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+            {loading && <ChannelAnalyticsSkeleton />}
+            <ErrorDisplay message={error} />
             
-            {analytics && (
+            {!loading && analytics && (
                 <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in space-y-6">
                     <header>
                         <h3 className="text-2xl font-bold text-white">{analytics.channelName}</h3>

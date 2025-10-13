@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
@@ -6,7 +8,9 @@ import { add, isAfter } from 'date-fns';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+// FIX: Removed React.FC for better type inference with modern React.
+// FIX: Changed component signature to use React.PropsWithChildren to resolve typing error for children prop.
+export const AuthProvider = ({ children }: React.PropsWithChildren) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 

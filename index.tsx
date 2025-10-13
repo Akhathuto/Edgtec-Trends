@@ -1,3 +1,20 @@
-// This file is the entry point for standard Vite/CRA React projects, but it is not used by the Next.js App Router.
-// The root page component is `app/page.tsx`.
-// This file has been cleared to prevent conflicts with the Next.js development server.
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
+import './index.css';
+
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container); 
+  root.render(
+    <React.StrictMode>
+      <AuthProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </AuthProvider>
+    </React.StrictMode>
+  );
+}

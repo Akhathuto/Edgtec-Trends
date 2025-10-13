@@ -7,9 +7,10 @@ import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile, s
 import Spinner from './Spinner';
 import { Star, RefreshCw, User as UserIcon, Download, Mic, Phone, MessageSquare, Send, UploadCloud, Wand, Edit, ChevronDown, Image, X, Eye } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { Tab, AvatarProfile } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { avatarStyles, genders, shotTypes, voices, hairStyles, facialHairOptions, glassesOptions } from '../data/avatarOptions';
+import ErrorDisplay from './ErrorDisplay';
 
 type InteractionMode = 'none' | 'voice' | 'text';
 type ConversationStatus = 'CONNECTING...' | 'LISTENING' | 'SPEAKING' | 'ENDED' | 'READY';
@@ -28,6 +29,28 @@ interface ChatMessage {
 interface AvatarCreatorProps {
   setActiveTab: (tab: Tab) => void;
 }
+
+const initialProfile: AvatarProfile = {
+    gender: genders[0],
+    avatarStyle: avatarStyles[0],
+    hairStyle: hairStyles[0],
+    hairColor: 'Cosmic Purple',
+    eyeColor: 'Green',
+    facialHair: facialHairOptions[0],
+    glasses: glassesOptions[0],
+    otherFacialFeatures: '',
+    clothingTop: 'Leather Jacket',
+    outerwear: '',
+    clothingBottom: '',
+    clothingShoes: '',
+    accessoriesHat: '',
+    accessoriesJewelry: '',
+    handheldItem: '',
+    extraDetails: '',
+    background: 'Neon-lit alleyway',
+    shotType: shotTypes[0],
+    personality: 'A cynical detective with a heart of gold.',
+};
 
 const StatusIndicator: React.FC<{ status: ConversationStatus }> = ({ status }) => {
     const statusConfig: Record<ConversationStatus, { text: string; color: string; pulse: boolean }> = {
@@ -125,29 +148,16 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
     const [phase, setPhase] = useState<CreatorPhase>('design');
     const [error, setError] = useState<string | null>(null);
     const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
+    
+    // Form state refactored into a single object
+    const [profile, setProfile] = useState<AvatarProfile>(initialProfile);
+    const updateProfile = (updates: Partial<AvatarProfile>) => {
+        setProfile(prev => ({ ...prev, ...updates }));
+    };
 
     // Generation State
     const [generationMode, setGenerationMode] = useState<'scratch' | 'photo'>('scratch');
     const [sourceImageBase64, setSourceImageBase64] = useState<{ data: string; mimeType: string; url: string; } | null>(null);
-    const [gender, setGender] = useState(genders[0]);
-    const [avatarStyle, setAvatarStyle] = useState(avatarStyles[0]);
-    const [hairStyle, setHairStyle] = useState(hairStyles[0]);
-    const [hairColor, setHairColor] = useState('Cosmic Purple');
-    const [eyeColor, setEyeColor] = useState('Green');
-    const [facialHair, setFacialHair] = useState(facialHairOptions[0]);
-    const [glasses, setGlasses] = useState(glassesOptions[0]);
-    const [otherFacialFeatures, setOtherFacialFeatures] = useState('');
-    const [clothingTop, setClothingTop] = useState('Leather Jacket');
-    const [outerwear, setOuterwear] = useState('');
-    const [clothingBottom, setClothingBottom] = useState('');
-    const [clothingShoes, setClothingShoes] = useState('');
-    const [accessoriesHat, setAccessoriesHat] = useState('');
-    const [accessoriesJewelry, setAccessoriesJewelry] = useState('');
-    const [handheldItem, setHandheldItem] = useState('');
-    const [extraDetails, setExtraDetails] = useState('');
-    const [background, setBackground] = useState('Neon-lit alleyway');
-    const [shotType, setShotType] = useState(shotTypes[0]);
-    const [personality, setPersonality] = useState('A cynical detective with a heart of gold.');
     const [loading, setLoading] = useState(false);
     const [isSurprising, setIsSurprising] = useState(false);
     const [editPrompt, setEditPrompt] = useState('');
@@ -162,6 +172,13 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
     const [textChatHistory, setTextChatHistory] = useState<ChatMessage[]>([]);
     const [textInput, setTextInput] = useState('');
     const [isTextLoading, setIsTextLoading] = useState(false);
+
+    const {
+        gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses,
+        otherFacialFeatures, clothingTop, outerwear, clothingBottom, clothingShoes,
+        accessoriesHat, accessoriesJewelry, handheldItem, extraDetails, background,
+        shotType, personality
+    } = profile;
 
     const faceDetails = [ facialHair !== 'None' ? facialHair : '', glasses !== 'None' ? glasses : '', otherFacialFeatures ].filter(Boolean).join(', ');
     const clothingString = [ clothingTop ? `Top: ${clothingTop}` : '', outerwear ? `Outerwear: ${outerwear}` : '', clothingBottom ? `Bottom: ${clothingBottom}` : '', shotType === 'Full Body Shot' && clothingShoes ? `Shoes: ${clothingShoes}` : '' ].filter(Boolean).join(', ');
@@ -249,11 +266,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
                         generationMode,
                         sourceImage: generationMode === 'photo' ? sourceImageBase64?.url : null,
                         avatarBase64: result,
-                        settings: {
-                            gender, avatarStyle, hairStyle, hairColor, eyeColor, facialHair, glasses,
-                            otherFacialFeatures, clothingTop, clothingBottom, clothingShoes, outerwear,
-                            accessoriesHat, accessoriesJewelry, handheldItem, extraDetails, background, shotType, personality
-                        }
+                        settings: { ...profile }
                     }
                 });
                 logActivity(`generated a ${avatarStyle} avatar`, 'User');
@@ -266,21 +279,14 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
         } finally {
             setLoading(false);
         }
-    }, [generationMode, sourceImageBase64, gender, avatarStyle, hairStyle, hairColor, eyeColor, faceDetails, clothingString, accessoriesString, extraDetails, background, shotType, personality, addContentToHistory, logActivity, clothingTop, outerwear, clothingBottom, clothingShoes, accessoriesHat, accessoriesJewelry, handheldItem]);
+    }, [generationMode, sourceImageBase64, profile, addContentToHistory, logActivity, faceDetails, clothingString, accessoriesString]);
     
     const handleSurpriseMe = async () => {
         setIsSurprising(true);
         setError(null);
         try {
-            const profile = await generateRandomAvatarProfile();
-            setGender(profile.gender); setAvatarStyle(profile.avatarStyle); setHairStyle(profile.hairStyle);
-            setHairColor(profile.hairColor); setEyeColor(profile.eyeColor); setFacialHair(profile.facialHair);
-            setGlasses(profile.glasses); setOtherFacialFeatures(profile.otherFacialFeatures);
-            setClothingTop(profile.clothingTop); setClothingBottom(profile.clothingBottom); setClothingShoes(profile.clothingShoes);
-            setOuterwear(profile.outerwear);
-            setAccessoriesHat(profile.accessoriesHat); setAccessoriesJewelry(profile.accessoriesJewelry);
-            setHandheldItem(profile.handheldItem);
-            setExtraDetails(profile.extraDetails); setBackground(profile.background); setShotType(profile.shotType); setPersonality(profile.personality);
+            const randomProfile = await generateRandomAvatarProfile();
+            setProfile(randomProfile);
             showToast("Avatar profile randomized!");
         } catch (e: any) {
             setError(e.message || "Failed to generate a random profile.");
@@ -364,7 +370,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
 
     // Voice chat is disabled to prevent app crash from client-side API usage.
     const handleStartLiveConversation = useCallback(async () => {
-        showToast("Voice chat is temporarily unavailable.");
+        showToast("Voice chat is temporarily unavailable for security reasons.");
     }, [showToast]);
 
     const handleEndConversation = useCallback(() => {
@@ -391,27 +397,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
         setError(null);
         setSourceImageBase64(null);
         setEditPrompt('');
-    
-        // Reset form fields to default
-        setGender(genders[0]);
-        setAvatarStyle(avatarStyles[0]);
-        setHairStyle(hairStyles[0]);
-        setHairColor('Cosmic Purple');
-        setEyeColor('Green');
-        setFacialHair(facialHairOptions[0]);
-        setGlasses(glassesOptions[0]);
-        setOtherFacialFeatures('');
-        setClothingTop('Leather Jacket');
-        setOuterwear('');
-        setClothingBottom('');
-        setClothingShoes('');
-        setAccessoriesHat('');
-        setAccessoriesJewelry('');
-        setHandheldItem('');
-        setExtraDetails('');
-        setBackground('Neon-lit alleyway');
-        setShotType(shotTypes[0]);
-        setPersonality('A cynical detective with a heart of gold.');
+        setProfile(initialProfile);
     };
     
     if (user?.plan !== 'pro') {
@@ -436,7 +422,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 animate-scale-in">
                     <div className="lg:col-span-3 bg-brand-glass border border-slate-700/50 rounded-2xl p-6 space-y-5">
                         <div className="segmented-control"><button onClick={() => setGenerationMode('scratch')} className={`segmented-control-button ${generationMode === 'scratch' ? 'active' : ''}`} title="Create an avatar from a detailed text description">From Scratch</button><button onClick={() => setGenerationMode('photo')} className={`segmented-control-button ${generationMode === 'photo' ? 'active' : ''}`} title="Create an avatar by transforming an uploaded photo">From Photo</button></div>
-                        {error && <p className="text-red-400 text-center text-sm bg-red-500/10 p-2 rounded-lg">{error}</p>}
+                        <ErrorDisplay message={error} />
                         {generationMode === 'photo' && (
                             <div className="space-y-2">
                                 <label className="input-label">Source Photo</label>
@@ -464,34 +450,34 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
                         )}
                         <div className="space-y-3">
                             <CollapsibleSection title="Core Identity" icon={<UserIcon className="w-5 h-5 text-violet-300" />} defaultOpen>
-                                <CustomSelect label="Gender" value={gender} onChange={setGender} options={genders} title="Select the gender of your avatar" />
-                                <CustomSelect label="Avatar Style" value={avatarStyle} onChange={setAvatarStyle} options={avatarStyles} title="Choose the overall visual style for your avatar" />
-                                <CustomSelect label="Shot Type" value={shotType} onChange={setShotType} options={shotTypes} title="Select the camera framing for the avatar image" />
+                                <CustomSelect label="Gender" value={gender} onChange={value => updateProfile({ gender: value })} options={genders} title="Select the gender of your avatar" />
+                                <CustomSelect label="Avatar Style" value={avatarStyle} onChange={value => updateProfile({ avatarStyle: value })} options={avatarStyles} title="Choose the overall visual style for your avatar" />
+                                <CustomSelect label="Shot Type" value={shotType} onChange={value => updateProfile({ shotType: value })} options={shotTypes} title="Select the camera framing for the avatar image" />
                                 <div className="sm:col-span-2">
                                     <label className="input-label">Personality (1 sentence)</label>
-                                    <input type="text" value={personality} onChange={e => setPersonality(e.target.value)} placeholder="e.g., A cynical detective..." className="form-input" title="Describe your avatar's personality. This will influence its expression and conversational style."/>
+                                    <input type="text" value={personality} onChange={e => updateProfile({ personality: e.target.value })} placeholder="e.g., A cynical detective..." className="form-input" title="Describe your avatar's personality. This will influence its expression and conversational style."/>
                                 </div>
                             </CollapsibleSection>
                             <CollapsibleSection title="Appearance" icon={<Eye className="w-5 h-5 text-violet-300" />}>
-                                <CustomSelect label="Hair Style" value={hairStyle} onChange={setHairStyle} options={hairStyles} title="Choose the avatar's hairstyle" />
-                                <div><label className="input-label">Hair Color</label><input type="text" value={hairColor} onChange={e => setHairColor(e.target.value)} placeholder="e.g., Electric Blue" className="form-input" title="Specify the avatar's hair color"/></div>
+                                <CustomSelect label="Hair Style" value={hairStyle} onChange={value => updateProfile({ hairStyle: value })} options={hairStyles} title="Choose the avatar's hairstyle" />
+                                <div><label className="input-label">Hair Color</label><input type="text" value={hairColor} onChange={e => updateProfile({ hairColor: e.target.value })} placeholder="e.g., Electric Blue" className="form-input" title="Specify the avatar's hair color"/></div>
                                 <div>
                                     <label className="input-label">Eye Color</label>
-                                    <input type="text" value={eyeColor} onChange={e => setEyeColor(e.target.value)} placeholder="e.g., Emerald Green" className="form-input" title="Describe the avatar's eye color"/>
+                                    <input type="text" value={eyeColor} onChange={e => updateProfile({ eyeColor: e.target.value })} placeholder="e.g., Emerald Green" className="form-input" title="Describe the avatar's eye color"/>
                                 </div>
-                                <CustomSelect label="Facial Hair" value={facialHair} onChange={setFacialHair} options={facialHairOptions} title="Choose the avatar's facial hair style" />
-                                <CustomSelect label="Glasses" value={glasses} onChange={setGlasses} options={glassesOptions} title="Choose the avatar's eyewear" />
-                                <div><label className="input-label">Other Features</label><input type="text" value={otherFacialFeatures} onChange={e => setOtherFacialFeatures(e.target.value)} placeholder="e.g., Freckles, scars" className="form-input" title="Add any other distinguishing facial features"/></div>
+                                <CustomSelect label="Facial Hair" value={facialHair} onChange={value => updateProfile({ facialHair: value })} options={facialHairOptions} title="Choose the avatar's facial hair style" />
+                                <CustomSelect label="Glasses" value={glasses} onChange={value => updateProfile({ glasses: value })} options={glassesOptions} title="Choose the avatar's eyewear" />
+                                <div><label className="input-label">Other Features</label><input type="text" value={otherFacialFeatures} onChange={e => updateProfile({ otherFacialFeatures: e.target.value })} placeholder="e.g., Freckles, scars" className="form-input" title="Add any other distinguishing facial features"/></div>
                             </CollapsibleSection>
                             <CollapsibleSection title="Outfit & Accessories" icon={<Wand className="w-5 h-5 text-violet-300" />}>
-                                <div><label className="input-label">Top</label><input type="text" value={clothingTop} onChange={e => setClothingTop(e.target.value)} placeholder="e.g., Leather Jacket" className="form-input" title="Describe the top the avatar is wearing"/></div>
-                                <div><label className="input-label">Outerwear</label><input type="text" value={outerwear} onChange={e => setOuterwear(e.target.value)} placeholder="e.g., Trench coat" className="form-input" title="Describe any outerwear (jacket, coat)"/></div>
-                                <div><label className="input-label">Bottoms</label><input type="text" value={clothingBottom} onChange={e => setClothingBottom(e.target.value)} placeholder="e.g., Jeans" className="form-input" title="Describe the bottoms the avatar is wearing"/></div>
-                                <div><label className="input-label">Shoes</label><input type="text" value={clothingShoes} onChange={e => setClothingShoes(e.target.value)} placeholder="e.g., Sneakers" className="form-input" title="Describe the shoes the avatar is wearing (for full body shots)"/></div>
-                                <div><label className="input-label">Hat</label><input type="text" value={accessoriesHat} onChange={e => setAccessoriesHat(e.target.value)} placeholder="e.g., Beanie, fedora" className="form-input" title="Add a hat or other headwear"/></div>
-                                <div><label className="input-label">Jewelry</label><input type="text" value={accessoriesJewelry} onChange={e => setAccessoriesJewelry(e.target.value)} placeholder="e.g., Necklace" className="form-input" title="Add any jewelry or piercings"/></div>
-                                <div><label className="input-label">Handheld Item</label><input type="text" value={handheldItem} onChange={e => setHandheldItem(e.target.value)} placeholder="e.g., Coffee cup, book" className="form-input" title="Add an item for the avatar to hold"/></div>
-                                <div className="sm:col-span-2"><label className="input-label">Other Details</label><input type="text" value={extraDetails} onChange={e => setExtraDetails(e.target.value)} placeholder="e.g., Tattoos on arms" className="form-input" title="Add any extra visual details to the avatar or outfit"/></div>
+                                <div><label className="input-label">Top</label><input type="text" value={clothingTop} onChange={e => updateProfile({ clothingTop: e.target.value })} placeholder="e.g., Leather Jacket" className="form-input" title="Describe the top the avatar is wearing"/></div>
+                                <div><label className="input-label">Outerwear</label><input type="text" value={outerwear} onChange={e => updateProfile({ outerwear: e.target.value })} placeholder="e.g., Trench coat" className="form-input" title="Describe any outerwear (jacket, coat)"/></div>
+                                <div><label className="input-label">Bottoms</label><input type="text" value={clothingBottom} onChange={e => updateProfile({ clothingBottom: e.target.value })} placeholder="e.g., Jeans" className="form-input" title="Describe the bottoms the avatar is wearing"/></div>
+                                <div><label className="input-label">Shoes</label><input type="text" value={clothingShoes} onChange={e => updateProfile({ clothingShoes: e.target.value })} placeholder="e.g., Sneakers" className="form-input" title="Describe the shoes the avatar is wearing (for full body shots)"/></div>
+                                <div><label className="input-label">Hat</label><input type="text" value={accessoriesHat} onChange={e => updateProfile({ accessoriesHat: e.target.value })} placeholder="e.g., Beanie, fedora" className="form-input" title="Add a hat or other headwear"/></div>
+                                <div><label className="input-label">Jewelry</label><input type="text" value={accessoriesJewelry} onChange={e => updateProfile({ accessoriesJewelry: e.target.value })} placeholder="e.g., Necklace" className="form-input" title="Add any jewelry or piercings"/></div>
+                                <div><label className="input-label">Handheld Item</label><input type="text" value={handheldItem} onChange={e => updateProfile({ handheldItem: e.target.value })} placeholder="e.g., Coffee cup, book" className="form-input" title="Add an item for the avatar to hold"/></div>
+                                <div className="sm:col-span-2"><label className="input-label">Other Details</label><input type="text" value={extraDetails} onChange={e => updateProfile({ extraDetails: e.target.value })} placeholder="e.g., Tattoos on arms" className="form-input" title="Add any extra visual details to the avatar or outfit"/></div>
                             </CollapsibleSection>
                              <CollapsibleSection title="Background" icon={<Image className="w-5 h-5 text-violet-300" />}>
                                 <div className="sm:col-span-2">
@@ -499,7 +485,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
                                     <input 
                                         type="text" 
                                         value={background} 
-                                        onChange={e => setBackground(e.target.value)} 
+                                        onChange={e => updateProfile({ background: e.target.value })} 
                                         placeholder="e.g., A neon-lit cyberpunk city, a serene forest" 
                                         className="form-input" 
                                         title="Describe the background scene for the avatar image"
@@ -619,6 +605,3 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
         </div>
     );
 };
-
-// FIX: Changed to named export and removed default export.
-// export default AvatarCreator;

@@ -6,6 +6,7 @@ import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif, Mic, Bot, User as 
 import Spinner from './Spinner';
 import { useToast } from '../contexts/ToastContext';
 import { sendMessageToNolo } from '../services/geminiService';
+import ErrorDisplay from './ErrorDisplay';
 
 
 declare global {
@@ -191,7 +192,6 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
 
   const sendToAI = useCallback(async (currentHistory: ChatMessage[]) => {
     const messageForAI = currentHistory[currentHistory.length - 1];
-    // NOTE: Image sending is not supported in this simplified, non-streaming implementation.
     if (!messageForAI.content.trim() && !messageForAI.gifUrl) return;
 
     if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); }
@@ -325,7 +325,7 @@ const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
             </div>
         </header>
 
-        {error && <div className="p-4 text-center text-red-400 bg-red-500/10">{error}</div>}
+        <ErrorDisplay message={error} />
 
         <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
             {history.map((msg, index) => (

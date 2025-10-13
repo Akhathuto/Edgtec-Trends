@@ -6,10 +6,46 @@ import { KeywordAnalysis } from '../types';
 import Spinner from './Spinner';
 import { Search, Lightbulb, TrendingUp } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
+import ErrorDisplay from './ErrorDisplay';
 
 interface KeywordResearchProps {
   initialInput?: string | null;
 }
+
+const KeywordAnalysisSkeleton = () => (
+    <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
+        <div className="lg:col-span-1 space-y-6">
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6">
+                <div className="h-6 w-3/5 mb-2 bg-slate-700/50 rounded"></div>
+                <div className="h-8 w-24 bg-slate-700/50 rounded-full"></div>
+            </div>
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6">
+                <div className="h-6 w-3/5 mb-2 bg-slate-700/50 rounded"></div>
+                <div className="h-8 w-24 bg-slate-700/50 rounded-full"></div>
+            </div>
+        </div>
+        <div className="lg:col-span-2 space-y-6">
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6">
+                <div className="h-6 w-48 mb-3 bg-slate-700/50 rounded"></div>
+                <div className="flex flex-wrap gap-2">
+                    <div className="h-8 w-24 bg-slate-700/50 rounded-full"></div>
+                    <div className="h-8 w-32 bg-slate-700/50 rounded-full"></div>
+                    <div className="h-8 w-28 bg-slate-700/50 rounded-full"></div>
+                    <div className="h-8 w-36 bg-slate-700/50 rounded-full"></div>
+                </div>
+            </div>
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6">
+                <div className="h-6 w-40 mb-3 bg-slate-700/50 rounded"></div>
+                <div className="space-y-2">
+                    <div className="h-10 w-full bg-slate-700/50 rounded-md"></div>
+                    <div className="h-10 w-full bg-slate-700/50 rounded-md"></div>
+                    <div className="h-10 w-full bg-slate-700/50 rounded-md"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
     const { getKeywordUsage, logKeywordAnalysis } = useAuth();
@@ -101,17 +137,12 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
                  <p className="text-center text-xs text-slate-500 mt-2">
                     {usage.limit === 'unlimited' ? 'Unlimited analyses remaining' : `${usage.remaining} / ${usage.limit} analyses remaining this month.`}
                 </p>
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
-            {loading && (
-                <div className="text-center py-10">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">Analyzing keyword potential...</p>
-                </div>
-            )}
+            {loading && <KeywordAnalysisSkeleton />}
             
-            {analysis && (
+            {!loading && analysis && (
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
                     <div className="lg:col-span-1 space-y-6">
                         <div className="interactive-card">

@@ -7,6 +7,7 @@ import { MessageSquare, RefreshCw, Copy, Sparkles } from './Icons';
 import { useToast } from '../contexts/ToastContext';
 // FIX: Import the service function instead of using the Gemini SDK directly on the client.
 import { generateCommentResponse } from '../services/geminiService';
+import ErrorDisplay from './ErrorDisplay';
 
 const tones = ['Friendly', 'Professional', 'Witty', 'Grateful', 'Inquisitive'];
 
@@ -91,7 +92,7 @@ const CommentResponder: React.FC = () => {
                     >
                         {loading ? <Spinner /> : <><Sparkles className="w-5 h-5 mr-2" /> Generate Reply</>}
                     </button>
-                    {error && <p className="text-red-400 text-center">{error}</p>}
+                    <ErrorDisplay message={error} />
                 </div>
 
                 {response && (

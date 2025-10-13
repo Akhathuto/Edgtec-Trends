@@ -1,2 +1,3 @@
-// This file is for Vite projects. Since this project uses Next.js, this file is not needed.
-// It has been cleared to resolve type definition errors.
+// FIX: Replaced the vite/client reference which was causing a type resolution error.
+// The project only needs a type definition for CSS module imports.
+declare module '*.css';

@@ -40,7 +40,8 @@ import PromptGenerator from './PromptGenerator';
 import AnimationCreator from './AnimationCreator';
 import GifCreator from './GifCreator';
 import ImageEditor from './ImageEditor';
-import LogoCreator from './LogoCreator';
+// FIX: Change to a named import as LogoCreator does not have a default export.
+import { LogoCreator } from './LogoCreator';
 // FIX: Change to named import as ImageGenerator does not have a default export.
 import { ImageGenerator } from './ImageGenerator';
 // FIX: Changed to named import as AvatarCreator will be changed to a named export.
@@ -58,6 +59,7 @@ const AppLayout: React.FC = () => {
   const { user, upgradePlan } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Dashboard);
   const [activeAnalyticsChannelId, setActiveAnalyticsChannelId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // State for checkout modal
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -117,6 +119,13 @@ const AppLayout: React.FC = () => {
     { id: Tab.About, label: 'About', icon: <Info className="w-5 h-5 mr-3" />, title: 'About utrend' },
     ...(user?.role === 'admin' ? [{ id: Tab.Admin, label: 'Admin Dashboard', icon: <Shield className="w-5 h-5 mr-3" />, title: 'Admin Dashboard' }] : [])
   ];
+
+  const handleSetTab = (tab: Tab) => {
+    setActiveTab(tab);
+    if (window.innerWidth < 1024) { // lg breakpoint
+        setIsSidebarOpen(false);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -192,17 +201,23 @@ const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-900 text-slate-200 min-h-screen font-sans">
-      <Header setActiveTab={setActiveTab} userMenuTabs={userMenuTabs} />
+    <div className="text-slate-200 min-h-screen font-sans">
+      <Header 
+        setActiveTab={handleSetTab} 
+        userMenuTabs={userMenuTabs} 
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+      />
       <div className="flex">
         <Sidebar 
             mainTabs={mainTabs} 
             createTabs={createTabs}
             strategyTabs={strategyTabs}
             activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
+            setActiveTab={handleSetTab} 
+            isOpen={isSidebarOpen}
+            setIsOpen={setIsSidebarOpen}
         />
-        <main className="flex-1 p-6 sm:p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full min-w-0">
             <div className="container mx-auto">
                 {renderContent()}
             </div>
@@ -210,7 +225,7 @@ const AppLayout: React.FC = () => {
       </div>
       <TrendingTicker />
       <CheckoutModal isOpen={isCheckoutOpen} onClose={handleCheckoutClose} plan={planToUpgrade} />
-       <footer className="text-center py-4 px-6 text-xs text-slate-500 border-t border-slate-800/50 mt-auto">
+       <footer className="text-center py-4 px-6 text-xs text-slate-500 border-t border-slate-800/50 mt-auto pb-16 sm:pb-4">
           <button onClick={() => setActiveTab(Tab.Terms)} className="hover:text-slate-300 transition-colors">Terms of Use</button>
           <span className="mx-2">|</span>
           <button onClick={() => setActiveTab(Tab.License)} className="hover:text-slate-300 transition-colors">License</button>

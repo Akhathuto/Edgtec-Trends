@@ -6,6 +6,7 @@ import Spinner from './Spinner';
 import { Star, Clapperboard, RefreshCw, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
     "Warming up the animation studio...",
@@ -65,8 +66,8 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your animation...");
-                        // FIX: Use the /api/download proxy to avoid exposing API key
                         const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
+                        if (!response.ok) throw new Error('Failed to download animation from proxy.');
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setAnimationUrl(url);
@@ -126,22 +127,13 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         setAnimationStyle(animationStyles[0]);
     }
     
-    const handleDownload = async (url: string, filename: string) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            setError("Failed to download animation. Please try again.");
-            console.error(err);
-        }
+    const handleDownload = (url: string, filename: string) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
     
     const handleTemplateChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -223,7 +215,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     </div>
                 )}
                 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
             </div>
 
             {loading && (

@@ -8,10 +8,33 @@ import { Lightbulb, Youtube, TikTok, Star, FileText, Sparkles, Copy, Download } 
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import Modal from './Modal';
+import ErrorDisplay from './ErrorDisplay';
 
 interface ContentGeneratorProps {
   initialInput?: string | null;
 }
+
+const IdeaCardSkeleton = () => (
+    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-pulse">
+        <div className="flex justify-between items-start">
+            <div className="h-6 w-3/4 mb-3 bg-slate-700/50 rounded"></div>
+            <div className="h-8 w-12 bg-slate-700/50 rounded-full"></div>
+        </div>
+        <div className="h-3 w-full mb-4 bg-slate-700/50 rounded"></div>
+        <div className="h-4 w-1/3 mb-4 bg-slate-700/50 rounded"></div>
+        <div className="h-3 w-full mb-2 bg-slate-700/50 rounded"></div>
+        <div className="h-3 w-full mb-2 bg-slate-700/50 rounded"></div>
+        <div className="h-3 w-2/3 bg-slate-700/50 rounded"></div>
+        <div className="mt-auto pt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
+                <div className="h-6 w-16 bg-slate-700/50 rounded-full"></div>
+                <div className="h-6 w-20 bg-slate-700/50 rounded-full"></div>
+                <div className="h-6 w-24 bg-slate-700/50 rounded-full"></div>
+            </div>
+            <div className="h-10 w-full mt-4 bg-slate-700/50 rounded-lg"></div>
+        </div>
+    </div>
+);
 
 const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
@@ -112,7 +135,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
                         placeholder="Enter your topic or niche..."
-                        className="w-full bg-slate-800/80 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all shadow-inner md:col-span-2"
+                        className="form-input md:col-span-2"
                         title="Enter the topic or niche for your content ideas"
                     />
                     <div>
@@ -127,24 +150,24 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                         <button
                           onClick={() => handleGenerate()}
                           disabled={loading}
-                          className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                          className="button-primary w-full"
                           title="Generate viral content ideas based on your topic"
                         >
                           {loading ? <Spinner /> : <><Lightbulb className="w-5 h-5 mr-2" /> Generate Ideas</>}
                         </button>
                     </div>
                 </div>
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} />
             </div>
 
             {loading && (
-                <div className="text-center py-10">
-                  <Spinner size="lg" />
-                  <p className="mt-4 text-slate-300">Finding the next viral idea...</p>
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <IdeaCardSkeleton />
+                    <IdeaCardSkeleton />
                 </div>
             )}
 
-            {ideas.length > 0 && (
+            {!loading && ideas.length > 0 && (
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {ideas.map((idea, index) => (
                         <div key={index} className="interactive-card flex flex-col animate-fade-in-down opacity-0" style={{ animationDelay: `${index * 100}ms` }}>

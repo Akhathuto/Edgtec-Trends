@@ -177,8 +177,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     const downloadLink = updatedOp.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
                         setLoadingMessage("Fetching your video...");
-                        // FIX: Use a server-side proxy to fetch the video to avoid exposing the API key on the client.
                         const response = await fetch(`/api/download?url=${encodeURIComponent(downloadLink)}`);
+                        if (!response.ok) throw new Error('Failed to download video from proxy.');
                         const videoBlob = await response.blob();
                         const url = URL.createObjectURL(videoBlob);
                         setVideoUrl(url);
@@ -282,22 +282,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
         }
     };
 
-    const handleDownload = async (url: string, filename: string) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            setError("Failed to download video. Please try again.");
-            console.error(err);
-        }
+    const handleDownload = (url: string, filename: string) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     const handleDownloadTranscript = () => {
@@ -353,7 +344,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                 <p className="text-slate-400 mb-6 max-w-md">The AI Video Generator is a Pro feature. Upgrade your account to start creating.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    className="button-primary"
                 >
                     View Plans
                 </button>
@@ -392,7 +383,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                                 id="video-template"
                                 value={selectedTemplate}
                                 onChange={handleTemplateChange}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                className="form-select"
                                 title="Choose a template to get started with a pre-filled prompt."
                             >
                                 {videoTemplates.map((template, index) => (
@@ -410,7 +401,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             value={basePrompt}
                             onChange={(e) => setBasePrompt(e.target.value)}
                             placeholder="e.g., 'A neon hologram of a cat driving at top speed'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all h-32 resize-none shadow-inner"
+                            className="form-input h-32 resize-none"
                             title="Describe the video you want to create."
                         />
                         
@@ -420,21 +411,21 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1">Visual Style</label>
-                                    <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="style-select" value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="form-select">
                                         <option value="">Default</option>
                                         {videoStyles.map(style => <option key={style} value={style}>{style}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label htmlFor="effect-select" className="block text-sm font-medium text-slate-300 mb-1">Special Effect</label>
-                                    <select id="effect-select" value={selectedEffect} onChange={(e) => setSelectedEffect(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="effect-select" value={selectedEffect} onChange={(e) => setSelectedEffect(e.target.value)} className="form-select">
                                         <option value="">No Effect</option>
                                         {specialEffects.map(effect => <option key={effect} value={effect}>{effect}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label htmlFor="camera-select" className="block text-sm font-medium text-slate-300 mb-1">Camera Motion</label>
-                                    <select id="camera-select" value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all">
+                                    <select id="camera-select" value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="form-select">
                                         <option value="">Default</option>
                                         {cameraMotions.map(motion => <option key={motion} value={motion}>{motion}</option>)}
                                     </select>
@@ -489,7 +480,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                            className="button-primary w-full"
                             title="Start generating the video. This may take a few minutes."
                         >
                            <Video className="w-5 h-5 mr-2" /> Generate Video
@@ -519,13 +510,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                      <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={() => handleDownload(videoUrl, `utrend_video_${Date.now()}.mp4`)}
-                                className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                                className="button-primary w-full"
                             >
                                <Download className="w-5 h-5 mr-2" /> Download Video
                             </button>
                              <button
                                 onClick={handleStartOver}
-                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                                className="button-secondary w-full"
                                 title="Clear everything and start a new video project."
                             >
                                Start Over
@@ -533,7 +524,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             <button
                                 onClick={handleGenerate}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                                className="button-secondary w-full"
                                 title="Regenerate the video with the same prompt"
                             >
                                <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
@@ -547,7 +538,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         {!transcript && !transcriptLoading && (
                             <button
                                 onClick={handleGenerateTranscript}
-                                className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-slate-600 transition-colors"
+                                className="button-secondary w-full"
                                 title="Generate an AI-powered transcript for your video."
                             >
                                 <FileText className="w-5 h-5 mr-2" /> Generate Transcript

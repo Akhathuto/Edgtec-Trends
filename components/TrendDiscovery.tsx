@@ -207,7 +207,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                             {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
-                    <div className="flex justify-center flex-wrap gap-2 mt-4">
+                    <div className="segmented-control-wrapper mt-4">
                         <button onClick={() => setContentType('videos')} className={`tab-button ${contentType === 'videos' ? 'active' : ''}`} title="Show trending videos"><VideoIcon className="w-4 h-4 mr-2"/> Videos</button>
                         <button onClick={() => setContentType('music')} className={`tab-button ${contentType === 'music' ? 'active' : ''}`} title="Show trending music and sounds"><Music className="w-4 h-4 mr-2"/> Music</button>
                         <button onClick={() => setContentType('creators')} className={`tab-button ${contentType === 'creators' ? 'active' : ''}`} title="Show trending creators"><Users className="w-4 h-4 mr-2"/> Creators</button>
@@ -232,7 +232,7 @@ const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ initialInput }) => {
                             className="form-input flex-grow"
                             title="Analyze a specific trend, topic, or keyword (Starter/Pro Feature)"
                         />
-                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-5 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px" title="Start analysis (Starter/Pro Feature)">
+                        <button onClick={() => handleSearch()} disabled={loadingSearch} className="button-primary flex-shrink-0" title="Start analysis (Starter/Pro Feature)">
                             {loadingSearch ? <Spinner size="sm"/> : <Search className="w-5 h-5"/>}
                         </button>
                     </div>
