@@ -36,21 +36,31 @@ body::after {
 }
 
 .bg-brand-glass {
-  @apply bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 shadow-2xl;
+  @apply bg-slate-900 backdrop-blur-xl border border-slate-700 shadow-2xl;
+  --tw-bg-opacity: 0.7;
+  --tw-border-opacity: 0.5;
 }
 
 .interactive-card {
-  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-xl p-6 transition-all duration-300;
+  @apply bg-slate-900 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
+  --tw-bg-opacity: 0.6;
+  --tw-border-opacity: 0.8;
 }
 
 .interactive-card:hover {
-  @apply transform -translate-y-1 border-violet-500/60 shadow-glow-md;
+  @apply transform -translate-y-1 border-violet-500 shadow-glow-md;
+  --tw-border-opacity: 0.6;
 }
 
 /* Form elements */
 .form-input, .form-select {
-  @apply w-full bg-slate-900/50 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/70 focus:border-violet-500 transition-all shadow-inner;
+  @apply w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all shadow-inner;
+  --tw-bg-opacity: 0.5;
 }
+.form-input:focus, .form-select:focus {
+  --tw-ring-opacity: 0.7;
+}
+
 textarea.form-input {
   @apply py-2;
 }
