@@ -21,7 +21,7 @@ interface ChatMessage {
   toolResult?: any;
 }
 
-const TypingIndicator = () => (
+const TypingIndicator: React.FC = () => (
     <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse [animation-delay:-0.3s]"></span>
         <span className="w-2 h-2 bg-slate-500 rounded-full animate-pulse [animation-delay:-0.15s]"></span>

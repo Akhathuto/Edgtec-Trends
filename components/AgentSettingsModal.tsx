@@ -39,8 +39,8 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="AI Agent Settings" footer={
         <div className="flex justify-end gap-4">
-          <button onClick={onClose} title="Close settings without saving" className="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors">Cancel</button>
-          <button onClick={handleSave} title="Save the new agent settings" className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">Save Settings</button>
+          <button onClick={onClose} title="Close settings without saving" className="button-secondary">Cancel</button>
+          <button onClick={handleSave} title="Save the new agent settings" className="button-primary">Save Settings</button>
         </div>
     }>
       <div className="space-y-6 text-slate-300">
