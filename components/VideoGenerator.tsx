@@ -164,7 +164,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                 <p className="text-slate-400 mb-6 max-w-md">The Video Generator is a Pro feature. Upgrade your account to start creating videos from text or images.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    className="button-primary"
                     title="View subscription plans to upgrade"
                 >
                     View Plans
@@ -188,7 +188,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., 'A neon hologram of a cat driving at top speed'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all h-32 resize-none shadow-inner"
+                            className="form-input h-32"
                             title="Describe the video you want to create. (Pro Feature)"
                         />
                          <div className="flex items-center justify-center w-full">
@@ -213,7 +213,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                            className="button-primary w-full"
                             title="Start generating the video. This may take a few minutes. (Pro Feature)"
                         >
                            <Video className="w-5 h-5 mr-2" /> Generate Video
@@ -243,14 +243,14 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                     <div className="flex flex-col sm:flex-row gap-4">
                         <button
                             onClick={() => handleDownload(videoUrl, `utrend_video_${Date.now()}.mp4`)}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Download the generated video as an MP4 file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download
                         </button>
                         <button
                             onClick={handleStartOver}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Clear the prompt and start a new video"
                         >
                            Start Over
@@ -258,7 +258,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="button-primary w-full"
                             title="Generate a new video with the same prompt"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate

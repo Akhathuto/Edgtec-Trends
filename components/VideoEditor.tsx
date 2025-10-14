@@ -224,7 +224,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                 <p className="text-slate-400 mb-6 max-w-md">The Video Editor is a Pro feature. Upgrade to edit your videos with simple text prompts.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
+                    className="button-primary"
                     title="View subscription plans to upgrade"
                 >
                     View Plans

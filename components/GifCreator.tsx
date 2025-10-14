@@ -126,7 +126,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                 <p className="text-slate-400 mb-6 max-w-md">The GIF Creator is a Pro feature. Upgrade your account to create your own animated GIFs.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    className="button-primary"
                 >
                     View Plans
                 </button>
@@ -149,13 +149,13 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., 'A cat typing furiously on a laptop, funny, pixel art'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all h-32 resize-none shadow-inner"
+                            className="form-input h-32"
                             title="Describe the GIF you want to create."
                         />
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                            className="button-primary w-full"
                             title="Start generating the GIF. This may take a few minutes."
                         >
                            <Gif className="w-5 h-5 mr-2" /> Generate GIF
@@ -185,14 +185,14 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     <div className="flex flex-col sm:flex-row gap-4">
                         <button
                             onClick={() => handleDownload(gifUrl, `utrend_gif_${Date.now()}.mp4`)}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Download the generated GIF as an MP4 file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download GIF
                         </button>
                         <button
                             onClick={handleStartOver}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Clear the prompt and start a new GIF"
                         >
                            Start Over
@@ -200,7 +200,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="button-primary w-full"
                             title="Generate a new GIF with the same prompt"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate

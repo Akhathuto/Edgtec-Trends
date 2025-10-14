@@ -75,7 +75,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                 <p className="text-slate-400 mb-6 max-w-md">The Image Generator is a Pro feature. Upgrade your account to create unique images from text.</p>
                 <button
                     onClick={() => setActiveTab(Tab.Pricing)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                    className="button-primary"
                 >
                     View Plans
                 </button>
@@ -100,7 +100,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                                     id="image-style"
                                     value={imageStyle}
                                     onChange={(e) => setImageStyle(e.target.value)}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    className="form-select"
                                     title="Choose the visual style for your image"
                                  >
                                     {imageStyles.map(style => <option key={style} value={style}>{style}</option>)}
@@ -112,7 +112,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                                     id="aspect-ratio"
                                     value={aspectRatio}
                                     onChange={(e) => setAspectRatio(e.target.value)}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+                                    className="form-select"
                                     title="Choose the aspect ratio (width:height) for your image"
                                  >
                                     {aspectRatios.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}
@@ -124,13 +124,13 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., 'A synthwave sunset over a retro-futuristic city'"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all h-32 resize-none shadow-inner"
+                            className="form-input h-32"
                             title="Describe the image you want to create."
                         />
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:shadow-violet/30 transform hover:-translate-y-px"
+                            className="button-primary w-full"
                             title="Generate your image"
                         >
                            <ImageIcon className="w-5 h-5 mr-2" /> Generate Image
@@ -168,14 +168,14 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                      <div className="flex flex-col sm:flex-row gap-4">
                         <button
                             onClick={handleDownloadImage}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Download the generated image as a PNG file"
                         >
                            <Download className="w-5 h-5 mr-2" /> Download
                         </button>
                         <button
                             onClick={handleStartOver}
-                            className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                            className="button-secondary w-full"
                             title="Clear the prompt and settings to start over"
                         >
                            Start Over
@@ -183,7 +183,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                         <button
                             onClick={handleGenerate}
                             disabled={loading}
-                            className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="button-primary w-full"
                             title="Generate a new image with the same prompt and settings"
                         >
                            <RefreshCw className="w-5 h-5 mr-2" /> Regenerate

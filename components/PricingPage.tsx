@@ -59,10 +59,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ onUpgradeClick }) => {
                 <button
                   onClick={() => onUpgradeClick(plan.name.toLowerCase() as User['plan'])}
                   disabled={plan.name === 'Free'}
-                  className={`w-full font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 ${
+                  className={`w-full transform hover:scale-105 ${
                     plan.isFeatured
-                      ? 'bg-gradient-to-r from-violet-dark to-violet-light text-white hover:opacity-90 shadow-md hover:shadow-lg hover:shadow-violet/30'
-                      : 'bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50'
+                      ? 'button-primary'
+                      : 'button-secondary'
                   }`}
                 >
                   {user?.plan === 'free' && plan.name !== 'Free' ? 'Upgrade' : 'Choose Plan'}
