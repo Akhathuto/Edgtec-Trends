@@ -147,7 +147,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
         <p className="text-slate-400 mb-6 max-w-md">The AI Image Editor is a Pro feature. Upgrade your account to start creating.</p>
         <button
           onClick={() => setActiveTab(Tab.Pricing)}
-          className="flex items-center gap-2 bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+          className="button-primary"
         >
           View Plans
         </button>
@@ -230,14 +230,14 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                      <button
                         onClick={handleDownloadImage}
                         disabled={!editedImage || loading}
-                        className="w-full flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors disabled:opacity-50"
+                        className="button-secondary w-full"
                         title="Download the edited image"
                     >
                         <Download className="w-5 h-5 mr-2" /> Download
                     </button>
                     <button
                         onClick={handleStartOver}
-                        className="w-full sm:w-auto flex items-center justify-center bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+                        className="button-secondary w-full sm:w-auto"
                         title="Clear the current image and start a new edit"
                     >
                        Start Over
@@ -245,7 +245,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                     <button
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="w-full flex items-center justify-center bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="button-primary w-full"
                         title="Apply your edits and generate a new image"
                     >
                        {loading ? <Spinner /> : <><RefreshCw className="w-5 h-5 mr-2" /> Generate</>}

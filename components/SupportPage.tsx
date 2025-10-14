@@ -417,7 +417,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ setActiveTab }) => {
             <button
                 onClick={() => setActiveTab(Tab.Contact)}
                 title="Go to the contact page"
-                className="bg-gradient-to-r from-violet-dark to-violet-light text-white font-semibold py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-md hover:shadow-lg hover:shadow-violet/30"
+                className="button-primary"
             >
                 Contact Us
             </button>
