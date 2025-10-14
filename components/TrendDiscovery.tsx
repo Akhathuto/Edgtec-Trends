@@ -6,6 +6,8 @@ import { TrendingUp, Youtube, TikTok, Search, ExternalLink } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorDisplay from './ErrorDisplay';
 
+const categories = ['All', 'Gaming', 'Music', 'Comedy', 'Education', 'Beauty & Fashion', 'Tech', 'Food', 'Travel', 'Sports'];
+
 const TrendDiscovery: React.FC = () => {
     const { user } = useAuth();
     const [realtime, setRealtime] = useState<{ channels: TrendingChannel[], topics: TrendingTopic[] }>({ channels: [], topics: [] });
@@ -15,7 +17,8 @@ const TrendDiscovery: React.FC = () => {
 
     // Search state
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('YouTube');
+    const [searchCategory, setSearchCategory] = useState<string>('All');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<{ text: string, sources: GroundingSource[] } | null>(null);
 
@@ -42,7 +45,7 @@ const TrendDiscovery: React.FC = () => {
         setSearchResult(null);
         setError(null);
         try {
-            const result = await findTrends(searchTerm, searchPlatform, country, 'All');
+            const result = await findTrends(searchTerm, searchPlatform, country, searchCategory);
             const sources = result.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => c.web).filter((c:any) => c.uri && c.title) || [];
             setSearchResult({ text: result.text, sources });
         } catch (e: any) {
@@ -80,9 +83,39 @@ const TrendDiscovery: React.FC = () => {
 
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
                 <h3 className="text-xl font-bold text-violet-300 mb-4">Search Any Topic</h3>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g., 'AI in gaming'" className="form-input flex-grow"/>
-                    <button onClick={handleSearch} disabled={searchLoading} className="button-primary"><Search className="w-5 h-5 mr-2"/> {searchLoading ? <Spinner/> : 'Search'}</button>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <input 
+                        type="text" 
+                        value={searchTerm} 
+                        onChange={e => setSearchTerm(e.target.value)} 
+                        placeholder="e.g., 'AI in gaming'" 
+                        className="form-input md:col-span-5"
+                    />
+                    <select 
+                        value={searchPlatform} 
+                        onChange={e => setSearchPlatform(e.target.value as 'YouTube' | 'TikTok' | 'Both')}
+                        className="form-select md:col-span-2"
+                        title="Select a platform to search"
+                    >
+                        <option value="YouTube">YouTube</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Both">Both</option>
+                    </select>
+                    <select 
+                        value={searchCategory} 
+                        onChange={e => setSearchCategory(e.target.value)}
+                        className="form-select md:col-span-2"
+                        title="Select a category"
+                    >
+                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                    <button 
+                        onClick={handleSearch} 
+                        disabled={searchLoading} 
+                        className="button-primary md:col-span-3"
+                    >
+                        <Search className="w-5 h-5 mr-2"/> {searchLoading ? <Spinner/> : 'Search'}
+                    </button>
                 </div>
                 {searchResult && (
                     <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">

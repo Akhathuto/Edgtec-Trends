@@ -92,7 +92,7 @@ export async function getTrendingContent(contentType: string, plan: string, coun
     return parseJsonResponse(response.text, []);
 }
 
-export async function findTrends(term: string, platform: 'YouTube' | 'TikTok', country: string, category: string): Promise<any> {
+export async function findTrends(term: string, platform: 'YouTube' | 'TikTok' | 'Both', country: string, category: string): Promise<any> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Analyze and summarize the current trends for "${term}" on ${platform} in ${country} for the ${category} category. Provide content ideas and relevant insights.`,

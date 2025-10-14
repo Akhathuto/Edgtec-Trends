@@ -28,7 +28,7 @@ export function getTrendingContent(contentType: string, plan: string, country: s
     return callApi('getTrendingContent', [contentType, plan, country, category, platform]);
 }
 
-export function findTrends(term: string, platform: 'YouTube' | 'TikTok', country: string, category: string): Promise<any> {
+export function findTrends(term: string, platform: 'YouTube' | 'TikTok' | 'Both', country: string, category: string): Promise<any> {
     return callApi('findTrends', [term, platform, country, category]);
 }
 
