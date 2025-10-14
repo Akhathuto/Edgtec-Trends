@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
               <Menu className="w-6 h-6"/>
           </button>
           <div title="utrend: Your AI-powered content suite for creators">
-              <UtrendLogo className="h-8" />
+              <UtrendLogo className="h-7" />
           </div>
         </div>
 

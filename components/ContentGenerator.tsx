@@ -138,10 +138,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => 
                     />
                     <div>
                         <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-                        <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-                          <button onClick={() => setPlatform('YouTube')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for YouTube"><Youtube className="w-5 h-5"/> YouTube</button>
-                          <button onClick={() => setPlatform('TikTok')} className={`w-1/3 text-sm flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for TikTok"><TikTok className="w-5 h-5"/> TikTok</button>
-                          <button onClick={() => setPlatform('Both')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${platform === 'Both' ? 'bg-violet' : 'hover:bg-slate-700'}`} title="Generate ideas for both YouTube and TikTok">Both</button>
+                        <div className="segmented-control">
+                          <button onClick={() => setPlatform('YouTube')} className={platform === 'YouTube' ? 'active' : ''} title="Generate ideas for YouTube"><Youtube className="w-5 h-5"/> YouTube</button>
+                          <button onClick={() => setPlatform('TikTok')} className={platform === 'TikTok' ? 'active' : ''} title="Generate ideas for TikTok"><TikTok className="w-5 h-5"/> TikTok</button>
+                          <button onClick={() => setPlatform('Both')} className={platform === 'Both' ? 'active' : ''} title="Generate ideas for both YouTube and TikTok">Both</button>
                         </div>
                     </div>
                     <div className="flex items-end">

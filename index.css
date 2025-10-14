@@ -54,11 +54,7 @@ body::after {
 
 /* Form elements */
 .form-input, .form-select {
-  @apply w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all shadow-inner;
-  --tw-bg-opacity: 0.5;
-}
-.form-input:focus, .form-select:focus {
-  --tw-ring-opacity: 0.7;
+  @apply w-full bg-slate-950/50 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition-all shadow-inner shadow-black/20;
 }
 
 textarea.form-input {
@@ -74,7 +70,7 @@ textarea.form-input {
 
 /* Buttons */
 .button-primary {
-    @apply flex items-center justify-center bg-violet-600 text-white font-semibold py-2.5 px-5 rounded-lg hover:bg-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-violet-800 disabled:hover:bg-violet-800 shadow-lg shadow-violet-900/40 hover:shadow-xl hover:shadow-violet-700/40 transform hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-violet-400;
+    @apply flex items-center justify-center bg-gradient-to-r from-violet-600 to-violet-500 text-white font-semibold py-2.5 px-5 rounded-lg hover:from-violet-500 hover:to-violet-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-900/40 hover:shadow-xl hover:shadow-violet-700/40 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-violet-400;
 }
 .button-secondary {
     @apply flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-slate-500;
@@ -106,9 +102,9 @@ textarea.form-input {
 .custom-select-option { @apply text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-violet-500/30; }
 
 .segmented-control { @apply flex w-full p-1 bg-slate-900/50 rounded-lg border border-slate-700/50; }
-.segmented-control-button { @apply w-full text-sm font-semibold py-2 px-4 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400; }
-.segmented-control-button.active { @apply bg-violet text-white shadow-sm; }
-.segmented-control-button:not(.active) { @apply text-slate-300 hover:bg-slate-700/50; }
+.segmented-control button { @apply w-full text-sm font-semibold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400; }
+.segmented-control button.active { @apply bg-violet text-white shadow-sm; }
+.segmented-control button:not(.active) { @apply text-slate-300 hover:bg-slate-700/50; }
 
 
 /* Custom Prose styles for markdown content */

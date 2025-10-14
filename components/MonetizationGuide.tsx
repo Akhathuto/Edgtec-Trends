@@ -55,11 +55,11 @@ const MonetizationGuide: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
             <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-              <button onClick={() => setPlatform('YouTube')} title="Get monetization strategies for YouTube" className={`w-1/2 flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>
+            <div className="segmented-control">
+              <button onClick={() => setPlatform('YouTube')} title="Get monetization strategies for YouTube" className={platform === 'YouTube' ? 'active' : ''}>
                 <Youtube className="w-5 h-5"/> YouTube
               </button>
-              <button onClick={() => setPlatform('TikTok')} title="Get monetization strategies for TikTok" className={`w-1/2 flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${platform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700 text-slate-300 hover:text-white'}`}>
+              <button onClick={() => setPlatform('TikTok')} title="Get monetization strategies for TikTok" className={platform === 'TikTok' ? 'active' : ''}>
                 <TikTok className="w-5 h-5"/> TikTok
               </button>
             </div>

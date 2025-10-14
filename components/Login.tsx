@@ -88,10 +88,10 @@ const Login: React.FC = () => {
                         {!isLoginView && (
                              <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-2">Choose a plan</label>
-                                <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-                                    <button type="button" onClick={() => setPlan('free')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'free' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Free</button>
-                                    <button type="button" onClick={() => setPlan('starter')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'starter' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Starter</button>
-                                    <button type="button" onClick={() => setPlan('pro')} className={`w-1/3 text-sm py-2 rounded-md transition-colors ${plan === 'pro' ? 'bg-violet' : 'hover:bg-slate-700'}`}>Pro</button>
+                                <div className="segmented-control">
+                                    <button type="button" onClick={() => setPlan('free')} className={plan === 'free' ? 'active' : ''}>Free</button>
+                                    <button type="button" onClick={() => setPlan('starter')} className={plan === 'starter' ? 'active' : ''}>Starter</button>
+                                    <button type="button" onClick={() => setPlan('pro')} className={plan === 'pro' ? 'active' : ''}>Pro</button>
                                 </div>
                             </div>
                         )}

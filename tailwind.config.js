@@ -39,7 +39,7 @@ module.exports = {
         'scale-in': { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
         'slide-in-up': { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
-        'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 6px rgba(167, 139, 250, 0.4))' } },
+        'logo-pulse': { '50%': { filter: 'drop-shadow(0 0 4px rgba(167, 139, 250, 0.3))' } },
         'breathing': {
           '0%, 100%': { opacity: 0.2, transform: 'scale(0.98)' },
           '50%': { opacity: 0.4, transform: 'scale(1)' },

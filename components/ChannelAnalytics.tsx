@@ -164,9 +164,9 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
                              <input type="url" value={competitorUrl} onChange={e => setCompetitorUrl(e.target.value)} placeholder="Enter competitor channel URL..." title="Enter the URL of a competitor's channel to analyze (Pro feature)" className="form-input"/>
                         </div>
                         <div className="flex gap-2">
-                            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-                                <button onClick={() => setCompetitorPlatform('YouTube')} title="Set platform to YouTube" className={`w-1/2 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md transition-colors text-sm ${competitorPlatform === 'YouTube' ? 'bg-violet' : 'hover:bg-slate-700'}`}><Youtube className="w-5 h-5"/> </button>
-                                <button onClick={() => setCompetitorPlatform('TikTok')} title="Set platform to TikTok" className={`w-1/2 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md transition-colors text-sm ${competitorPlatform === 'TikTok' ? 'bg-violet' : 'hover:bg-slate-700'}`}><TikTok className="w-5 h-5"/> </button>
+                            <div className="segmented-control">
+                                <button onClick={() => setCompetitorPlatform('YouTube')} title="Set platform to YouTube" className={competitorPlatform === 'YouTube' ? 'active' : ''}><Youtube className="w-5 h-5"/> </button>
+                                <button onClick={() => setCompetitorPlatform('TikTok')} title="Set platform to TikTok" className={competitorPlatform === 'TikTok' ? 'active' : ''}><TikTok className="w-5 h-5"/> </button>
                             </div>
                             <button onClick={() => handleCompetitorAnalyze()} disabled={loading} title="Analyze the entered competitor channel (Pro feature)" className="button-primary">Analyze</button>
                         </div>
