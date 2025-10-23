@@ -29,6 +29,36 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    
+    const [isKeySelected, setIsKeySelected] = useState(true);
+    const [keyCheckLoading, setKeyCheckLoading] = useState(true);
+
+    useEffect(() => {
+        const checkApiKey = async () => {
+            if (user?.plan !== 'pro') return;
+            try {
+                const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+                setIsKeySelected(hasKey);
+            } catch (e) {
+                console.warn("aistudio.hasSelectedApiKey not available, assuming key is present.", e);
+                setIsKeySelected(true);
+            } finally {
+                setKeyCheckLoading(false);
+            }
+        };
+        checkApiKey();
+    }, [user?.plan]);
+
+    const handleSelectKey = async () => {
+        try {
+            await (window as any).aistudio.openSelectKey();
+            setIsKeySelected(true);
+        } catch(e) {
+            console.error("aistudio.openSelectKey not available", e);
+            setError("Could not open the API key selection dialog.");
+        }
+    };
+
 
     const cleanupIntervals = () => {
         if (pollingInterval.current) clearInterval(pollingInterval.current);
@@ -66,7 +96,12 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                     setLoading(false);
                 }
             } catch (e: any) {
-                setError(e.message || "Failed to check GIF status. Please try again.");
+                if (e.message?.includes("Requested entity was not found.")) {
+                    setError("Your API key may be invalid. Please select a valid key.");
+                    setIsKeySelected(false);
+                } else {
+                    setError(e.message || "Failed to check GIF status. Please try again.");
+                }
                 setLoading(false);
                 cleanupIntervals();
             }
@@ -96,7 +131,12 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
             pollOperationStatus(initialOp);
             logActivity(`started generating a GIF for prompt: "${prompt.substring(0, 30)}..."`, 'Gif');
         } catch (e: any) {
-            setError(e.message || 'An error occurred while starting the GIF generation.');
+             if (e.message?.includes("Requested entity was not found.")) {
+                setError("Your API key is invalid. Please select a valid key.");
+                setIsKeySelected(false);
+            } else {
+                setError(e.message || 'An error occurred while starting the GIF generation.');
+            }
             setLoading(false);
             cleanupIntervals();
         }
@@ -132,6 +172,24 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                 </button>
             </div>
         )
+    }
+
+    if (keyCheckLoading) {
+        return <div className="flex justify-center p-8"><Spinner size="lg" /></div>;
+    }
+
+    if (!isKeySelected) {
+        return (
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+                <h2 className="text-2xl font-bold mb-2">API Key Required for GIF Creation</h2>
+                <p className="text-slate-400 mb-6 max-w-md">
+                    To use the AI GIF Creator, you need to select a Google AI API key.
+                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline ml-1">Learn about billing.</a>
+                </p>
+                <button onClick={handleSelectKey} className="button-primary">Select API Key</button>
+                <ErrorDisplay message={error} className="mt-4" />
+            </div>
+        );
     }
 
     return (

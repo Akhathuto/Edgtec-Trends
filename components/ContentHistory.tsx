@@ -96,6 +96,8 @@ const HistoryModalContent: React.FC<{ item: HistoryItem | null }> = ({ item }) =
                     <h4 className="font-semibold text-slate-200">Animation Details</h4>
                     <p className="text-sm text-slate-300"><strong>Prompt:</strong> {item.content.prompt}</p>
                     <p className="text-sm text-slate-300"><strong>Style:</strong> {item.content.style}</p>
+                    <p className="text-sm text-slate-300"><strong>Aspect Ratio:</strong> {item.content.aspectRatio || 'N/A'}</p>
+                    <p className="text-sm text-slate-300"><strong>Resolution:</strong> {item.content.resolution || 'N/A'}</p>
                  </div>
             );
         case 'GIF':

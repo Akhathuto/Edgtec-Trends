@@ -92,10 +92,11 @@ const Sidebar: React.FC<SidebarProps> = ({ mainTabs, createTabs, strategyTabs, a
   };
 
   const sidebarClasses = `
-    w-80 flex-shrink-0 bg-brand-glass p-3 h-[calc(100vh-65px)] sticky top-[65px] overflow-y-auto z-40
-    lg:translate-x-0 lg:sticky lg:!animation-none
+    w-80 flex-shrink-0 bg-brand-glass p-3 h-[calc(100vh-65px)] overflow-y-auto
     transition-transform duration-300 ease-in-out
-    ${isOpen ? 'translate-x-0' : '-translate-x-full absolute'}
+    fixed lg:sticky top-[65px] z-40
+    ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    lg:translate-x-0
   `;
 
   return (

@@ -253,7 +253,7 @@ export interface ThumbnailIdea {
 }
 
 export interface AgentSettings {
-  model: 'gemini-2.5-flash' | 'gemini-2.5-pro-latest';
+  model: 'gemini-2.5-flash' | 'gemini-2.5-pro';
   temperature: number;
 }
 

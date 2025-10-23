@@ -27,7 +27,7 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
   }, [currentSettings, isOpen]);
 
   const handleSave = () => {
-    if (model === 'gemini-2.5-pro-latest' && user?.plan !== 'pro') {
+    if (model === 'gemini-2.5-pro' && user?.plan !== 'pro') {
       showToast('The Pro model is only available on the Pro plan.');
       // Revert the selection in the UI if user tries to save an invalid option
       setModel('gemini-2.5-flash'); 
@@ -56,7 +56,7 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
             className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
           >
             <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Balanced)</option>
-            <option value="gemini-2.5-pro-latest" disabled={user?.plan !== 'pro'}>
+            <option value="gemini-2.5-pro" disabled={user?.plan !== 'pro'}>
               Gemini 2.5 Pro (Highest Quality) {user?.plan !== 'pro' && '(Pro Plan only)'}
             </option>
           </select>

@@ -187,7 +187,8 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   
   const handleSaveSettings = (newSettings: AgentSettings) => {
     if (user) {
-        if (newSettings.model === 'gemini-2.5-pro-latest' && user.plan !== 'pro') {
+        // FIX: Corrected model name from 'gemini-2.5-pro-latest' to 'gemini-2.5-pro' to match AgentSettings type.
+        if (newSettings.model === 'gemini-2.5-pro' && user.plan !== 'pro') {
             showToast('The Pro model is only available on the Pro plan.');
             return;
         }

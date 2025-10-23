@@ -4,6 +4,7 @@ import Spinner from './Spinner';
 import { Star, UploadCloud, RefreshCw, Download, Scissors, Sliders, Film } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
+import ErrorDisplay from './ErrorDisplay';
 
 interface VideoEditorProps {
   setActiveTab: (tab: Tab) => void;
@@ -39,6 +40,36 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
 
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const [isKeySelected, setIsKeySelected] = useState(true);
+    const [keyCheckLoading, setKeyCheckLoading] = useState(true);
+
+     useEffect(() => {
+        const checkApiKey = async () => {
+            if (user?.plan !== 'pro') return;
+            try {
+                const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+                setIsKeySelected(hasKey);
+            } catch (e) {
+                console.warn("aistudio.hasSelectedApiKey not available, assuming key is present.", e);
+                setIsKeySelected(true);
+            } finally {
+                setKeyCheckLoading(false);
+            }
+        };
+        checkApiKey();
+    }, [user?.plan]);
+
+    const handleSelectKey = async () => {
+        try {
+            await (window as any).aistudio.openSelectKey();
+            setIsKeySelected(true);
+        } catch(e) {
+            console.error("aistudio.openSelectKey not available", e);
+            setError("Could not open the API key selection dialog.");
+        }
+    };
+
 
     const cleanupIntervals = useCallback(() => {
         if (pollingInterval.current) clearInterval(pollingInterval.current);
@@ -150,7 +181,12 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     setLoading(false);
                 }
             } catch (e: any) {
-                setError(e.message || "Failed to check video status.");
+                 if (e.message?.includes("Requested entity was not found.")) {
+                    setError("Your API key may be invalid. Please select a valid key.");
+                    setIsKeySelected(false);
+                } else {
+                    setError(e.message || "Failed to check video status.");
+                }
                 setLoading(false);
                 cleanupIntervals();
             }
@@ -193,7 +229,12 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
             pollOperationStatus(initialOp);
             logActivity(`started editing a video: "${finalPrompt.substring(0, 30)}..."`, 'Scissors');
         } catch (e: any) {
-            setError(e.message || 'An error occurred while starting video editing.');
+             if (e.message?.includes("Requested entity was not found.")) {
+                setError("Your API key is invalid. Please select a valid key.");
+                setIsKeySelected(false);
+            } else {
+                setError(e.message || 'An error occurred while starting video editing.');
+            }
             setLoading(false);
             cleanupIntervals();
         }
@@ -231,6 +272,24 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                 </button>
             </div>
         )
+    }
+
+    if (keyCheckLoading) {
+        return <div className="flex justify-center p-8"><Spinner size="lg" /></div>;
+    }
+    
+    if (!isKeySelected) {
+        return (
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+                <h2 className="text-2xl font-bold mb-2">API Key Required for Video Editing</h2>
+                <p className="text-slate-400 mb-6 max-w-md">
+                    To use the AI Video Editor, you need to select a Google AI API key.
+                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline ml-1">Learn about billing.</a>
+                </p>
+                <button onClick={handleSelectKey} className="button-primary">Select API Key</button>
+                <ErrorDisplay message={error} className="mt-4" />
+            </div>
+        );
     }
 
     return (
@@ -308,7 +367,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                     </div>
                 )}
                 
-                {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+                <ErrorDisplay message={error} className="mt-4" />
                  {loading && <p className="text-center text-slate-300 font-semibold mt-4 animate-text-fade-cycle">{loadingMessage}</p>}
             </div>
         </div>

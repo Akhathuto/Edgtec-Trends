@@ -34,6 +34,8 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [animationStyle, setAnimationStyle] = useState(animationStyles[0]);
+    const [aspectRatio, setAspectRatio] = useState('16:9');
+    const [resolution, setResolution] = useState('1080p');
     const [loading, setLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
     const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,36 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
     
     const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadingMessageInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const [isKeySelected, setIsKeySelected] = useState(true);
+    const [keyCheckLoading, setKeyCheckLoading] = useState(true);
+
+    useEffect(() => {
+        const checkApiKey = async () => {
+            if (user?.plan !== 'pro') return;
+            try {
+                const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+                setIsKeySelected(hasKey);
+            } catch (e) {
+                console.warn("aistudio.hasSelectedApiKey not available, assuming key is present.", e);
+                setIsKeySelected(true);
+            } finally {
+                setKeyCheckLoading(false);
+            }
+        };
+        checkApiKey();
+    }, [user?.plan]);
+
+    const handleSelectKey = async () => {
+        try {
+            await (window as any).aistudio.openSelectKey();
+            setIsKeySelected(true);
+        } catch(e) {
+            console.error("aistudio.openSelectKey not available", e);
+            setError("Could not open the API key selection dialog.");
+        }
+    };
+
 
     const cleanupIntervals = () => {
         if (pollingInterval.current) clearInterval(pollingInterval.current);
@@ -72,7 +104,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                         addContentToHistory({
                             type: 'Animation',
                             summary: `Animation: "${prompt}" in ${animationStyle} style`,
-                            content: { prompt, style: animationStyle }
+                            content: { prompt, style: animationStyle, aspectRatio, resolution }
                         });
                     } else {
                         setError("Animation generation finished, but no media was returned.");
@@ -80,7 +112,12 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                     setLoading(false);
                 }
             } catch (e: any) {
-                setError(e.message || "Failed to check animation status. Please try again.");
+                if (e.message?.includes("Requested entity was not found.")) {
+                    setError("Your API key may be invalid. Please select a valid key.");
+                    setIsKeySelected(false);
+                } else {
+                    setError(e.message || "Failed to check animation status. Please try again.");
+                }
                 setLoading(false);
                 cleanupIntervals();
             }
@@ -105,12 +142,17 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         }, 15000);
 
         try {
-            const initialOp = await generateAnimation(prompt, animationStyle);
+            const initialOp = await generateAnimation(prompt, animationStyle, aspectRatio, resolution);
             setOperation(initialOp);
             pollOperationStatus(initialOp);
             logActivity(`started generating an animation: "${prompt.substring(0, 30)}..."`, 'Clapperboard');
         } catch (e: any) {
-            setError(e.message || 'An error occurred while starting the animation.');
+             if (e.message?.includes("Requested entity was not found.")) {
+                setError("Your API key is invalid. Please select a valid key.");
+                setIsKeySelected(false);
+            } else {
+                setError(e.message || 'An error occurred while starting the animation.');
+            }
             setLoading(false);
             cleanupIntervals();
         }
@@ -123,6 +165,8 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         setPrompt('');
         setSelectedTemplate(animationTemplates[0].name);
         setAnimationStyle(animationStyles[0]);
+        setAspectRatio('16:9');
+        setResolution('1080p');
     }
     
     const handleDownload = (url: string, filename: string) => {
@@ -160,6 +204,24 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
         )
     }
 
+    if (keyCheckLoading) {
+        return <div className="flex justify-center p-8"><Spinner size="lg" /></div>;
+    }
+    
+    if (!isKeySelected) {
+        return (
+            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
+                <h2 className="text-2xl font-bold mb-2">API Key Required for Animation</h2>
+                <p className="text-slate-400 mb-6 max-w-md">
+                    To use the AI Animation Creator, you need to select a Google AI API key.
+                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline ml-1">Learn about billing.</a>
+                </p>
+                <button onClick={handleSelectKey} className="button-primary">Select API Key</button>
+                <ErrorDisplay message={error} className="mt-4" />
+            </div>
+        );
+    }
+
     return (
         <div className="animate-slide-in-up">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
@@ -190,17 +252,45 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                             className="form-input h-32"
                             title="Describe the animation you want to create. (Pro Feature)"
                         />
-                         <div>
-                            <label htmlFor="animation-style" className="block text-sm font-medium text-slate-300 mb-1">Animation Style</label>
-                            <select
-                                id="animation-style"
-                                value={animationStyle}
-                                onChange={(e) => setAnimationStyle(e.target.value)}
-                                className="form-select"
-                                title="Select the animation style. (Pro Feature)"
-                            >
-                                {animationStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                            </select>
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <div>
+                                <label htmlFor="animation-style" className="block text-sm font-medium text-slate-300 mb-1">Animation Style</label>
+                                <select
+                                    id="animation-style"
+                                    value={animationStyle}
+                                    onChange={(e) => setAnimationStyle(e.target.value)}
+                                    className="form-select"
+                                    title="Select the animation style. (Pro Feature)"
+                                >
+                                    {animationStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="aspect-ratio" className="block text-sm font-medium text-slate-300 mb-1">Aspect Ratio</label>
+                                <select
+                                    id="aspect-ratio"
+                                    value={aspectRatio}
+                                    onChange={(e) => setAspectRatio(e.target.value)}
+                                    className="form-select"
+                                    title="Select the aspect ratio. (Pro Feature)"
+                                >
+                                    <option value="16:9">16:9 (Landscape)</option>
+                                    <option value="9:16">9:16 (Portrait)</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label htmlFor="resolution" className="block text-sm font-medium text-slate-300 mb-1">Resolution</label>
+                                <select
+                                    id="resolution"
+                                    value={resolution}
+                                    onChange={(e) => setResolution(e.target.value)}
+                                    className="form-select"
+                                    title="Select the video resolution. (Pro Feature)"
+                                >
+                                    <option value="1080p">1080p (High)</option>
+                                    <option value="720p">720p (Standard)</option>
+                                </select>
+                            </div>
                         </div>
                         <button
                             onClick={handleGenerate}

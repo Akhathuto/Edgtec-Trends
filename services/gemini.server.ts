@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type, Modality, Part } from "@google/genai";
 import { 
     TrendingChannel, TrendingTopic, ContentIdea, MonetizationStrategy, FullReport, KeywordAnalysis, 
@@ -200,35 +201,43 @@ export async function generateFullReport(topic: string, followers: number): Prom
 }
 
 export async function generateVideo(prompt: string, image?: { imageBytes: string, mimeType: string }): Promise<any> {
-    return await ai.models.generateVideos({
-        model: 'veo-2.0-generate-001',
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return await localAi.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
         prompt,
         image,
         config: { numberOfVideos: 1 }
     });
 }
 
-export async function generateAnimation(prompt: string, style: string): Promise<any> {
+export async function generateAnimation(prompt: string, style: string, aspectRatio: string, resolution: string): Promise<any> {
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const fullPrompt = `An animated video in a ${style} style showing: ${prompt}`;
-    return await ai.models.generateVideos({
-        model: 'veo-2.0-generate-001',
+    return await localAi.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
         prompt: fullPrompt,
-        config: { numberOfVideos: 1 }
+        config: { 
+            numberOfVideos: 1,
+            aspectRatio: aspectRatio as "16:9" | "9:16",
+            resolution: resolution as "1080p" | "720p",
+        }
     });
 }
 
 export async function generateGif(prompt: string): Promise<any> {
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const fullPrompt = `A short, seamlessly looping GIF of: ${prompt}`;
-     return await ai.models.generateVideos({
-        model: 'veo-2.0-generate-001',
+     return await localAi.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
         prompt: fullPrompt,
         config: { numberOfVideos: 1 }
     });
 }
 
 export async function editVideo(prompt: string, image: { imageBytes: string, mimeType: string }): Promise<any> {
-    return await ai.models.generateVideos({
-        model: 'veo-2.0-generate-001',
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return await localAi.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
         prompt,
         image,
         config: { numberOfVideos: 1 }
@@ -236,7 +245,8 @@ export async function editVideo(prompt: string, image: { imageBytes: string, mim
 }
 
 export async function checkVideoStatus(operation: any): Promise<any> {
-    return await ai.operations.getVideosOperation({ operation });
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return await localAi.operations.getVideosOperation({ operation });
 }
 
 export async function generateTranscriptFromPrompt(prompt: string): Promise<string> {
@@ -277,16 +287,15 @@ export async function generateContentPrompt(topic: string, audience: string, sty
     return response.text;
 }
 
-export async function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null, text: string | null }> {
+export async function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null }> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [ { inlineData: { data: base64ImageData, mimeType: mimeType } }, { text: prompt } ] },
-        config: { responseModalities: [Modality.IMAGE, Modality.TEXT] },
+        config: { responseModalities: [Modality.IMAGE] },
     });
     const parts = response.candidates?.[0]?.content?.parts;
     const image = parts?.find(p => p.inlineData)?.inlineData?.data || null;
-    const text = parts?.find(p => p.text)?.text || null;
-    return { image, text };
+    return { image };
 }
 
 export async function getKeywordAnalysis(keyword: string): Promise<KeywordAnalysis> {
@@ -435,7 +444,7 @@ export async function generateAvatarFromPhoto(base64ImageData: string, mimeType:
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [ { inlineData: { data: base64ImageData, mimeType: mimeType } }, { text: prompt } ] },
-        config: { responseModalities: [Modality.IMAGE, Modality.TEXT] },
+        config: { responseModalities: [Modality.IMAGE] },
     });
     return response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data || null;
 }
@@ -584,7 +593,8 @@ export async function sendMessageToAgent(agent: AgentType, history: AppChatMessa
             toolMessage.toolResult = { result: toolOutputResult };
         }
 
-        result = await chat.sendMessage(functionResponses);
+        // FIX: The argument to sendMessage must be an object with a 'message' property.
+        result = await chat.sendMessage({ message: functionResponses });
         functionCalls = result.functionCalls;
     }
 

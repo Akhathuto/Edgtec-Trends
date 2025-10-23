@@ -52,8 +52,8 @@ export function generateVideo(prompt: string, image?: { imageBytes: string, mime
     return callApi('generateVideo', [prompt, image]);
 }
 
-export function generateAnimation(prompt: string, style: string): Promise<any> {
-    return callApi('generateAnimation', [prompt, style]);
+export function generateAnimation(prompt: string, style: string, aspectRatio: string, resolution: string): Promise<any> {
+    return callApi('generateAnimation', [prompt, style, aspectRatio, resolution]);
 }
 
 export function generateGif(prompt: string): Promise<any> {
@@ -84,7 +84,7 @@ export function generateContentPrompt(topic: string, audience: string, style: st
     return callApi('generateContentPrompt', [topic, audience, style, elements]);
 }
 
-export function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null, text: string | null }> {
+export function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<{ image: string | null }> {
     return callApi('editImage', [base64ImageData, mimeType, prompt]);
 }
 

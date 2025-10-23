@@ -102,7 +102,7 @@ The `utrend` platform is organized into three powerful suites to cover every asp
     <li><strong>AI Video Generation (Pro):</strong> Create stunning videos and animations from text prompts or by animating an image. Includes:
         <ul>
             <li><strong>Video Generator:</strong> For standard video creation.</li>
-            <li><strong>Animation Creator:</strong> Generate animated clips in various styles.</li>
+            <li><strong>Animation Creator:</strong> Generate animated clips in various styles, aspect ratios, and resolutions.</li>
             <li><strong>GIF Creator:</strong> Create short, looping GIFs for social media.</li>
         </ul>
     </li>
@@ -119,7 +119,7 @@ The `utrend` platform is organized into three powerful suites to cover every asp
             <li><strong>Video Editor:</strong> Upload a video clip and tell the AI how to alter it.</li>
         </ul>
     </li>
-    <li><strong>AI Avatar Creator (Pro):</strong> Design a unique AI persona from scratch or a photo. Customize its appearance and personality, then interact with it via a live voice conversation or text chat.</li>
+    <li><strong>AI Avatar Creator (Pro):</strong> Design a unique AI persona from scratch or a photo. Customize its appearance and personality, then interact with it via a text-based chat.</li>
     <li><strong>Audience Engagement Tools:</strong>
         <ul>
             <li><strong>Comment Responder:</strong> Generate the perfect, on-brand replies to your audience's comments in seconds, with customizable tones.</li>

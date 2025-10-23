@@ -20,7 +20,6 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editedImage, setEditedImage] = useState<{ data: string, url: string } | null>(null);
-  const [editedText, setEditedText] = useState<string | null>(null);
   
   // AI Toolkit State
   const [objectToRemove, setObjectToRemove] = useState('');
@@ -80,7 +79,6 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     setLoading(true);
     setError(null);
     setEditedImage(null);
-    setEditedText(null);
 
     try {
       const result = await editImage(imageBase64.data, imageBase64.mimeType, finalPrompt);
@@ -99,13 +97,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                     general: prompt,
                     remove: objectToRemove,
                     style: selectedStyle,
-                },
-                aiNote: result.text
+                }
             }
         });
-      }
-      if (result.text) {
-        setEditedText(result.text);
       }
     } catch (e: any) {
       setError(e.message || 'An error occurred while editing the image.');
@@ -125,7 +119,6 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
     setImageFile(null);
     setImageBase64(null);
     setEditedImage(null);
-    setEditedText(null);
     handleClearToolkit();
   };
   
@@ -192,11 +185,6 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
                         </div>
                     </div>
                 </div>
-                 {editedText && (
-                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                        <p className="text-sm text-slate-300 italic"><strong className="text-violet-300 not-italic">AI Note:</strong> {editedText}</p>
-                    </div>
-                )}
                  {/* AI Toolkit */}
                 <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
                     <div className="flex justify-between items-center mb-3">
