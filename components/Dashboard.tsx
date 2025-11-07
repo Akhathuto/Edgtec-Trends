@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { Tab, Channel } from '../types';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
 import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown } from './Icons';
-import Spinner from './Spinner';
 
 interface DashboardProps {
   setActiveTab: (tab: Tab) => void;
@@ -68,7 +67,7 @@ const ChannelSnapshotCard: React.FC<{ channel: Channel; onAnalyze: () => void; }
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500" /> : <TikTok className="w-6 h-6 text-white" />}
-                    <h3 className="font-bold text-lg truncate">{channel.url.split('/').pop()}</h3>
+                    <h3 className="font-bold text-lg truncate">{snapshot?.channelName || channel.url.split('/').pop()}</h3>
                 </div>
                 <button onClick={onAnalyze} className="text-xs font-semibold text-violet-400 hover:underline">Full Analytics</button>
             </div>
@@ -121,41 +120,45 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
     return (
         <div className="animate-slide-in-up space-y-8">
             <div>
-                <h1 className="text-3xl font-bold">Welcome back, {user?.name.split(' ')[0]}!</h1>
+                <h1 className="text-3xl font-bold text-white text-glow">Welcome back, {user?.name.split(' ')[0]}!</h1>
                 <p className="text-slate-400">Here's your command center for content creation.</p>
             </div>
 
-            {/* AI Tip of the Day */}
-            <div className="bg-gradient-to-r from-violet-900/50 to-slate-900/50 border border-violet-700/50 rounded-xl p-6 shadow-glow-violet flex items-start gap-4">
-                <Sparkles className="w-8 h-8 text-violet-300 flex-shrink-0 mt-1" />
-                <div>
-                    <h2 className="text-xl font-bold text-violet-300">AI Tip of the Day</h2>
-                    {tipLoading ? <div className="h-5 w-3/4 bg-slate-700/50 rounded mt-2 animate-pulse"></div> : <p className="text-slate-300 mt-1">{tip}</p>}
-                </div>
-            </div>
-
-            {/* Your Channels */}
-            {user?.channels && user.channels.length > 0 && (
-                <div>
-                    <h2 className="text-2xl font-bold mb-4">Your Channels</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {user.channels.map(channel => (
-                           <ChannelSnapshotCard key={channel.id} channel={channel} onAnalyze={() => handleChannelAnalyze(channel.id)} />
-                        ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    {/* AI Tip of the Day */}
+                    <div className="bg-gradient-to-r from-violet-900/50 to-slate-900/50 border border-violet-700/50 rounded-xl p-6 shadow-glow-violet flex items-start gap-4">
+                        <Sparkles className="w-8 h-8 text-violet-300 flex-shrink-0 mt-1" />
+                        <div>
+                            <h2 className="text-xl font-bold text-violet-300">AI Tip of the Day</h2>
+                            {tipLoading ? <div className="h-5 w-3/4 bg-slate-700/50 rounded mt-2 animate-pulse"></div> : <p className="text-slate-300 mt-1">{tip}</p>}
+                        </div>
                     </div>
+                     {/* Your Channels */}
+                    {user?.channels && user.channels.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold mb-4">Your Channels</h2>
+                            <div className="space-y-4">
+                                {user.channels.map(channel => (
+                                <ChannelSnapshotCard key={channel.id} channel={channel} onAnalyze={() => handleChannelAnalyze(channel.id)} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
-
-            {/* Quick Create */}
-            <div>
-                <h2 className="text-2xl font-bold mb-4">Quick Create</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <QuickCreateButton icon={<Lightbulb className="w-8 h-8 text-yellow-300" />} label="Content Idea" tab={Tab.Ideas} onClick={setActiveTab} />
-                    <QuickCreateButton icon={<Video className="w-8 h-8 text-red-300" />} label="Video" tab={Tab.Video} onClick={setActiveTab} />
-                    <QuickCreateButton icon={<DollarSign className="w-8 h-8 text-green-300" />} label="Monetization" tab={Tab.Monetization} onClick={setActiveTab} />
-                    <QuickCreateButton icon={<FileText className="w-8 h-8 text-blue-300" />} label="Full Report" tab={Tab.Report} onClick={setActiveTab} />
-                    <QuickCreateButton icon={<Rocket className="w-8 h-8 text-rose-400" />} label="Growth Plan" tab={Tab.ChannelGrowth} onClick={setActiveTab} />
-                    <QuickCreateButton icon={<Briefcase className="w-8 h-8 text-cyan-300" />} label="Brand Connect" tab={Tab.BrandConnect} onClick={setActiveTab} />
+                <div className="lg:col-span-1 space-y-8">
+                    {/* Quick Create */}
+                    <div>
+                        <h2 className="text-2xl font-bold mb-4">Quick Create</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <QuickCreateButton icon={<Lightbulb className="w-8 h-8 text-yellow-300" />} label="Content Idea" tab={Tab.Ideas} onClick={setActiveTab} />
+                            <QuickCreateButton icon={<Video className="w-8 h-8 text-red-300" />} label="Video" tab={Tab.Video} onClick={setActiveTab} />
+                            <QuickCreateButton icon={<DollarSign className="w-8 h-8 text-green-300" />} label="Monetization" tab={Tab.Monetization} onClick={setActiveTab} />
+                            <QuickCreateButton icon={<FileText className="w-8 h-8 text-blue-300" />} label="Full Report" tab={Tab.Report} onClick={setActiveTab} />
+                            <QuickCreateButton icon={<Rocket className="w-8 h-8 text-rose-400" />} label="Growth Plan" tab={Tab.ChannelGrowth} onClick={setActiveTab} />
+                            <QuickCreateButton icon={<Briefcase className="w-8 h-8 text-cyan-300" />} label="Brand Connect" tab={Tab.BrandConnect} onClick={setActiveTab} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -165,27 +168,27 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                      <button onClick={() => setActiveTab(Tab.Trends)} className="interactive-card text-left">
                         <TrendingUp className="w-6 h-6 text-violet-400 mb-2"/>
-                        <h3 className="font-bold text-lg">Trend Discovery</h3>
+                        <h3 className="font-bold text-lg text-white">Trend Discovery</h3>
                         <p className="text-sm text-slate-400">Find what's hot right now on YouTube and TikTok.</p>
                      </button>
                       <button onClick={() => setActiveTab(Tab.Keywords)} className="interactive-card text-left">
                         <Search className="w-6 h-6 text-violet-400 mb-2"/>
-                        <h3 className="font-bold text-lg">Keyword Research</h3>
+                        <h3 className="font-bold text-lg text-white">Keyword Research</h3>
                         <p className="text-sm text-slate-400">Uncover high-potential keywords and SEO opportunities.</p>
                      </button>
                       <button onClick={() => setActiveTab(Tab.Analytics)} className="interactive-card text-left">
                         <BarChart2 className="w-6 h-6 text-violet-400 mb-2"/>
-                        <h3 className="font-bold text-lg">Channel Analytics</h3>
+                        <h3 className="font-bold text-lg text-white">Channel Analytics</h3>
                         <p className="text-sm text-slate-400">Analyze your channels and your competitors.</p>
                      </button>
                       <button onClick={() => setActiveTab(Tab.Chat)} className="interactive-card text-left">
                         <MessageSquare className="w-6 h-6 text-violet-400 mb-2"/>
-                        <h3 className="font-bold text-lg">AI Chat (Nolo)</h3>
+                        <h3 className="font-bold text-lg text-white">AI Chat (Nolo)</h3>
                         <p className="text-sm text-slate-400">Your AI co-pilot for brainstorming and strategy.</p>
                      </button>
                       <button onClick={() => setActiveTab(Tab.Agents)} className="interactive-card text-left">
                         <Bot className="w-6 h-6 text-violet-400 mb-2"/>
-                        <h3 className="font-bold text-lg">AI Agents</h3>
+                        <h3 className="font-bold text-lg text-white">AI Agents</h3>
                         <p className="text-sm text-slate-400">Consult with a team of specialized AI experts.</p>
                      </button>
                 </div>

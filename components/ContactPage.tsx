@@ -87,7 +87,7 @@ const ContactPage: React.FC = () => {
                 </div>
                 <div>
                     <h4 className="font-semibold text-slate-200">Business Inquiries</h4>
-                    <a href="mailto:siphosakhemsimanngo@gmail.com" className="text-blue-400 hover:underline">siphosakhemsimanngo@gmail.com</a>
+                    <a href="mailto:siphosakhemsimango@gmail.com" className="text-blue-400 hover:underline">siphosakhemsimango@gmail.com</a>
                 </div>
                  <div>
                     <h4 className="font-semibold text-slate-200">Business Phone</h4>

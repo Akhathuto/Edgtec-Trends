@@ -1,16 +1,80 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UtrendLogo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Star, User as UserIcon, ChevronDown, Menu } from './Icons';
+import { LogOut, Star, User as UserIcon, ChevronDown, Mic } from './Icons';
 import { Tab } from '../types';
+
+interface NavItem {
+  id: Tab;
+  label: string;
+  icon: React.ReactNode;
+  title: string;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
 
 interface HeaderProps {
   setActiveTab: (tab: Tab) => void;
-  userMenuTabs: { id: Tab; label: string; icon: React.ReactNode; title: string; }[];
-  toggleSidebar: () => void;
+  navStructure: NavSection[];
+  userMenuTabs: NavItem[];
 }
 
-const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSidebar }) => {
+const NavDropdown: React.FC<{
+  label: string;
+  items: NavItem[];
+  setActiveTab: (tab: Tab) => void;
+  userPlan: string;
+}> = ({ label, items, setActiveTab, userPlan }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const proTabs: Tab[] = [
+    Tab.Chat, Tab.Agents, Tab.AIVoiceCoPilot, Tab.Analytics, Tab.Report, Tab.ChannelGrowth, Tab.BrandConnect,
+    Tab.Video, Tab.AnimationCreator, Tab.GifCreator, Tab.ImageEditor, Tab.LogoCreator,
+    Tab.ImageGenerator, Tab.AvatarCreator, Tab.VideoEditor
+  ];
+
+  return (
+    <div className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+      <button className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors rounded-md">
+        {label}
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full mt-2 w-72 origin-top-left bg-slate-900/80 backdrop-blur-lg border border-slate-700 rounded-lg shadow-2xl z-50 animate-fade-in p-2">
+          <div className="grid grid-cols-1 gap-1">
+            {items.map(item => {
+              const isPro = proTabs.includes(item.id);
+              const isDisabled = isPro && userPlan !== 'pro';
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(isDisabled ? Tab.Pricing : item.id);
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left flex items-center p-3 text-sm rounded-md text-slate-300 hover:bg-violet-500/30 hover:text-white transition-colors"
+                  title={isDisabled ? `${item.title} (Pro Feature)` : item.title}
+                >
+                  <div className="w-8 h-8 flex items-center justify-center mr-3 bg-slate-700/50 rounded-lg">{item.icon}</div>
+                  <span className="flex-grow">{item.label}</span>
+                  {isDisabled && (
+                    <span className="ml-2 flex items-center gap-1 text-xs font-bold bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 px-1.5 py-0.5 rounded-full">
+                      <Star className="w-3 h-3" /> PRO
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Header: React.FC<HeaderProps> = ({ setActiveTab, navStructure, userMenuTabs }) => {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -22,9 +86,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuRef]);
 
   const getPlanStyles = () => {
@@ -39,18 +101,42 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
   return (
     <header className="sticky top-0 z-30 py-3 px-4 sm:px-6 bg-slate-950/70 backdrop-blur-lg border-b border-slate-800/50">
       <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={toggleSidebar} className="lg:hidden text-slate-300 hover:text-white" title="Open navigation menu">
-              <Menu className="w-6 h-6"/>
+        <div className="flex items-center gap-6">
+          <button onClick={() => setActiveTab(Tab.Dashboard)} title="utrend: Your AI-powered content suite for creators">
+              <UtrendLogo className="h-8" />
           </button>
-          <div title="utrend: Your AI-powered content suite for creators">
-              <UtrendLogo className="h-7" />
-          </div>
+          <nav className="hidden lg:flex items-center gap-2">
+            <button 
+              onClick={() => setActiveTab(Tab.Dashboard)}
+              className="px-3 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors rounded-md"
+            >
+              Dashboard
+            </button>
+            {navStructure.map(section => (
+              <NavDropdown 
+                key={section.label}
+                label={section.label}
+                items={section.items}
+                setActiveTab={setActiveTab}
+                userPlan={user!.plan}
+              />
+            ))}
+          </nav>
         </div>
 
         {user && (
           <div className="flex items-center gap-4">
-             <div className="hidden sm:flex items-center gap-3">
+            {user.plan === 'pro' && (
+                 <button
+                    onClick={() => setActiveTab(Tab.AIVoiceCoPilot)}
+                    className="hidden lg:flex items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-300 font-semibold text-sm px-4 py-2 rounded-full transition-all duration-300 animate-glow-pulse"
+                    title="Start a real-time voice conversation with your AI Co-Pilot (Pro Feature)"
+                  >
+                    <Mic className="w-4 h-4" />
+                    AI Voice Co-Pilot
+                </button>
+            )}
+            <div className="hidden sm:flex items-center gap-3">
                 <span className={`inline-block font-bold text-xs px-2.5 py-1 rounded-full ${getPlanStyles()}`}>
                     {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
                 </span>
@@ -75,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
                     <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 origin-top-right bg-slate-800/80 backdrop-blur-lg border border-slate-700 rounded-lg shadow-2xl z-50 animate-fade-in">
+                    <div className="absolute right-0 mt-2 w-56 origin-top-right bg-slate-900/80 backdrop-blur-lg border border-slate-700 rounded-lg shadow-2xl z-50 animate-fade-in">
                         <div className="py-1">
                             <div className="px-4 py-2 border-b border-slate-700">
                                 <p className="text-sm text-slate-400">Signed in as</p>
@@ -89,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
                                             setActiveTab(tab.id);
                                             setIsUserMenuOpen(false);
                                         }}
-                                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-violet-500/50 hover:text-white transition-colors"
+                                        className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-violet-500/30 hover:text-white transition-colors"
                                         title={tab.title}
                                     >
                                         {tab.icon}
@@ -100,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, userMenuTabs, toggleSideb
                             <div className="py-1 border-t border-slate-700">
                                 <button
                                     onClick={logout}
-                                    className="w-full text-left flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/50 hover:text-white transition-colors"
+                                    className="w-full text-left flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/30 hover:text-white transition-colors"
                                     title="Logout"
                                 >
                                     <LogOut className="w-5 h-5 mr-2" />

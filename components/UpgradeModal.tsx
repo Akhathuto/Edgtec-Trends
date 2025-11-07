@@ -34,13 +34,13 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl w-full max-w-md flex flex-col m-4 animate-slide-in-up"
+        className="bg-slate-900/80 backdrop-blur-2xl border border-slate-700 rounded-xl shadow-glow-violet w-full max-w-md flex flex-col m-4 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
-          <h2 id="modal-title" className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <h2 id="modal-title" className="text-xl font-bold text-slate-100 text-glow flex items-center gap-2">
             <Star className="w-6 h-6 text-yellow-400"/> Upgrade to utrend Pro
-            </h2>
+          </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Close modal">
             <X className="w-6 h-6" />
           </button>

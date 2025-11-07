@@ -1,203 +1,118 @@
 import React, { useState, useCallback } from 'react';
 import { generateLogo } from '../services/geminiService';
 import Spinner from './Spinner';
-import { Star, RefreshCw, PenTool, Download } from './Icons';
+import { Star, Wand, RefreshCw, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
-import GalleryModal from './GalleryModal';
 import ErrorDisplay from './ErrorDisplay';
+import GalleryModal from './GalleryModal';
 
-const logoStyles = ['Minimalist', 'Mascot', 'Abstract', 'Wordmark', 'Geometric', 'Vintage'];
+const logoStyles = ['Minimalist', 'Geometric', 'Abstract', 'Vintage', 'Modern', 'Hand-drawn', 'Futuristic'];
 
 interface LogoCreatorProps {
   setActiveTab: (tab: Tab) => void;
 }
 
-// FIX: Changed to a named export to resolve module resolution error.
 export const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
-    const { user, logActivity, addContentToHistory } = useAuth();
+    const { user, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
-    const [logoStyle, setLogoStyle] = useState(logoStyles[0]);
+    const [style, setStyle] = useState(logoStyles[0]);
     const [transparentBg, setTransparentBg] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [logoBase64, setLogoBase64] = useState<string | null>(null);
+    const [logo, setLogo] = useState<{ base64: string, prompt: string, style: string, aspectRatio: string } | null>(null);
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-    
+
     const handleGenerate = useCallback(async () => {
         if (!prompt.trim()) {
-            setError('Please describe your brand or channel.');
+            setError('Please enter a prompt for your logo.');
             return;
         }
         setLoading(true);
         setError(null);
-        setLogoBase64(null);
-
+        setLogo(null);
         try {
-            const result = await generateLogo(prompt, logoStyle, transparentBg);
-            setLogoBase64(result);
+            const result = await generateLogo(prompt, style, transparentBg);
+            const newLogo = { base64: result, prompt, style, aspectRatio: '1:1' };
+            setLogo(newLogo);
             addContentToHistory({
                 type: 'Logo',
-                summary: `Logo for "${prompt.substring(0, 30)}..."`,
-                content: { prompt, style: logoStyle, transparentBg, logoBase64: result }
+                summary: `Logo for "${prompt}" in ${style} style`,
+                content: { prompt, style, transparentBg, logoBase64: result }
             });
-            logActivity(`generated a ${logoStyle} logo for "${prompt.substring(0, 30)}..."`, 'PenTool');
         } catch (e: any) {
             setError(e.message || 'An error occurred while generating the logo.');
         } finally {
             setLoading(false);
         }
-    }, [prompt, logoStyle, transparentBg, addContentToHistory, logActivity]);
+    }, [prompt, style, transparentBg, addContentToHistory]);
 
-    const handleDownloadLogo = () => {
-        if (!logoBase64) return;
+    const handleDownload = () => {
+        if (!logo) return;
         const link = document.createElement('a');
-        link.href = `data:image/png;base64,${logoBase64}`;
-        link.download = `utrend_logo_${Date.now()}.png`;
+        link.href = `data:image/png;base64,${logo.base64}`;
+        link.download = `utrend_logo_${prompt.replace(/\s+/g, '_')}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
-
-    const handleStartOver = () => {
-        setLogoBase64(null);
-        setError(null);
-        setPrompt('');
-        setLogoStyle(logoStyles[0]);
-        setTransparentBg(true);
-    }
 
     if (user?.plan !== 'pro') {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Logo Creator</h2>
-                <p className="text-slate-400 mb-6 max-w-md">The Logo Creator is a Pro feature. Upgrade your account to create a unique logo for your brand.</p>
-                <button
-                    onClick={() => setActiveTab(Tab.Pricing)}
-                    className="button-primary"
-                >
-                    View Plans
-                </button>
+                <p className="text-slate-400 mb-6 max-w-md">The AI Logo Creator is a Pro feature. Upgrade to design a professional logo for your brand.</p>
+                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
             </div>
-        )
+        );
     }
-
+    
     return (
+      <>
         <div className="animate-slide-in-up">
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <PenTool className="w-6 h-6 text-violet-400" /> AI Logo Creator
-                </h2>
-                <p className="text-center text-slate-400 mb-6">{logoBase64 ? "Your logo is ready!" : "Create a professional logo for your brand."}</p>
-                
-                {(!loading && !logoBase64) && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                    <h2 className="text-2xl font-bold mb-1 text-slate-100 flex items-center gap-2"><Wand className="w-6 h-6 text-violet-400" /> Logo Creator</h2>
+                    <p className="text-slate-400 mb-6">Design your brand's logo in seconds.</p>
                     <div className="space-y-4">
-                         <div className="grid grid-cols-2 gap-4">
-                             <div>
-                                 <label htmlFor="logo-style" className="block text-sm font-medium text-slate-300 mb-1">Logo Style</label>
-                                 <select
-                                    id="logo-style"
-                                    value={logoStyle}
-                                    onChange={(e) => setLogoStyle(e.target.value)}
-                                    className="form-select"
-                                    title="Select the overall style for your logo design"
-                                 >
-                                    {logoStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                                 </select>
-                            </div>
-                            <div className="flex items-end pb-1.5">
-                                <div className="flex items-center">
-                                    <input
-                                        id="transparent-bg"
-                                        type="checkbox"
-                                        checked={transparentBg}
-                                        onChange={(e) => setTransparentBg(e.target.checked)}
-                                        title="Check this to generate a logo with a transparent background (PNG)"
-                                        className="w-4 h-4 text-violet-600 bg-slate-700 border-slate-500 rounded focus:ring-violet-500"
-                                    />
-                                    <label htmlFor="transparent-bg" className="ml-2 text-sm font-medium text-slate-300">Transparent Background</label>
-                                </div>
-                            </div>
+                        <div>
+                            <label htmlFor="logo-prompt" className="input-label">Prompt</label>
+                            <textarea id="logo-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="e.g., A minimalist fox icon for a tech company" className="form-input h-24" />
                         </div>
-                        <textarea
-                            id="logo-prompt"
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="e.g., 'A witty fox wearing headphones for a gaming channel called FoxyPlays'"
-                            className="form-input h-32"
-                            title="Describe your channel or brand."
-                        />
-                        <button
-                            onClick={handleGenerate}
-                            disabled={loading}
-                            className="button-primary w-full"
-                            title="Generate your logo."
-                        >
-                           <PenTool className="w-5 h-5 mr-2" /> Generate Logo
-                        </button>
+                        <div>
+                            <label htmlFor="logo-style" className="input-label">Style</label>
+                            <select id="logo-style" value={style} onChange={(e) => setStyle(e.target.value)} className="form-select">
+                                {logoStyles.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex items-center">
+                            <input id="transparent-bg" type="checkbox" checked={transparentBg} onChange={(e) => setTransparentBg(e.target.checked)} className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-violet-600 focus:ring-violet-500" />
+                            <label htmlFor="transparent-bg" className="ml-2 block text-sm text-slate-300">Transparent Background</label>
+                        </div>
+                        <button onClick={handleGenerate} disabled={loading} className="button-primary w-full">{loading ? <Spinner/> : 'Generate Logo'}</button>
                     </div>
-                )}
-                
-                <ErrorDisplay message={error} className="mt-4" />
+                    <ErrorDisplay message={error} className="mt-4" />
+                </div>
+                <div className="md:col-span-2 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl flex flex-col items-center justify-center">
+                     <button onClick={() => logo && setIsGalleryOpen(true)} className="w-full max-w-md aspect-square bg-slate-800/50 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer" style={{ backgroundImage: transparentBg ? `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none'%3e%3cpath d='M0 0h16v16H0z' fill='%23334155'/%3e%3cpath d='M16 16h16v16H16z' fill='%23334155'/%3e%3c/svg%3e")` : 'none' }}>
+                        {loading && <Spinner size="lg" />}
+                        {logo && <img src={`data:image/png;base64,${logo.base64}`} alt="Generated logo" className="w-full h-full object-contain" />}
+                        {!loading && !logo && <p className="text-slate-500">Your logo will appear here</p>}
+                    </button>
+                     <div className="flex gap-4 mt-6 w-full max-w-md">
+                        <button onClick={handleDownload} disabled={!logo || loading} className="button-secondary w-full"><Download className="w-4 h-4 mr-2"/> Download</button>
+                        <button onClick={handleGenerate} disabled={loading} className="button-primary w-full"><RefreshCw className="w-4 h-4 mr-2"/> Regenerate</button>
+                    </div>
+                </div>
             </div>
-
-            {loading && (
-                <div className="text-center py-10 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl mt-8">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300 font-semibold text-lg animate-text-fade-cycle">Designing your logo...</p>
-                </div>
-            )}
-
-            {logoBase64 && (
-                <div className="mt-8 bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl animate-fade-in">
-                    <h3 className="text-2xl font-bold mb-4 text-center text-slate-100">Your Logo is Ready!</h3>
-                    <div className="flex justify-center mb-4">
-                        <button 
-                            onClick={() => setIsGalleryOpen(true)}
-                            className="w-64 h-64 rounded-lg bg-white shadow-lg p-2 group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-violet-500"
-                            aria-label="View generated logo in gallery"
-                            title="View a larger preview of your logo"
-                        >
-                            <img 
-                                src={`data:image/png;base64,${logoBase64}`}
-                                alt="Generated Logo"
-                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                            />
-                        </button>
-                    </div>
-                     <div className="flex flex-col sm:flex-row gap-4">
-                        <button
-                            onClick={handleDownloadLogo}
-                            className="button-secondary w-full"
-                            title="Download the generated logo as a PNG file"
-                        >
-                           <Download className="w-5 h-5 mr-2" /> Download
-                        </button>
-                        <button
-                            onClick={handleStartOver}
-                            className="button-secondary w-full"
-                            title="Clear the prompt and settings to start over"
-                        >
-                           Start Over
-                        </button>
-                        <button
-                            onClick={handleGenerate}
-                            disabled={loading}
-                            className="button-primary w-full"
-                            title="Generate a new logo with the same prompt and settings"
-                        >
-                           <RefreshCw className="w-5 h-5 mr-2" /> Regenerate
-                        </button>
-                    </div>
-                </div>
-            )}
-             <GalleryModal 
-                isOpen={isGalleryOpen}
-                onClose={() => setIsGalleryOpen(false)}
-                imageUrl={logoBase64 ? `data:image/png;base64,${logoBase64}` : null}
-                altText="Generated Logo"
-            />
         </div>
+         <GalleryModal 
+            isOpen={isGalleryOpen}
+            onClose={() => setIsGalleryOpen(false)}
+            images={logo ? [logo] : []}
+            startIndex={0}
+        />
+      </>
     );
 };

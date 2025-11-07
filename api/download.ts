@@ -33,8 +33,7 @@ export default async function handler(
     res.setHeader('Content-Disposition', `attachment; filename="utrend_media_${Date.now()}.mp4"`);
 
     // Stream the video body to the response
-    // FIX: Manually pipe the ReadableStream from fetch to the Node.js ServerResponse
-    // because web streams do not have a .pipe() method compatible with Node streams.
+    // Manually pipe the ReadableStream from fetch to the Node.js ServerResponse
     const reader = videoResponse.body.getReader();
     while (true) {
       const { done, value } = await reader.read();

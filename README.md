@@ -81,7 +81,7 @@ This is a modern React application built with Vite.
 
 ## ✨ Key Features
 
-The `utrend` platform is organized into three powerful suites to cover every aspect of your content creation journey, from initial spark to strategic growth.
+The `utrend` platform is organized into four powerful suites to cover every aspect of your content creation journey.
 
 <details>
 <summary><strong>📈 Discovery & Analytics Suite</strong></summary>
@@ -101,7 +101,7 @@ The `utrend` platform is organized into three powerful suites to cover every asp
     <li><strong>Content & Script Generation:</strong> Go from a simple topic to a full-fledged video plan. Generate viral content ideas complete with titles, hooks, outlines, and hashtags. Upgrade to generate a production-ready script from any idea.</li>
     <li><strong>AI Video Generation (Pro):</strong> Create stunning videos and animations from text prompts or by animating an image. Includes:
         <ul>
-            <li><strong>Video Generator:</strong> For standard video creation.</li>
+            <li><strong>Video Generator:</strong> For standard video creation, now with multi-image reference and video extension capabilities.</li>
             <li><strong>Animation Creator:</strong> Generate animated clips in various styles, aspect ratios, and resolutions.</li>
             <li><strong>GIF Creator:</strong> Create short, looping GIFs for social media.</li>
         </ul>
@@ -130,10 +130,19 @@ The `utrend` platform is organized into three powerful suites to cover every asp
 </details>
 
 <details>
+<summary><strong>🤖 AI Agents & Co-Pilots Suite</strong></summary>
+<br>
+<ul>
+    <li><strong>AI Voice Co-Pilot (Pro):</strong> Engage in a real-time, natural voice conversation with your AI assistant. Powered by the Gemini Live API, this feature includes live transcription for a seamless interactive experience.</li>
+    <li><strong>AI Chat (Nolo):</strong> Brainstorm, ask for advice, or get help with your content strategy in a conversational text-based interface, now with customizable AI voices.</li>
+    <li><strong>Expert AI Agents:</strong> Consult a team of specialized AI experts for brainstorming, growth hacking, monetization, scriptwriting, and now, thumbnail design. Your personal team of channel managers, on demand.</li>
+</ul>
+</details>
+
+<details>
 <summary><strong>🧠 Strategy & Growth Engine</strong></summary>
 <br>
 <ul>
-    <li><strong>AI Agents:</strong> Consult a team of specialized AI experts for brainstorming, growth hacking, monetization, and scriptwriting. Your personal team of channel managers, on demand.</li>
     <li><strong>Monetization Guide:</strong> Receive tailored monetization strategies based on your platform and follower count. Unlock your earning potential at any stage of your journey.</li>
     <li><strong>Full Strategy Reports (Pro):</strong> Generate a comprehensive content strategy document for any topic, combining trend analysis, multiple content ideas, and monetization strategies into one report.</li>
     <li><strong>Channel Growth Plan (Pro):</strong> Get a custom, multi-point growth plan for your connected channel, with AI analysis of your content, SEO, engagement, and thumbnails.</li>
@@ -150,6 +159,7 @@ Consult your personal team of AI experts, each with a unique specialty to guide 
 -   **📊 Growth Hacker:** A data-driven specialist for SEO, keyword research, and audience growth strategies.
 -   **💰 Monetization Maven:** Your expert on all things money-related, from sponsorships to diverse revenue streams.
 -   **✍️ Creative Writer:** The master wordsmith who can turn your rough ideas into compelling scripts and sharp copy.
+-   **🎨 Thumbnail Wizard (New!):** A visual design expert who crafts compelling, click-worthy thumbnail concepts to boost your CTR.
 
 ---
 
@@ -241,5 +251,5 @@ By using `utrend`, you agree to the following terms and conditions:
 
 `utrend` is driven by the vision of its directors:
 - **Ranthutu Lepheane** (r.lepheane@outlook.com)
-- **Siphosakhe Mathews Msimango** (siphosakhemsimanngo@gmail.com)
+- **Siphosakhe Mathews Msimango** (siphosakhemsimango@gmail.com)
 </details>

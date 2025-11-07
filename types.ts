@@ -1,5 +1,3 @@
-
-
 import type React from 'react';
 
 export type PlanName = 'free' | 'starter' | 'pro';
@@ -45,7 +43,6 @@ export interface HistoryItem {
     content: any;
 }
 
-// FIX: Add 'Generated Video' type for history logging.
 export type HistoryContentType = 'Content Idea' | 'Strategy Report' | 'Video Transcript' | 'Generated Prompt' | 'Image Edit' | 'Keyword Analysis' | 'Channel Growth Plan' | 'Sponsorship Opportunities' | 'Brand Pitch' | 'Video Analysis' | 'Animation' | 'GIF' | 'Logo' | 'Generated Image' | 'Generated Video' | 'Repurposed Content' | 'Thumbnail Idea' | 'Comment Reply' | 'Avatar' | 'Avatar Conversation';
 
 export interface AuthContextType {
@@ -83,6 +80,7 @@ export enum Tab {
   Analytics = 'analytics',
   Chat = 'chat',
   Agents = 'agents',
+  AIVoiceCoPilot = 'ai-voice-copilot',
   Ideas = 'ideas',
   Video = 'video',
   Monetization = 'monetization',
@@ -304,8 +302,7 @@ export interface ChatMessage {
   toolResult?: any;
 }
 
-// FIX: Update local Type enum to match the full definition from the @google/genai guidelines
-// and clarify in the comment why it's defined locally.
+// Update local Type enum to match the full definition from the @google/genai guidelines
 // The @google/genai package is not a client-side dependency, so we define the Type enum
 // locally for creating function declaration schemas on the client.
 export enum Type {

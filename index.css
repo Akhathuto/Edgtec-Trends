@@ -4,57 +4,50 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 font-sans text-slate-200;
+    @apply bg-slate-950 font-sans text-slate-200;
   }
 }
 
+/* New futuristic background */
 body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 35%),
-    radial-gradient(circle at 85% 70%, rgba(34, 211, 238, 0.1) 0%, transparent 35%);
-  background-color: #0f172a; /* slate-900 */
-  z-index: -1;
-  pointer-events: none;
+  background: #02040a;
+  opacity: 1;
+  z-index: -2;
 }
-
 body::after {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.1;
+  background:
+    radial-gradient(ellipse 40% 50% at 20% 20%, rgba(139, 92, 246, 0.15), transparent),
+    radial-gradient(ellipse 40% 50% at 80% 70%, rgba(20, 184, 166, 0.1), transparent);
   z-index: -1;
+  animation: aurora 15s linear infinite;
   pointer-events: none;
 }
 
-
 .text-glow {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 15px rgba(167, 139, 250, 0.3);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 20px rgba(167, 139, 250, 0.3);
 }
 
 .bg-brand-glass {
-  @apply bg-slate-900 backdrop-blur-xl border border-slate-700 shadow-2xl;
-  --tw-bg-opacity: 0.7;
-  --tw-border-opacity: 0.5;
+  @apply bg-slate-900/70 backdrop-blur-2xl border border-slate-700/50 shadow-2xl;
 }
 
 .interactive-card {
-  @apply bg-slate-900 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
-  --tw-bg-opacity: 0.6;
-  --tw-border-opacity: 0.8;
+  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
 }
 
 .interactive-card:hover {
-  @apply transform -translate-y-1 border-violet-500 shadow-glow-md;
-  --tw-border-opacity: 0.6;
+  @apply transform -translate-y-1.5 border-violet-500/80 shadow-glow-lg bg-slate-900/80;
 }
 
 /* Form elements */
 .form-input, .form-select {
-  @apply w-full bg-slate-950/50 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition-all shadow-inner shadow-black/20;
+  @apply w-full bg-slate-900/80 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-inner;
 }
 
 textarea.form-input {
@@ -70,42 +63,20 @@ textarea.form-input {
 
 /* Buttons */
 .button-primary {
-    @apply flex items-center justify-center bg-gradient-to-r from-violet-600 to-violet-500 text-white font-semibold py-2.5 px-5 rounded-lg hover:from-violet-500 hover:to-violet-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-900/40 hover:shadow-xl hover:shadow-violet-700/40 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-violet-400;
+    @apply flex items-center justify-center bg-gradient-to-br from-violet to-violet-dark hover:from-violet-light hover:to-violet text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-600/30 hover:shadow-xl hover:shadow-violet-500/30 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-violet-400;
 }
 .button-secondary {
-    @apply flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-slate-500;
+    @apply flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-100 font-semibold py-2.5 px-5 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-slate-500;
 }
 .button-danger {
     @apply flex items-center justify-center bg-red-600/90 hover:bg-red-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-.segmented-control-wrapper {
-  @apply flex justify-center flex-wrap gap-1 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50;
-}
-.tab-button {
-    @apply text-sm font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400;
-}
-.tab-button.active {
-    @apply bg-violet text-white shadow-md;
-}
-.tab-button:not(.active) {
-    @apply text-slate-300 hover:bg-slate-700/50;
-}
-
-/* Custom styles for AvatarCreator */
-.input-label { @apply block text-sm font-medium text-slate-300 mb-1.5; }
-
-.custom-select-button { @apply form-input !py-2; }
-
-.custom-select-options { @apply absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-lg max-h-60 overflow-y-auto; }
-
-.custom-select-option { @apply text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-violet-500/30; }
 
 .segmented-control { @apply flex w-full p-1 bg-slate-900/50 rounded-lg border border-slate-700/50; }
 .segmented-control button { @apply w-full text-sm font-semibold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400; }
 .segmented-control button.active { @apply bg-violet text-white shadow-sm; }
 .segmented-control button:not(.active) { @apply text-slate-300 hover:bg-slate-700/50; }
-
 
 /* Custom Prose styles for markdown content */
 .prose {
@@ -140,43 +111,48 @@ textarea.form-input {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4a5568;
+  background: #334155; /* slate-700 */
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  background: #475569; /* slate-600 */
 }
 
-/* Other utilities */
-.interactive-card-nested {
-  @apply bg-slate-800/50 p-4 rounded-lg border border-slate-700/60;
-}
-.card-title {
-  @apply text-lg font-bold text-slate-100 mb-2 flex items-center gap-2;
-}
-.card-content {
-  @apply text-slate-300 text-sm;
-}
-.button-copy {
-  @apply flex items-center gap-1.5 text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md transition-colors text-slate-200;
-}
-.interaction-button {
-  @apply p-3 bg-slate-700/50 rounded-full text-white hover:bg-violet-500/50 transition-colors;
+/* Custom animation for text fade cycle */
+@keyframes text-fade-cycle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
-/* Keyframes for Avatar creator */
-@keyframes neural-line {
-    0% { stroke-dashoffset: 2000; }
-    100% { stroke-dashoffset: 0; }
+.animate-text-fade-cycle {
+  animation: text-fade-cycle 2s ease-in-out infinite;
 }
-.neural-line {
-    stroke-dasharray: 2000;
-    animation: neural-line 5s ease-in-out infinite alternate;
+
+/* Custom animation for logo pulse */
+@keyframes logo-pulse {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(167, 139, 250, 0.3)); }
+  50% { filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.5)); }
 }
-@keyframes neural-point {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 1; }
+
+.animate-logo-pulse {
+  animation: logo-pulse 4s ease-in-out infinite;
 }
-.neural-point {
-    animation: neural-point 1.5s ease-in-out infinite;
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.5s ease-out forwards;
+}
+
+.input-label {
+    @apply block text-sm font-medium text-slate-300 mb-1;
 }

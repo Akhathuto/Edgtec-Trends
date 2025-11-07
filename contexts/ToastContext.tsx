@@ -7,8 +7,6 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// FIX: Removed React.FC for better type inference with modern React.
-// FIX: Changed component signature to use React.PropsWithChildren to resolve typing error for children prop.
 export const ToastProvider = ({ children }: React.PropsWithChildren) => {
   const [message, setMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);

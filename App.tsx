@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
-// FIX: Corrected import path.
 import AppLayout from './components/AppLayout';
 import Spinner from './components/Spinner';
 

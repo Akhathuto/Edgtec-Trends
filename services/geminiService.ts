@@ -48,8 +48,12 @@ export function generateFullReport(topic: string, followers: number): Promise<Fu
     return callApi('generateFullReport', [topic, followers]);
 }
 
-export function generateVideo(prompt: string, image?: { imageBytes: string, mimeType: string }): Promise<any> {
-    return callApi('generateVideo', [prompt, image]);
+export function generateVideo(model: string, prompt: string, referenceImages?: { imageBytes: string, mimeType: string }[]): Promise<any> {
+    return callApi('generateVideo', [model, prompt, referenceImages]);
+}
+
+export function extendVideo(prompt: string, previousVideo: any, aspectRatio: string): Promise<any> {
+    return callApi('extendVideo', [prompt, previousVideo, aspectRatio]);
 }
 
 export function generateAnimation(prompt: string, style: string, aspectRatio: string, resolution: string): Promise<any> {
@@ -152,10 +156,14 @@ export function generateCommentResponse(comment: string, tone: string): Promise<
     return callApi('generateCommentResponse', [comment, tone]);
 }
 
-export function sendMessageToNolo(history: { role: 'user' | 'model', content: string }[], systemInstruction?: string): Promise<string> {
-    return callApi('sendMessageToNolo', [history, systemInstruction]);
+export function sendMessageToNolo(history: { role: 'user' | 'model', content: string }[], systemInstruction?: string, image?: { base64: string, mimeType: string }): Promise<string> {
+    return callApi('sendMessageToNolo', [history, systemInstruction, image]);
 }
 
 export function sendMessageToAgent(agent: AgentType, history: AppChatMessage[], settings: AgentSettings): Promise<AppChatMessage[]> {
     return callApi('sendMessageToAgent', [agent, history, settings]);
+}
+
+export function generateSpeech(text: string, voiceName: string): Promise<string | null> {
+    return callApi('generateSpeech', [text, voiceName]);
 }

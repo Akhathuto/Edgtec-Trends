@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
-import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif, Mic, Bot, User as UserIcon, Zap, Copy, RefreshCw, StopCircle, Paperclip, X, Download } from './Icons';
+import { Send, Star, Sparkles, Trash2, Volume2, VolumeX, Gif, Mic, Bot, Paperclip, X, ChevronDown } from './Icons';
 import Spinner from './Spinner';
 import { useToast } from '../contexts/ToastContext';
-import { sendMessageToNolo } from '../services/geminiService';
+import { sendMessageToNolo, generateSpeech } from '../services/geminiService';
 import ErrorDisplay from './ErrorDisplay';
 
 
@@ -25,6 +25,45 @@ interface ChatMessage {
   gifUrl?: string;
   imageUrl?: string;
 }
+
+const ttsVoices = [
+    { name: 'Kore', id: 'Kore' },
+    { name: 'Puck', id: 'Puck' },
+    { name: 'Zephyr', id: 'Zephyr' },
+    { name: 'Charon', id: 'Charon' },
+    { name: 'Fenrir', id: 'Fenrir' },
+];
+
+// Helper functions for TTS audio decoding
+function decode(base64: string) {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+}
+
+async function decodeAudioData(
+    data: Uint8Array,
+    ctx: AudioContext,
+    sampleRate: number,
+    numChannels: number,
+): Promise<AudioBuffer> {
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+    for (let channel = 0; channel < numChannels; channel++) {
+        const channelData = buffer.getChannelData(channel);
+        for (let i = 0; i < frameCount; i++) {
+            channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+        }
+    }
+    return buffer;
+}
+
 
 const TypingIndicator: React.FC = () => (
     <div className="flex items-center gap-1.5">
@@ -69,6 +108,7 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isTtsEnabled, setIsTtsEnabled] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState(ttsVoices[0].id);
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -79,6 +119,9 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
   const conversationStarters = [
     "Give me 3 viral video ideas about retro gaming",
     "How can I improve my YouTube thumbnails?",
@@ -86,17 +129,59 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
     "What are some trending audio clips right now?",
   ];
 
-  const speak = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) {
-        setError("Sorry, your browser doesn't support Text-to-Speech.");
+  const speak = useCallback(async (text: string) => {
+    if (audioSourceRef.current) {
+        audioSourceRef.current.stop();
+        audioSourceRef.current = null;
+    }
+
+    const audioContext = audioContextRef.current;
+    if (!audioContext) {
+        setError("Web Audio API is not supported in this browser.");
         return;
     }
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    window.speechSynthesis.speak(utterance);
-  }, []);
+
+    if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+    }
+
+    try {
+        const base64Audio = await generateSpeech(text, selectedVoice);
+        if (base64Audio) {
+            const audioBuffer = await decodeAudioData(
+                decode(base64Audio),
+                audioContext,
+                24000,
+                1,
+            );
+            
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
+            source.start();
+            
+            audioSourceRef.current = source;
+        } else {
+             setError("Could not generate speech for the response.");
+        }
+    } catch (e: any) {
+        console.error("TTS Error:", e);
+        setError(`Text-to-speech failed: ${e.message}`);
+    }
+  }, [selectedVoice]);
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result as string;
+            const base64Data = result.split(',')[1];
+            resolve(base64Data);
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+  };
   
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -129,7 +214,7 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
         let errorMessage = `Speech recognition error: ${event.error}`;
         if (event.error === 'no-speech') {
             errorMessage = "I didn't hear anything. Please try again.";
-        } else if (event.error === 'not-allowed') {
+        } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
             errorMessage = "Microphone access was denied. Please allow microphone access in your browser settings.";
         }
         setError(errorMessage);
@@ -142,161 +227,139 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
   useEffect(() => {
     const savedTtsPref = localStorage.getItem('utrend-tts-enabled');
     if (savedTtsPref) { setIsTtsEnabled(JSON.parse(savedTtsPref)); }
-    return () => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); } };
+    const savedVoice = localStorage.getItem('utrend-tts-voice');
+    if (savedVoice) { setSelectedVoice(savedVoice); }
+    
+    if (!audioContextRef.current) {
+        try {
+             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        } catch (e) {
+            console.error("Web Audio API is not supported in this browser.", e);
+            setError("Your browser does not support the audio playback required for Text-to-Speech.");
+        }
+    }
+
+    return () => {
+        audioSourceRef.current?.stop();
+    };
   }, []);
 
-  useEffect(() => { localStorage.setItem('utrend-tts-enabled', JSON.stringify(isTtsEnabled)); }, [isTtsEnabled]);
-
   useEffect(() => {
-    if (user?.plan === 'pro') {
-      const storageKey = `utrend-chat-history-${user.id}`;
-      const storedHistory = localStorage.getItem(storageKey);
-      let initialHistory: ChatMessage[] = [];
-      if (storedHistory) {
-        try {
-          const parsed = JSON.parse(storedHistory);
-          if (Array.isArray(parsed) && (parsed.length === 0 || (typeof parsed[0] === 'object' && parsed[0] !== null && 'role' in parsed[0] && 'content' in parsed[0]))) {
-            initialHistory = parsed;
-          }
-        } catch (e) { console.error("Failed to parse chat history:", e); }
-      }
-      
-      if (initialHistory.length === 0) {
-           initialHistory = [{ role: 'model', content: "Hello! I'm Nolo, your AI Co-pilot. How can I help you brainstorm your next viral video today?" }];
-      }
-      setHistory(initialHistory);
+    localStorage.setItem('utrend-tts-enabled', JSON.stringify(isTtsEnabled));
+    localStorage.setItem('utrend-tts-voice', selectedVoice);
+    if (!isTtsEnabled && audioSourceRef.current) {
+        audioSourceRef.current.stop();
     }
-  }, [user?.plan, user?.id]);
-
-  useEffect(() => {
-    if (user && history.length > 0) {
-      const storageKey = `utrend-chat-history-${user.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(history));
-    }
-  }, [history, user]);
+  }, [isTtsEnabled, selectedVoice]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [history, loading]);
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = `${textarea.scrollHeight}px`;
+    if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [input]);
+  }, [history, loading, input]);
 
-  const sendToAI = useCallback(async (currentHistory: ChatMessage[]) => {
-    const messageForAI = currentHistory[currentHistory.length - 1];
-    if (!messageForAI.content.trim() && !messageForAI.gifUrl) return;
+  const handleSendMessage = useCallback(async (message: string) => {
+    if ((!message.trim() && !imageFile && !message.startsWith('gif:')) || loading) return;
 
-    if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); }
+    let newUserMessage: ChatMessage;
+
+    if (message.startsWith('gif:')) {
+        newUserMessage = { role: 'user', content: '', gifUrl: message.substring(4) };
+    } else {
+        newUserMessage = { role: 'user', content: message, imageUrl: imagePreviewUrl || undefined };
+    }
     
-    setLoading(true);
-
-    try {
-      logActivity(`sent a message to Nolo: "${messageForAI.content.substring(0, 30)}..."`, 'MessageSquare');
-      
-      const historyForApi = currentHistory.map(msg => {
-          const content = msg.gifUrl ? '[User sent a GIF]' : (msg.imageUrl ? `${msg.content} [User sent an image]` : msg.content);
-          return { role: msg.role, content };
-      });
-
-      const fullResponse = await sendMessageToNolo(historyForApi);
-      
-      if (isTtsEnabled && fullResponse) {
-        speak(fullResponse);
-      }
-      setHistory(prev => [...prev, { role: 'model', content: fullResponse }]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setHistory(prev => [...prev, { role: 'model', content: "Sorry, I encountered an error. Please check your connection and try again." }]);
-    } finally {
-      setLoading(false);
-    }
-  }, [isTtsEnabled, speak, logActivity]);
-
-  const handleUserMessageSend = useCallback((message: string, gifUrl?: string, image?: File | null, imageUrl?: string | null, baseHistory?: ChatMessage[]) => {
-    if (loading) return;
-    if (!message.trim() && !gifUrl && !image) return;
-
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: message,
-      ...(gifUrl && { gifUrl }),
-      ...(imageUrl && { imageUrl }),
-    };
-    
-    const currentHistory = baseHistory ?? history;
-    const newHistory = [...currentHistory, userMessage];
+    const newHistory = [...history, newUserMessage];
     setHistory(newHistory);
-
-    sendToAI(newHistory);
-  }, [loading, history, sendToAI]);
-  
-  const handleFormSubmit = () => {
-    handleUserMessageSend(input, undefined, imageFile, imagePreviewUrl);
+    setLoading(true);
     setInput('');
     setImageFile(null);
     setImagePreviewUrl(null);
-  };
+    setError(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const historyForApi = newHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+    }));
 
-    if (!file.type.startsWith('image/')) {
-        showToast('Only image uploads are supported at this time.');
-        return;
+    try {
+        let imagePayload;
+        if (imageFile) {
+            const base64 = await fileToBase64(imageFile);
+            imagePayload = { base64, mimeType: imageFile.type };
+        }
+
+        const response = await sendMessageToNolo(historyForApi, undefined, imagePayload);
+        
+        const actionRegex = /ACTION:\[(REPORT|TRENDS|IDEAS|KEYWORDS),"(.+?)"\]/;
+        const match = response.match(actionRegex);
+
+        if (match) {
+            const [, tool, param] = match;
+            const cleanResponse = response.replace(actionRegex, '').trim();
+            setHistory(prev => [...prev, { role: 'model', content: cleanResponse }]);
+            showToast(`AI suggested action: ${tool} with "${param}"`);
+        } else {
+             setHistory(prev => [...prev, { role: 'model', content: response }]);
+             if (isTtsEnabled) {
+                speak(response);
+             }
+        }
+        
+    } catch (e: any) {
+        setError(e.message || "An error occurred.");
+    } finally {
+        setLoading(false);
     }
-    if (file.size > 4 * 1024 * 1024) { // 4MB
-        showToast('Image size cannot exceed 4MB.');
-        return;
-    }
-
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
+  }, [history, loading, isTtsEnabled, speak, showToast, imageFile, imagePreviewUrl]);
+  
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleFormSubmit();
+      e.preventDefault();
+      handleSendMessage(input);
     }
-  };
-
-  const handleClearChat = () => {
-    setHistory([{ role: 'model', content: "Hello again! Let's brainstorm something new." }]);
   };
 
   const handleGifSelect = (url: string) => {
-    handleUserMessageSend('', url);
+    handleSendMessage(`gif:${url}`);
     setIsGifPickerOpen(false);
   };
   
   const handleToggleRecording = () => {
-    if (isRecording) {
-        recognitionRef.current?.stop();
-        setIsRecording(false);
-    } else {
-        recognitionRef.current?.start();
-        setIsRecording(true);
-        setError(null);
+        if (isRecording) {
+            recognitionRef.current?.stop();
+        } else {
+            recognitionRef.current?.start();
+        }
+        setIsRecording(!isRecording);
+  };
+  
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 4 * 1024 * 1024) { // 4MB limit
+        setError("Image size cannot exceed 4MB.");
+        return;
+      }
+       if (!file.type.startsWith('image/')) {
+        setError("Please upload a valid image file.");
+        return;
+      }
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
-
-  if (user?.plan !== 'pro') {
+  
+  if (user?.plan === 'free') {
     return (
         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
             <Star className="w-12 h-12 text-yellow-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Upgrade to Pro to Chat with Nolo</h2>
-            <p className="text-slate-400 mb-6 max-w-md">Nolo, your AI Co-pilot, is a Pro feature. Upgrade to get personalized brainstorming and strategy sessions.</p>
+            <h2 className="text-2xl font-bold mb-2">Upgrade to Unlock AI Chat</h2>
+            <p className="text-slate-400 mb-6 max-w-md">Nolo, your AI Co-pilot, is a premium feature. Upgrade your account to start brainstorming and strategizing.</p>
             <button
                 onClick={() => setActiveTab(Tab.Pricing)}
                 className="button-primary"
@@ -304,103 +367,116 @@ export const AIChat: React.FC<AIChatProps> = ({ setActiveTab }) => {
                 View Plans
             </button>
         </div>
-    )
+    );
   }
 
   return (
-    <div className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col h-[85vh] animate-slide-in-up">
-        <header className="p-4 border-b border-slate-700/50 flex-shrink-0 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><Bot className="w-5 h-5 text-violet-300"/></div>
-                <h2 className="text-xl font-bold">AI Chat (Nolo)</h2>
-            </div>
+    <div className="bg-brand-glass border border-slate-700/50 rounded-xl shadow-xl flex flex-col animate-slide-in-up h-[85vh]">
+          <header className="p-4 border-b border-slate-700/50 flex-shrink-0 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-center flex items-center gap-3">
+                <Sparkles className="w-6 h-6 text-violet-400"/>
+                AI Chat (Nolo)
+            </h2>
             <div className="flex items-center gap-2">
-                <button onClick={() => setIsTtsEnabled(!isTtsEnabled)} title={isTtsEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'} className="p-2 rounded-full hover:bg-slate-700/50 transition-colors">
-                    {isTtsEnabled ? <Volume2 className="w-5 h-5 text-violet-300"/> : <VolumeX className="w-5 h-5 text-slate-400"/>}
-                </button>
-                <button onClick={handleClearChat} title="Clear conversation history" className="p-2 rounded-full hover:bg-slate-700/50">
+                 <button onClick={() => setHistory([])} title="Clear chat history" className="p-2 rounded-full hover:bg-slate-700/50">
                     <Trash2 className="w-5 h-5 text-slate-400"/>
-                </button>
-            </div>
-        </header>
-
-        <ErrorDisplay message={error} />
-
-        <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
-            {history.map((msg, index) => (
-                <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                    {msg.role === 'model' && (
-                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><Bot className="w-5 h-5 text-violet-300"/></div>
+                 </button>
+                 <div className="flex items-center gap-1 bg-slate-800/60 p-1 rounded-full border border-slate-700/50">
+                    <button onClick={() => setIsTtsEnabled(!isTtsEnabled)} title={isTtsEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"} className="p-1 rounded-full hover:bg-slate-700/50">
+                        {isTtsEnabled ? <Volume2 className="w-5 h-5 text-violet-400"/> : <VolumeX className="w-5 h-5 text-slate-400"/>}
+                    </button>
+                    {isTtsEnabled && (
+                        <div className="relative">
+                            <select value={selectedVoice} onChange={e => setSelectedVoice(e.target.value)} className="text-xs bg-transparent border-0 rounded-full pl-2 pr-6 appearance-none focus:outline-none focus:ring-0">
+                                {ttsVoices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                            </select>
+                             <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
                     )}
-                    <div className={`max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                        {msg.content && <p>{msg.content}</p>}
-                        {msg.gifUrl && <img src={msg.gifUrl} alt="User sent GIF" className="mt-2 rounded-lg max-w-xs" />}
-                        {msg.imageUrl && <img src={msg.imageUrl} alt="User sent image" className="mt-2 rounded-lg max-w-xs" />}
+                 </div>
+            </div>
+          </header>
+          
+          <ErrorDisplay message={error} />
+
+          <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
+            {history.length === 0 && (
+                <div className="text-center text-slate-400 flex flex-col items-center justify-center h-full">
+                    <Bot className="w-16 h-16 text-slate-600 mb-4" />
+                    <h3 className="text-xl font-bold text-slate-200">Hello, I'm Nolo!</h3>
+                    <p className="mb-4">Your AI co-pilot for content creation. Try one of these prompts to start:</p>
+                    <div className="grid grid-cols-2 gap-2 w-full max-w-lg">
+                        {conversationStarters.map((prompt, i) => (
+                           <button key={i} onClick={() => handleSendMessage(prompt)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors">
+                               {prompt}
+                           </button>
+                        ))}
                     </div>
                 </div>
+            )}
+            {history.map((msg, index) => (
+              <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                {msg.role === 'model' && (
+                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-5 h-5 text-violet-300" />
+                  </div>
+                )}
+                <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
+                    {msg.content && <p>{msg.content}</p>}
+                    {msg.gifUrl && <img src={msg.gifUrl} alt="user selected gif" className="max-w-xs rounded-lg my-2" />}
+                    {msg.imageUrl && <img src={msg.imageUrl} alt="user upload" className="max-w-xs rounded-lg my-2" />}
+                </div>
+              </div>
             ))}
             {loading && (
-                <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><Bot className="w-5 h-5 text-violet-300"/></div>
-                    <div className="px-4 py-3 rounded-2xl bg-slate-700 rounded-bl-none"><TypingIndicator/></div>
+              <div className="flex items-start gap-3">
+                 <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0"><Bot className="w-5 h-5 text-violet-300" /></div>
+                <div className="px-4 py-3 rounded-2xl bg-slate-700 rounded-bl-none">
+                  <TypingIndicator />
                 </div>
+              </div>
             )}
-        </div>
-
-        <div className="p-4 border-t border-slate-700/50 flex-shrink-0 space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {conversationStarters.map((prompt, i) => (
-                    <button key={i} onClick={() => handleUserMessageSend(prompt)} className="text-left text-sm p-3 bg-slate-800/60 hover:bg-slate-700/80 rounded-lg transition-colors text-slate-300" title={`Send this prompt: "${prompt}"`}>
-                        {prompt}
-                    </button>
-                ))}
-            </div>
-            {imagePreviewUrl && (
-                <div className="relative w-24 h-24 bg-black/20 rounded-lg p-1">
-                    <img src={imagePreviewUrl} alt="Preview" className="w-full h-full object-contain rounded"/>
-                    <button onClick={() => {setImageFile(null); setImagePreviewUrl(null);}} className="absolute -top-2 -right-2 p-1 bg-slate-700 rounded-full text-white hover:bg-red-500" title="Remove image">
-                        <X className="w-4 h-4" />
-                    </button>
+          </div>
+          
+          <div className="p-4 border-t border-slate-700/50 flex-shrink-0 space-y-2">
+             {imagePreviewUrl && (
+                <div className="relative w-20 h-20 bg-slate-800 p-1 rounded-lg">
+                    <img src={imagePreviewUrl} alt="upload preview" className="w-full h-full object-cover rounded"/>
+                    <button onClick={() => { setImageFile(null); setImagePreviewUrl(null); }} className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5"><X className="w-3 h-3 text-white"/></button>
                 </div>
-            )}
+             )}
             <div className="relative">
-                <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask Nolo anything..."
-                    disabled={loading}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-4 pr-36 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"
-                    rows={1}
-                    title="Type your message to Nolo"
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    {recognitionRef.current && (
-                        <button onClick={handleToggleRecording} title={isRecording ? 'Stop recording' : 'Start recording'} className={`p-2 rounded-full hover:bg-slate-700/50 ${isRecording ? 'bg-red-500/20 animate-pulse' : ''}`}>
-                            <Mic className={`w-5 h-5 ${isRecording ? 'text-red-400' : 'text-slate-400'}`}/>
-                        </button>
-                    )}
-                    <button onClick={() => setIsGifPickerOpen(!isGifPickerOpen)} title="Send a GIF" className="p-2 rounded-full hover:bg-slate-700/50">
-                        <Gif className="w-5 h-5 text-slate-400"/>
-                    </button>
-                    <button onClick={() => fileInputRef.current?.click()} title="Attach an image" className="p-2 rounded-full hover:bg-slate-700/50">
-                        <Paperclip className="w-5 h-5 text-slate-400"/>
-                    </button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden"/>
-
-                    <button
-                        onClick={handleFormSubmit}
-                        disabled={loading || (!input.trim() && !imageFile)}
-                        className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50"
-                        title="Send message"
-                    >
-                        {loading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
-                    </button>
-                </div>
-                {isGifPickerOpen && <GifPicker onSelect={handleGifSelect} />}
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask Nolo anything..."
+                disabled={loading}
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-12 pr-28 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all resize-none shadow-inner"
+                rows={1}
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                 <button onClick={() => fileInputRef.current?.click()} title="Upload Image" className="p-1.5 text-slate-400 hover:text-white"><Paperclip className="w-5 h-5"/></button>
+                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                 <button onClick={handleToggleRecording} title={isRecording ? "Stop Recording" : "Start Recording"} className={`p-1.5 text-slate-400 hover:text-white ${isRecording ? 'text-red-500' : ''}`}><Mic className="w-5 h-5"/></button>
+              </div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                 <div className="relative">
+                    <button onClick={() => setIsGifPickerOpen(p => !p)} title="Send GIF" className="p-1.5 text-slate-400 hover:text-white"><Gif className="w-5 h-5"/></button>
+                    {isGifPickerOpen && <GifPicker onSelect={handleGifSelect} />}
+                 </div>
+                <button
+                  onClick={() => handleSendMessage(input)}
+                  disabled={loading || (!input.trim() && !imageFile)}
+                  className="p-2 rounded-full bg-violet hover:opacity-90 transition-opacity disabled:opacity-50"
+                  title="Send message"
+                >
+                  <Send className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
   );
 };

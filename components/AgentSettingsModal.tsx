@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { AgentSettings } from '../types';
 import Modal from './Modal';
@@ -29,7 +27,6 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
   const handleSave = () => {
     if (model === 'gemini-2.5-pro' && user?.plan !== 'pro') {
       showToast('The Pro model is only available on the Pro plan.');
-      // Revert the selection in the UI if user tries to save an invalid option
       setModel('gemini-2.5-flash'); 
       return;
     }
@@ -38,10 +35,10 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="AI Agent Settings" footer={
-        <div className="flex justify-end gap-4">
+        <>
           <button onClick={onClose} title="Close settings without saving" className="button-secondary">Cancel</button>
           <button onClick={handleSave} title="Save the new agent settings" className="button-primary">Save Settings</button>
-        </div>
+        </>
     }>
       <div className="space-y-6 text-slate-300">
         <div>
@@ -53,7 +50,7 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
             value={model}
             onChange={(e) => setModel(e.target.value as AgentSettings['model'])}
             title="Choose the underlying AI model for the agents"
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-violet-light transition-all"
+            className="form-select"
           >
             <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Balanced)</option>
             <option value="gemini-2.5-pro" disabled={user?.plan !== 'pro'}>

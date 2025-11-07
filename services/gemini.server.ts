@@ -1,6 +1,4 @@
-
-
-import { GoogleGenAI, Type, Modality, Part } from "@google/genai";
+import { GoogleGenAI, Type, Modality, Part, VideoGenerationReferenceImage, VideoGenerationReferenceType } from "@google/genai";
 import { 
     TrendingChannel, TrendingTopic, ContentIdea, MonetizationStrategy, FullReport, KeywordAnalysis, 
     ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel, AvatarProfile, Agent as AgentType, AgentSettings, ChatMessage as AppChatMessage
@@ -133,8 +131,8 @@ export async function generateContentIdeas(topic: string, platform: 'YouTube' | 
 
 export async function generateVideoScript(idea: ContentIdea): Promise<string> {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Write a full video script based on this idea:\nTitle: ${idea.title}\nHook: ${idea.hook}\nOutline: ${idea.script_outline.join(', ')}. The script should be engaging and production-ready, including visual cues.`,
+        model: 'gemini-2.5-pro', // Using Pro for higher quality scripts
+        contents: `Write a full video script based on this idea:\nTitle: ${idea.title}\nHook: ${idea.hook}\nOutline: ${idea.script_outline.join(', ')}. The script should be engaging and production-ready, including visual cues and camera directions. Make it sound natural for a person to speak.`,
     });
     return response.text;
 }
@@ -165,8 +163,8 @@ export async function getMonetizationStrategies(platform: 'YouTube' | 'TikTok', 
 
 export async function generateFullReport(topic: string, followers: number): Promise<FullReport> {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Create a comprehensive content strategy report for the topic "${topic}" for a creator with ${followers} followers. Include a trend analysis, 5 content ideas (with hook, outline, hashtags, and virality score), and 3 relevant monetization strategies.`,
+        model: 'gemini-2.5-pro', // Pro for better quality reports
+        contents: `Create a comprehensive content strategy report for the topic "${topic}" for a creator with ${followers} followers. Include a detailed trend analysis, 5 creative content ideas (with hook, outline, hashtags, and virality score), and 3 relevant monetization strategies with actionable steps.`,
         config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -200,13 +198,52 @@ export async function generateFullReport(topic: string, followers: number): Prom
     return parseJsonResponse(response.text, { trendAnalysis: '', contentIdeas: [], monetizationStrategies: [] });
 }
 
-export async function generateVideo(prompt: string, image?: { imageBytes: string, mimeType: string }): Promise<any> {
+export async function generateVideo(
+    model: 'veo-3.1-fast-generate-preview' | 'veo-3.1-generate-preview',
+    prompt: string, 
+    referenceImages?: { imageBytes: string, mimeType: string }[]
+): Promise<any> {
+    const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    if (referenceImages && referenceImages.length > 0) {
+        const referenceImagesPayload: VideoGenerationReferenceImage[] = referenceImages.map(img => ({
+            image: { imageBytes: img.imageBytes, mimeType: img.mimeType },
+            referenceType: VideoGenerationReferenceType.ASSET,
+        }));
+        
+        return await localAi.models.generateVideos({
+            model: 'veo-3.1-generate-preview', // This model is required for multi-reference
+            prompt,
+            config: {
+                numberOfVideos: 1,
+                referenceImages: referenceImagesPayload,
+                resolution: '720p',
+                aspectRatio: '16:9'
+            }
+        });
+    }
+
+    // Single image or no image
+    return await localAi.models.generateVideos({
+        model,
+        prompt,
+        image: referenceImages?.[0],
+        config: { numberOfVideos: 1 }
+    });
+}
+
+
+export async function extendVideo(prompt: string, previousVideo: any, aspectRatio: string): Promise<any> {
     const localAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     return await localAi.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
+        model: 'veo-3.1-generate-preview',
         prompt,
-        image,
-        config: { numberOfVideos: 1 }
+        video: previousVideo,
+        config: {
+            numberOfVideos: 1,
+            resolution: '720p',
+            aspectRatio: aspectRatio as "16:9" | "9:16",
+        }
     });
 }
 
@@ -348,7 +385,7 @@ export async function generateDashboardTip(channels: Channel[]): Promise<string>
 
 export async function generateChannelGrowthPlan(channelUrl: string, platform: 'YouTube' | 'TikTok'): Promise<ChannelGrowthPlan> {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-pro', // Pro for better analysis
         contents: `Create a detailed channel growth plan for the ${platform} channel at ${channelUrl}. Analyze and provide recommendations for: Content Strategy, SEO & Discoverability, Audience Engagement, and Thumbnail Critique. For each section, provide an 'analysis' text and a 'recommendations' array of strings. Your response must be a valid JSON object.`,
         config: { tools: [{ googleSearch: {} }] }
     });
@@ -493,7 +530,11 @@ export async function generateCommentResponse(comment: string, tone: string): Pr
     return response.text;
 }
 
-export async function sendMessageToNolo(history: { role: 'user' | 'model', content: string }[], systemInstruction?: string): Promise<string> {
+export async function sendMessageToNolo(
+    history: { role: 'user' | 'model', content: string }[],
+    systemInstruction?: string,
+    image?: { base64: string; mimeType: string }
+): Promise<string> {
     const chatHistoryForSDK = history.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.content }]
@@ -512,7 +553,15 @@ export async function sendMessageToNolo(history: { role: 'user' | 'model', conte
         }
     });
     
-    const result = await chat.sendMessage({ message: lastMessage.parts[0].text });
+    const userMessageParts: Part[] = [];
+    const textContent = lastMessage.parts[0].text || '';
+    userMessageParts.push({ text: textContent });
+    
+    if (image) {
+        userMessageParts.push({ inlineData: { data: image.base64, mimeType: image.mimeType } });
+    }
+
+    const result = await chat.sendMessage({ message: userMessageParts });
     return result.text;
 }
 
@@ -593,7 +642,6 @@ export async function sendMessageToAgent(agent: AgentType, history: AppChatMessa
             toolMessage.toolResult = { result: toolOutputResult };
         }
 
-        // FIX: The argument to sendMessage must be an object with a 'message' property.
         result = await chat.sendMessage({ message: functionResponses });
         functionCalls = result.functionCalls;
     }
@@ -601,4 +649,22 @@ export async function sendMessageToAgent(agent: AgentType, history: AppChatMessa
     const finalResponse: AppChatMessage = { role: 'model', content: result.text };
     
     return [...toolMessages, finalResponse];
+}
+
+export async function generateSpeech(text: string, voiceName: string): Promise<string | null> {
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text }] }],
+        config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName },
+                },
+            },
+        },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    return base64Audio || null;
 }

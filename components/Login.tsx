@@ -33,15 +33,15 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen text-white flex flex-col justify-center items-center p-4 animate-fade-in">
+        <div className="min-h-screen text-white flex justify-center items-center p-4 animate-fade-in">
              <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                      <UtrendLogo className="h-16 inline-block" />
-                     <h1 className="text-3xl font-bold mt-2 text-glow">Welcome to utrend</h1>
-                     <p className="text-slate-400">Your AI-powered content suite for creators.</p>
+                     <h1 className="text-4xl font-bold mt-4 text-glow">utrend</h1>
+                     <p className="text-slate-300">Your AI-powered content suite for creators.</p>
                 </div>
                 
-                <div className="bg-brand-glass border border-slate-700/50 rounded-2xl p-8 shadow-2xl shadow-violet-900/30">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl shadow-violet-900/30">
                     <h2 className="text-2xl font-bold text-center mb-6 text-glow">{isLoginView ? 'Sign In' : 'Create Account'}</h2>
                     <ErrorDisplay message={error} className="mb-4" />
                     <form onSubmit={handleSubmit} className="space-y-6">

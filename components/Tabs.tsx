@@ -1,1 +1,1 @@
-// This component is no longer used. Navigation is now handled exclusively by the Sidebar.
+// This component is no longer used. Navigation is now handled exclusively by the new Header.

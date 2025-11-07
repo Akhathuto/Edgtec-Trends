@@ -6,7 +6,6 @@ import Spinner from './Spinner';
 import { agents } from '../data/agents';
 import { useToast } from '../contexts/ToastContext';
 import AgentSettingsModal from './AgentSettingsModal';
-// FIX: Import the service to call the backend API route instead of handling Gemini logic on the client.
 import { sendMessageToAgent } from '../services/geminiService';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -187,7 +186,6 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   
   const handleSaveSettings = (newSettings: AgentSettings) => {
     if (user) {
-        // FIX: Corrected model name from 'gemini-2.5-pro-latest' to 'gemini-2.5-pro' to match AgentSettings type.
         if (newSettings.model === 'gemini-2.5-pro' && user.plan !== 'pro') {
             showToast('The Pro model is only available on the Pro plan.');
             return;
@@ -263,7 +261,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
             />
             {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2" title="Clear search"><X className="w-4 h-4"/></button>}
           </div>
-          <div className="space-y-3 overflow-y-auto">
+          <div className="space-y-3 overflow-y-auto pr-2 -mr-2">
             {filteredAgents.map(agent => (
               <button
                 key={agent.id}
@@ -273,23 +271,11 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
               >
                 <div className="flex items-start gap-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${activeAgent.id === agent.id ? 'bg-violet-500' : 'bg-slate-700'}`}>
-                    <agent.icon className={`w-6 h-6 ${agent.color}`} />
+                    <agent.icon className={`w-6 h-6 ${activeAgent.id === agent.id ? 'text-white' : agent.color}`} />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-white">{agent.name}</h3>
-                    <p className="text-sm text-slate-400 mb-2">{agent.description}</p>
-                    {agent.externalTools && agent.externalTools.length > 0 && (
-                          <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs font-semibold text-slate-500">Tools:</span>
-                              <div className="flex items-center gap-2">
-                                  {agent.externalTools.map(tool => (
-                                      <div key={tool.name} className="p-1.5 bg-slate-900/50 rounded-full" title={tool.name}>
-                                          <tool.icon className="w-4 h-4 text-slate-300"/>
-                                      </div>
-                                  ))}
-                              </div>
-                          </div>
-                      )}
+                    <p className="text-sm text-slate-400 line-clamp-2">{agent.description}</p>
                   </div>
                 </div>
               </button>

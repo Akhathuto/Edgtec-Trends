@@ -1,7 +1,5 @@
-
-
 import { Agent, Type } from '../types';
-import { Sparkles, BarChart2, DollarSign, Edit as EditIcon, Twitter, Gmail, GoogleDrive, Slack } from '../components/Icons';
+import { Sparkles, BarChart2, DollarSign, Edit as EditIcon, Twitter, Gmail, GoogleDrive, Slack, Image } from '../components/Icons';
 
 const youtubeSearchDeclaration = {
   name: 'youtubeSearch',
@@ -89,5 +87,19 @@ export const agents: Agent[] = [
         { name: 'Google Drive', icon: GoogleDrive },
         { name: 'X (Twitter)', icon: Twitter },
     ],
+  },
+  {
+    id: 'wizard',
+    name: 'Thumbnail Wizard',
+    description: 'A visual design expert who crafts compelling, click-worthy thumbnail concepts.',
+    icon: Image,
+    color: 'text-teal-400',
+    systemInstruction: `You are the Thumbnail Wizard, an AI agent with a keen eye for visual design and click-through-rate optimization. You specialize in creating concepts for compelling thumbnails based on a video title. You understand color theory, composition, and human psychology. When a user gives you a title, provide 3 distinct thumbnail concepts.`,
+    starterPrompts: [
+        'Give me thumbnail ideas for a video titled "The Rise and Fall of Blockbuster".',
+        'How can I make my thumbnails more clickable?',
+        'What colors should I use for a thumbnail about finance?',
+    ],
+    keywords: ['thumbnail', 'design', 'visuals', 'ctr', 'art', 'photoshop'],
   }
 ];

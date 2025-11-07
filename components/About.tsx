@@ -50,7 +50,7 @@ const About: React.FC = () => {
                 <h4 className="text-lg font-bold text-slate-100">Siphosakhe Mathews Msimango</h4>
                 <span className="text-xs bg-violet-500/30 text-violet-200 font-semibold px-2 py-1 rounded-md">Director</span>
               </div>
-               <p className="text-sm text-slate-400 mt-2">Email: siphosakhemsimanngo@gmail.com</p>
+               <p className="text-sm text-slate-400 mt-2">Email: siphosakhemsimango@gmail.com</p>
             </div>
           </div>
         </section>
