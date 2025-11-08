@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, LiveSession } from '@google/genai';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab } from '../types';
-import { Star, Mic, StopCircle, Play } from './Icons';
+import { Star, Mic, StopCircle, Play, Info } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 import Spinner from './Spinner';
 
@@ -11,7 +11,7 @@ function encode(bytes: Uint8Array): string {
   let binary = '';
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(i);
   }
   return btoa(binary);
 }
@@ -79,14 +79,66 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
   const nextStartTimeRef = useRef(0);
   const outputSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
+  // For audio visualizer
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const analyserNodeRef = useRef<AnalyserNode | null>(null);
+  const animationFrameIdRef = useRef<number | null>(null);
+  
+  const drawVisualizer = useCallback(() => {
+    const analyser = analyserNodeRef.current;
+    const canvas = canvasRef.current;
+    if (!analyser || !canvas) return;
+
+    const canvasCtx = canvas.getContext('2d');
+    if (!canvasCtx) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const draw = () => {
+        animationFrameIdRef.current = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        canvasCtx.fillStyle = '#0f172a'; // slate-900
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+        gradient.addColorStop(0, '#8B5CF6'); // violet
+        gradient.addColorStop(1, '#14b8a6'); // teal
+
+        for (let i = 0; i < bufferLength; i++) {
+            const barHeight = dataArray[i] * (canvas.height / 255.0);
+            canvasCtx.fillStyle = gradient;
+            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth;
+        }
+    };
+    draw();
+  }, []);
+
+
   const cleanup = useCallback(() => {
-    // Stop all audio playback
+    if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+    }
+    if (analyserNodeRef.current) {
+        analyserNodeRef.current.disconnect();
+        analyserNodeRef.current = null;
+    }
+
     if (outputAudioContextRef.current) {
       outputSourcesRef.current.forEach(source => source.stop());
       outputSourcesRef.current.clear();
     }
 
-    // Disconnect microphone processing
     if (scriptProcessorRef.current) {
         scriptProcessorRef.current.onaudioprocess = null;
         scriptProcessorRef.current.disconnect();
@@ -97,21 +149,14 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
         mediaStreamSourceRef.current = null;
     }
     
-    // Stop microphone stream
     streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
 
-    // Close contexts
-    if (inputAudioContextRef.current?.state !== 'closed') {
-        inputAudioContextRef.current?.close().catch(console.error);
-        inputAudioContextRef.current = null;
-    }
-    if (outputAudioContextRef.current?.state !== 'closed') {
-        outputAudioContextRef.current?.close().catch(console.error);
-        outputAudioContextRef.current = null;
-    }
+    inputAudioContextRef.current?.close().catch(console.error);
+    inputAudioContextRef.current = null;
+    outputAudioContextRef.current?.close().catch(console.error);
+    outputAudioContextRef.current = null;
     
-    // Close session
     sessionPromiseRef.current?.then(session => session.close());
     sessionPromiseRef.current = null;
 
@@ -149,6 +194,10 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
                     setStatus('connected');
                     mediaStreamSourceRef.current = inputAudioContextRef.current.createMediaStreamSource(streamRef.current);
                     scriptProcessorRef.current = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
+                    
+                    analyserNodeRef.current = inputAudioContextRef.current.createAnalyser();
+                    analyserNodeRef.current.fftSize = 256;
+
                     scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
                         const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                         const pcmBlob = createBlob(inputData);
@@ -156,8 +205,12 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
                             session.sendRealtimeInput({ media: pcmBlob });
                         });
                     };
-                    mediaStreamSourceRef.current.connect(scriptProcessorRef.current);
+
+                    mediaStreamSourceRef.current.connect(analyserNodeRef.current);
+                    analyserNodeRef.current.connect(scriptProcessorRef.current);
                     scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
+
+                    drawVisualizer();
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     const outputAudioContext = outputAudioContextRef.current;
@@ -207,7 +260,6 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
                     cleanup();
                 },
                 onclose: () => {
-                    // Only cleanup if not already idle, to prevent multiple calls
                     if (status !== 'idle') {
                         cleanup();
                     }
@@ -241,29 +293,39 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
     );
   }
 
+  const statusIndicator = {
+    idle: { color: 'bg-slate-500', text: 'Idle' },
+    connecting: { color: 'bg-yellow-500 animate-pulse', text: 'Connecting...' },
+    connected: { color: 'bg-green-500 animate-pulse', text: 'Live' },
+    error: { color: 'bg-red-500', text: 'Error' },
+  };
+
   return (
     <div className="animate-slide-in-up">
-        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl flex flex-col items-center h-[75vh]">
+        <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl flex flex-col items-center h-[80vh]">
             <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
                 <Mic className="w-6 h-6 text-violet-400" /> AI Voice Co-Pilot
             </h2>
-            <p className="text-center text-slate-400 mb-6">Have a real-time voice conversation with your AI.</p>
+            <p className="text-center text-slate-400 mb-4">Have a real-time voice conversation with your AI.</p>
             
-            <div className="flex-grow w-full bg-slate-800/50 rounded-lg p-4 overflow-y-auto space-y-4 border border-slate-700">
-                {transcripts.map((turn, i) => (
-                    <div key={i} className="border-b border-slate-700 pb-2 last:border-b-0">
-                        <p><strong className="text-violet-300">You:</strong> {turn.user}</p>
-                        <p><strong className="text-teal-300">AI:</strong> {turn.model}</p>
+            <div className="flex-grow w-full flex flex-col items-center justify-center relative">
+                <div className="w-full max-w-2xl h-48 bg-slate-900 rounded-lg border border-slate-700/50 flex items-center justify-center overflow-hidden relative">
+                    <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-300 ${status === 'connected' ? 'opacity-100' : 'opacity-0'}`} />
+                    <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 ${status !== 'connected' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                        {status === 'idle' && <Mic className="w-24 h-24 text-slate-700" />}
+                        {status === 'connecting' && <Spinner size="lg" />}
+                        {status === 'error' && <Info className="w-24 h-24 text-red-500/50" />}
                     </div>
-                ))}
-                 {currentInput && <p><strong className="text-violet-300">You:</strong> <span className="text-slate-400">{currentInput}</span></p>}
-                 {currentOutput && <p><strong className="text-teal-300">AI:</strong> <span className="text-slate-400">{currentOutput}</span></p>}
-                 {status === 'idle' && transcripts.length === 0 && <p className="text-center text-slate-500 pt-10">Press Start to begin...</p>}
+                </div>
             </div>
 
-            <div className="mt-6 flex flex-col items-center gap-4 w-full">
-                <ErrorDisplay message={error} />
-                {status === 'idle' || status === 'error' ? (
+            <div className="flex items-center justify-center gap-2 mb-4">
+                <span className={`w-3 h-3 rounded-full ${statusIndicator[status].color}`}></span>
+                <p className="text-sm font-semibold text-slate-300">{statusIndicator[status].text}</p>
+            </div>
+            
+            <div className="w-full flex justify-center mb-4">
+                 {status === 'idle' || status === 'error' ? (
                     <button onClick={startConversation} className="button-primary text-lg px-8 py-4 flex items-center gap-3">
                         <Play className="w-6 h-6"/> Start Conversation
                     </button>
@@ -275,6 +337,20 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ setActiveTab }) => {
                     </button>
                 )}
             </div>
+            
+            <div className="w-full bg-slate-800/50 rounded-lg p-4 h-48 overflow-y-auto space-y-4 border border-slate-700">
+                {transcripts.map((turn, i) => (
+                    <div key={i} className="border-b border-slate-700 pb-2 last:border-b-0 animate-fade-in">
+                        <p><strong className="text-violet-300">You:</strong> {turn.user}</p>
+                        <p><strong className="text-teal-300">AI:</strong> {turn.model}</p>
+                    </div>
+                ))}
+                 {currentInput && <p><strong className="text-violet-300">You:</strong> <span className="text-slate-400">{currentInput}</span></p>}
+                 {currentOutput && <p><strong className="text-teal-300">AI:</strong> <span className="text-slate-400">{currentOutput}</span></p>}
+                 {status === 'idle' && transcripts.length === 0 && <p className="text-center text-slate-500 pt-10">Press Start to begin... Transcript will appear here.</p>}
+            </div>
+
+            <ErrorDisplay message={error} className="mt-4" />
         </div>
     </div>
   );

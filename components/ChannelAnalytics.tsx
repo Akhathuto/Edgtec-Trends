@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
 import { ChannelAnalyticsData, Tab } from '../types';
 import Spinner from './Spinner';
-import { Star, BarChart2, Youtube, TikTok, Link, Lightbulb, TrendingUp, TrendingDown, ExternalLink } from './Icons';
+import { Star, BarChart2, Youtube, TikTok, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelAnalyticsProps {
@@ -47,34 +47,26 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
     const [opportunities, setOpportunities] = useState<string[]>([]);
     
     const compatibleChannels = user?.channels?.filter(c => c.platform === 'YouTube' || c.platform === 'TikTok') || [];
-    const [selectedChannelId, setSelectedChannelId] = useState<string | null>(activeChannelId || compatibleChannels[0]?.id || null);
     
-    // For competitor analysis
-    const [competitorUrl, setCompetitorUrl] = useState('');
-    const [competitorPlatform, setCompetitorPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [analysisUrl, setAnalysisUrl] = useState('');
+    const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const comboboxRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-      // Sync state if a channel was clicked from the dashboard
-      if(activeChannelId) {
-        setSelectedChannelId(activeChannelId);
-      }
-    }, [activeChannelId]);
-
-    const handleAnalyze = useCallback(async (channelUrl: string, platform: 'YouTube' | 'TikTok') => {
+    const handleAnalyze = useCallback(async (channelUrl: string, channelPlatform: 'YouTube' | 'TikTok') => {
         if (!channelUrl) {
-            setError("Please select a channel or enter a URL.");
+            setError("Please select or enter a channel URL.");
             return;
         }
         setLoading(true);
         setError(null);
         setAnalytics(null);
         setOpportunities([]);
-        // Clear active channel ID from dashboard when a new analysis starts
         setActiveChannelId(null);
         try {
             const [analyticsResult, opportunitiesResult] = await Promise.all([
-                getChannelAnalytics(channelUrl, platform),
-                generateChannelOpportunities(channelUrl, platform)
+                getChannelAnalytics(channelUrl, channelPlatform),
+                generateChannelOpportunities(channelUrl, channelPlatform)
             ]);
             setAnalytics(analyticsResult);
             setOpportunities(opportunitiesResult);
@@ -85,30 +77,36 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
         }
     }, [setActiveChannelId]);
     
-    // Auto-analyze when selected channel changes
     useEffect(() => {
-        if (selectedChannelId) {
-            const channel = compatibleChannels.find(c => c.id === selectedChannelId);
-            if (channel) {
-                handleAnalyze(channel.url, channel.platform as 'YouTube' | 'TikTok');
-            }
+        const channelToAnalyze = compatibleChannels.find(c => c.id === activeChannelId);
+        if (channelToAnalyze) {
+            setAnalysisUrl(channelToAnalyze.url);
+            setPlatform(channelToAnalyze.platform as 'YouTube' | 'TikTok');
+            handleAnalyze(channelToAnalyze.url, channelToAnalyze.platform as 'YouTube' | 'TikTok');
+        } else if (initialInput) {
+            setAnalysisUrl(initialInput);
+            handleAnalyze(initialInput, platform);
+        } else if (compatibleChannels.length > 0) {
+            setAnalysisUrl(compatibleChannels[0].url);
+            setPlatform(compatibleChannels[0].platform as 'YouTube' | 'TikTok');
         }
-    }, [selectedChannelId, compatibleChannels, handleAnalyze]);
+    }, [activeChannelId, initialInput, compatibleChannels, handleAnalyze]);
 
-    const handleCompetitorAnalyze = (url?: string) => {
-        const urlToAnalyze = url || competitorUrl;
-        if (urlToAnalyze.trim()) {
-            setSelectedChannelId(null); // Deselect own channel
-            handleAnalyze(urlToAnalyze, competitorPlatform);
-        }
-    };
-    
     useEffect(() => {
-        if (initialInput) {
-            setCompetitorUrl(initialInput);
-            handleCompetitorAnalyze(initialInput);
-        }
-    }, [initialInput, handleCompetitorAnalyze]);
+        const handleClickOutside = (event: MouseEvent) => {
+            if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    
+    const handleSelectChannel = (channel: (typeof compatibleChannels)[0]) => {
+        setAnalysisUrl(channel.url);
+        setPlatform(channel.platform as 'YouTube' | 'TikTok');
+        setIsDropdownOpen(false);
+    };
 
     const renderTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
       switch (trend) {
@@ -137,38 +135,41 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
                 </h2>
                 <p className="text-center text-slate-400 mb-6">Analyze your channels or get insights on competitors.</p>
                 
-                {compatibleChannels.length > 0 && (
-                    <div className="mb-6">
-                        <label htmlFor="channel-select-analytics" className="block text-sm font-medium text-slate-300 mb-2">Analyze Your Channels</label>
-                         <select
-                            id="channel-select-analytics"
-                            value={selectedChannelId || ''}
-                            onChange={(e) => setSelectedChannelId(e.target.value)}
-                            title="Select one of your connected channels to analyze"
-                            className="form-select"
-                        >
-                             <option value="" disabled>Select one of your channels...</option>
-                            {compatibleChannels.map(channel => (
-                                <option key={channel.id} value={channel.id}>
-                                    {channel.platform} - {channel.url.split('/').pop() || channel.url}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-                 <div className="mb-2 text-center text-sm font-semibold text-slate-400">OR</div>
                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Analyze a Competitor</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Channel to Analyze</label>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-grow">
-                             <input type="url" value={competitorUrl} onChange={e => setCompetitorUrl(e.target.value)} placeholder="Enter competitor channel URL..." title="Enter the URL of a competitor's channel to analyze (Pro feature)" className="form-input"/>
+                        <div className="relative flex-grow" ref={comboboxRef}>
+                             <input 
+                                type="url" 
+                                value={analysisUrl} 
+                                onChange={e => setAnalysisUrl(e.target.value)}
+                                onFocus={() => setIsDropdownOpen(true)}
+                                placeholder="Select your channel or paste a URL..." 
+                                title="Select a saved channel or paste a competitor's URL" 
+                                className="form-input pr-10"
+                            />
+                            <ChevronDown className={`w-5 h-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            {isDropdownOpen && compatibleChannels.length > 0 && (
+                                <div className="absolute top-full mt-2 w-full bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto animate-fade-in">
+                                    {compatibleChannels.map(channel => (
+                                        <button 
+                                            key={channel.id} 
+                                            onClick={() => handleSelectChannel(channel)}
+                                            className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-violet-500/30 flex items-center gap-2"
+                                        >
+                                           {channel.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : <TikTok className="w-5 h-5" />}
+                                           <span className="truncate">{channel.url.split('/').pop() || channel.url}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="flex gap-2">
                             <div className="segmented-control">
-                                <button onClick={() => setCompetitorPlatform('YouTube')} title="Set platform to YouTube" className={competitorPlatform === 'YouTube' ? 'active' : ''}><Youtube className="w-5 h-5"/> </button>
-                                <button onClick={() => setCompetitorPlatform('TikTok')} title="Set platform to TikTok" className={competitorPlatform === 'TikTok' ? 'active' : ''}><TikTok className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('YouTube')} title="Set platform to YouTube" className={platform === 'YouTube' ? 'active' : ''}><Youtube className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('TikTok')} title="Set platform to TikTok" className={platform === 'TikTok' ? 'active' : ''}><TikTok className="w-5 h-5"/> </button>
                             </div>
-                            <button onClick={() => handleCompetitorAnalyze()} disabled={loading} title="Analyze the entered competitor channel (Pro feature)" className="button-primary">Analyze</button>
+                            <button onClick={() => handleAnalyze(analysisUrl, platform)} disabled={loading} title="Analyze the entered channel (Pro feature)" className="button-primary">Analyze</button>
                         </div>
                     </div>
                  </div>
