@@ -112,6 +112,12 @@ const Header: React.FC<HeaderProps> = ({ setActiveTab, navStructure, userMenuTab
             >
               Dashboard
             </button>
+            <button
+              onClick={() => setActiveTab(Tab.Affiliate)}
+              className="px-3 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors rounded-md"
+            >
+              Affiliate Program
+            </button>
             {navStructure.map(section => (
               <NavDropdown 
                 key={section.label}

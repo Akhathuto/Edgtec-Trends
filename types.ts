@@ -108,6 +108,7 @@ export enum Tab {
   VideoEditor = 'video-editor',
   ThumbnailGenerator = 'thumbnail-generator',
   CommentResponder = 'comment-responder',
+  Affiliate = 'affiliate',
 }
 
 export interface GroundingSource {

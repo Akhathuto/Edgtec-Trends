@@ -43,6 +43,7 @@ import ThumbnailGenerator from './ThumbnailGenerator';
 import CommentResponder from './CommentResponder';
 import VideoAnalyzer from './VideoAnalyzer';
 import RepurposeContent from './RepurposeContent';
+import AffiliateProgram from './AffiliateProgram';
 
 import CheckoutModal from './CheckoutModal';
 import { User } from '../types';
@@ -162,6 +163,7 @@ const AppLayout: React.FC = () => {
       case Tab.VideoEditor: return <VideoEditor setActiveTab={setActiveTab} />;
       case Tab.ThumbnailGenerator: return <ThumbnailGenerator />;
       case Tab.CommentResponder: return <CommentResponder />;
+      case Tab.Affiliate: return <AffiliateProgram />;
       default: return <Dashboard setActiveTab={setActiveTab} setActiveAnalyticsChannelId={setActiveAnalyticsChannelId} />;
     }
   };

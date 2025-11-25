@@ -6,7 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build",
+    "mock-api": "node dev-mock-api/server.js",
+    "serve-dist": "node serve-dist/server.js"
   },
   "dependencies": {
     "@google/genai": "^1.24.0",
@@ -24,6 +26,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
+    "terser": "^5.44.1",
     "typescript": "^5.5.3",
     "vite": "^5.3.2"
   }

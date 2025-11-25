@@ -79,6 +79,28 @@ This is a modern React application built with Vite.
 4.  **Open in browser:**
     Open your browser and navigate to the local address provided by the Vercel CLI (e.g., `http://localhost:3000`). The application should now be running.
 
+### Developer notes (deployment fixes)
+
+- If you see an error like `vite' is not recognized` when running `npm run dev`, you likely haven't installed dependencies yet. Run:
+
+```bash
+npm install
+```
+
+- On some Windows systems there may be insufficient space on the system (C:) to download npm packages. To avoid this, a project-local `.npmrc` has been added that points the npm cache to the project folder on the D: drive. If you prefer another location, update or remove the `.npmrc` file.
+
+- If you encounter peer dependency resolution errors (ERESOLVE) during install, use the legacy resolver:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+- Recommended environment:
+    - Node.js 18.x or later
+    - npm 9.x (or compatible)
+
+These changes were applied to help get the development server running locally (Vite) and avoid common Windows/C: disk-space issues during npm install.
+
 ## ✨ Key Features
 
 The `utrend` platform is organized into four powerful suites to cover every aspect of your content creation journey.
@@ -240,7 +262,7 @@ By using `utrend`, you agree to the following terms and conditions:
 
 ### Company Details
 
-- **Legal Name:** utrend
+- **Legal Name:** Edgtec pty ltd
 - **Business Status:** In Business
 - **Country of Origin:** South Africa
 - **Registration Number:** 2025/534716/07

@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors');
+
 module.exports = {
   content: [
     "./index.html",
@@ -11,12 +13,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'violet': '#8B5CF6',
-        'violet-dark': '#7C3AED',
-        'violet-light': '#A78BFA',
+        // Provide a violet palette but keep a DEFAULT so `bg-violet` still works
+        violet: {
+          DEFAULT: '#8B5CF6',
+          ...colors.violet,
+        },
+        // keep a richer single-value alias for some one-off uses
         'violet-rich': '#6D28D9',
-        'cyan': '#22d3ee',
-        'teal': '#14b8a6',
+        // use Tailwind palettes for cyan/teal
+        cyan: colors.cyan,
+        teal: colors.teal,
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-in-out',

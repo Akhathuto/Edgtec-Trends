@@ -1,3 +1,10 @@
+node_modules/
+.npm-cache/
+dist/
+.env
+.DS_Store
+/.vite
+/*.log
 # Logs
 logs
 *.log

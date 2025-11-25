@@ -43,20 +43,20 @@ body::after {
 }
 
 .bg-brand-glass {
-  @apply bg-slate-900/70 backdrop-blur-2xl border border-slate-700/50 shadow-2xl;
+  @apply bg-slate-900 bg-opacity-70 backdrop-blur-2xl border border-slate-700 border-opacity-50 shadow-2xl;
 }
 
 .interactive-card {
-  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
+  @apply bg-slate-900 bg-opacity-60 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
 }
 
 .interactive-card:hover {
-  @apply transform -translate-y-1.5 border-violet-500/80 shadow-glow-lg bg-slate-900/80;
+  @apply transform -translate-y-1.5 border-violet-500 border-opacity-80 shadow-glow-lg bg-slate-900 bg-opacity-80;
 }
 
 /* Form elements */
 .form-input, .form-select {
-  @apply w-full bg-slate-900/80 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-inner;
+  @apply w-full bg-slate-900 bg-opacity-80 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500 focus:ring-opacity-50 transition-all shadow-inner;
 }
 
 textarea.form-input {
@@ -140,7 +140,8 @@ input[type="checkbox"]:focus-visible {
 
 /* Buttons */
 .button-primary {
-    @apply flex items-center justify-center bg-gradient-to-br from-violet to-violet-dark hover:from-violet-light hover:to-violet text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-600/30 hover:shadow-xl hover:shadow-violet-500/30 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-violet-400;
+  /* Use explicit generated palette shades so Tailwind can resolve these in @apply */
+  @apply flex items-center justify-center bg-gradient-to-br from-violet-500 to-violet-700 hover:from-violet-400 hover:to-violet-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-violet-400;
 }
 .button-secondary {
     @apply flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-100 font-semibold py-2.5 px-5 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-slate-500;
