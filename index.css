@@ -91,7 +91,7 @@ input[type="range"]::-webkit-slider-thumb {
   @apply h-5 w-5 rounded-full bg-violet transition-colors;
 }
 input[type="range"]:hover::-webkit-slider-thumb {
-  @apply bg-violet-light;
+  @apply bg-violet-300;
 }
 input[type="range"]:focus-visible::-webkit-slider-thumb {
   @apply ring-2 ring-offset-2 ring-violet-400 ring-offset-slate-950;
@@ -104,7 +104,7 @@ input[type="range"]::-moz-range-thumb {
   @apply h-5 w-5 rounded-full border-0 bg-violet transition-colors;
 }
 input[type="range"]:hover::-moz-range-thumb {
-  @apply bg-violet-light;
+  @apply bg-violet-300;
 }
 input[type="range"]:focus-visible::-moz-range-thumb {
    outline: 2px solid #A78BFA; /* violet-light */
