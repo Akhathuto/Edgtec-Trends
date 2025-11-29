@@ -1,0 +1,244 @@
+/* Content script injected styles */
+
+/* Edgtec insights widget styling */
+.edgtec-widget-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* YouTube specific */
+.edgtec-youtube-widget {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.edgtec-youtube-widget h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #60a5fa;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edgtec-youtube-widget .metric {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.edgtec-youtube-widget .metric:last-child {
+  border-bottom: none;
+}
+
+.edgtec-youtube-widget .metric-label {
+  color: #cbd5e1;
+}
+
+.edgtec-youtube-widget .metric-value {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+/* TikTok specific */
+.edgtec-tiktok-widget {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.edgtec-tiktok-widget h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #60a5fa;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.stat-card {
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-card.trending-up {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.stat-card.trending-down {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.stat-card .label {
+  color: #94a3b8;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.stat-card .value {
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.stat-card.trending-up .value {
+  color: #10b981;
+}
+
+.stat-card.trending-down .value {
+  color: #ef4444;
+}
+
+/* Tags/chips */
+.tag {
+  display: inline-block;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin: 4px 4px 4px 0;
+}
+
+/* Buttons */
+.edgtec-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.edgtec-btn-primary {
+  background: #60a5fa;
+  color: #0f172a;
+}
+
+.edgtec-btn-primary:hover {
+  background: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.edgtec-btn-primary:active {
+  transform: translateY(0);
+}
+
+.edgtec-btn-secondary {
+  background: transparent;
+  color: #60a5fa;
+  border: 1px solid #334155;
+}
+
+.edgtec-btn-secondary:hover {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: #60a5fa;
+}
+
+/* Loading state */
+.edgtec-loading {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #60a5fa;
+  animation: edgtec-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes edgtec-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Animations */
+@keyframes edgtec-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edgtec-widget-container {
+  animation: edgtec-slideIn 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .edgtec-youtube-widget,
+  .edgtec-tiktok-widget {
+    padding: 12px;
+    margin: 12px 0;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .edgtec-youtube-widget,
+  .edgtec-tiktok-widget {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+}
+
+/* Light mode support */
+@media (prefers-color-scheme: light) {
+  .edgtec-youtube-widget,
+  .edgtec-tiktok-widget {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #1e293b;
+    border-color: #e2e8f0;
+  }
+  
+  .edgtec-youtube-widget h3,
+  .edgtec-tiktok-widget h3 {
+    color: #3b82f6;
+  }
+  
+  .edgtec-youtube-widget .metric-label,
+  .edgtec-tiktok-widget .metric-label {
+    color: #475569;
+  }
+  
+  .edgtec-youtube-widget .metric-value,
+  .edgtec-tiktok-widget .metric-value {
+    color: #3b82f6;
+  }
+}

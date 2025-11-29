@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="16" height="16" rx="3.2" fill="#0f172a"/>
+  <!-- Trend bars -->
+  <rect x="2.4" y="8.8" width="2.4" height="4.8" fill="url(#grad)" rx="2"/>
+  <rect x="6.4" y="5.6" width="2.4" height="8" fill="url(#grad)" rx="2"/>
+  <rect x="10.4" y="2.4" width="2.4" height="11.2" fill="url(#grad)" rx="2"/>
+  <!-- Trend line -->
+  <polyline points="2.4,8.8 6.4,5.6 10.4,2.4 14.4,4" 
+            stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

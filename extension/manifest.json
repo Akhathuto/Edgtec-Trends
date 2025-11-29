@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Edgtec Trends",
+  "version": "1.0.0",
+  "description": "Get real-time trend insights and export to Edgtec while browsing YouTube and TikTok",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://www.tiktok.com/*",
+    "https://*.vercel.app/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
+    },
+    "default_title": "Edgtec Trends"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content-youtube.js"],
+      "css": ["content.css"]
+    },
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["content-tiktok.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "icons": {
+    "16": "images/icon-16.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["https://www.youtube.com/*", "https://www.tiktok.com/*"]
+    }
+  ]
+}
