@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { registerServiceWorker } from './utils/swRegister';
 import './index.css';
 
 const container = document.getElementById('root');
@@ -39,6 +40,9 @@ window.addEventListener('unhandledrejection', (ev) => {
   const reason = (ev && ev.reason) || 'Unhandled promise rejection';
   renderErrorOverlay(String(reason), ev.reason && ev.reason.stack ? ev.reason.stack : '');
 });
+
+// Register service worker for caching and offline support
+registerServiceWorker();
 
 if (container) {
   try {
