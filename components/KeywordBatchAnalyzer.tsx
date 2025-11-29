@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import exportToCsv from '@/utils/exportCsv';
 import ActionPackModal from './ActionPackModal';
 
-type ResultRow = { keyword: string; volume: number; difficulty: number; score: number };
+type ResultRow = { keyword: string; volume: number; difficulty: number; score: number; trendScore?: number; trending?: 'up' | 'down' };
 
 const analyzeKeywords = (keywords: string[]): ResultRow[] => {
   // Simulate lightweight analysis for demonstration.
@@ -28,6 +28,8 @@ const KeywordBatchAnalyzer: React.FC = () => {
   const [saved, setSaved] = useState<SavedAnalysis[]>([]);
   const [packOpen, setPackOpen] = useState(false);
   const [currentPack, setCurrentPack] = useState<any | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [packLoading, setPackLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -49,7 +51,14 @@ const KeywordBatchAnalyzer: React.FC = () => {
   const run = () => {
     const keywords = input.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
     const res = analyzeKeywords(keywords);
-    setRows(res);
+    setLoading(true);
+    Promise.all(res.map(async (row) => {
+      const trends = await fetchTrendData(row.keyword);
+      return { ...row, ...trends };
+    })).then((enriched) => {
+      setRows(enriched);
+      setLoading(false);
+    });
   };
 
   const saveCurrent = (name?: string) => {
@@ -65,8 +74,48 @@ const KeywordBatchAnalyzer: React.FC = () => {
 
   const deleteAnalysis = (id: string) => setSaved((s) => s.filter((x) => x.id !== id));
 
+  const fetchTrendData = async (keyword: string) => {
+    try {
+      const res = await fetch(`/api/trends?keyword=${encodeURIComponent(keyword)}`);
+      if (res.ok) {
+        const data = await res.json();
+        return { trendScore: data.trendScore, trending: data.trendDirection };
+      }
+    } catch (e) {
+      console.error(`Failed to fetch trends for "${keyword}":`, e);
+    }
+    return {};
+  };
+
+  const fetchActionPackFromApi = async (keyword: string, volume?: number, difficulty?: number) => {
+    try {
+      setPackLoading(true);
+      const res = await fetch('/api/action-pack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword, volume, difficulty }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.error('Failed to fetch action pack from API:', e);
+    } finally {
+      setPackLoading(false);
+    }
+    return null;
+  };
+
   const generateActionPackFor = (keyword: string, score?: number) => {
-    // Simple template-based generator. Replace with LLM calls later.
+    fetchActionPackFromApi(keyword, score).then(pack => {
+      if (pack) {
+        setCurrentPack(pack);
+        setPackOpen(true);
+      }
+    });
+  };
+
+  const generateActionPackFallback = (keyword: string, score?: number) => {
     const urgency = (score || 0) > 50 ? 'High' : (score || 0) > 20 ? 'Medium' : 'Low';
     const titles = [
       `${keyword} — Quick Wins for 2025`,
@@ -143,6 +192,8 @@ CTA: Subscribe + check link.`;
                 <th className="px-3 py-2 text-right">Volume</th>
                 <th className="px-3 py-2 text-right">Difficulty</th>
                 <th className="px-3 py-2 text-right">Score</th>
+                <th className="px-3 py-2 text-right">Trend Score</th>
+                <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -153,7 +204,16 @@ CTA: Subscribe + check link.`;
                   <td className="px-3 py-2 text-right">{r.difficulty}</td>
                   <td className="px-3 py-2 text-right font-semibold">{r.score}</td>
                   <td className="px-3 py-2 text-right">
-                    <Button onClick={() => generateActionPackFor(r.keyword, r.score)}>Action Pack</Button>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-semibold">{r.trendScore ?? '—'}</span>
+                      {r.trending === 'up' && <span className="text-green-400">↑</span>}
+                      {r.trending === 'down' && <span className="text-red-400">↓</span>}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <Button onClick={() => generateActionPackFor(r.keyword, r.score)} disabled={packLoading}>
+                      {packLoading ? 'Loading...' : 'Pack'}
+                    </Button>
                   </td>
                 </tr>
               ))}
