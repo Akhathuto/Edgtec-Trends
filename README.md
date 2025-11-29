@@ -38,6 +38,7 @@
 - [🤖 Meet Your AI Agents](#-meet-your-ai-agents)
 - [💻 Technology Stack](#-technology-stack)
 - [📦 What's Included](#-whats-included)
+- [📖 Documentation & Resources](#-documentation--resources)
 - [Legal & Company Information](#legal--company-information)
 
 ---
@@ -288,7 +289,44 @@ Consult your personal team of AI experts, each with a unique specialty to guide 
 - **docker-compose.yml** - Container orchestration
 - **.env.local.example** - Environment variables template
 
+---
 
+## 📖 Documentation & Resources
+
+### Getting Started
+- **[QUICK_START.md](./QUICK_START.md)** - 3-minute quick reference
+- **[PRODUCTION_SETUP.md](./PRODUCTION_SETUP.md)** - Production deployment guide
+
+### Browser Extension
+- **[extension/README.md](./extension/README.md)** - Feature overview and troubleshooting
+- **[extension/INSTALLATION.md](./extension/INSTALLATION.md)** - 5-minute setup guide
+- **[extension/TESTING.md](./extension/TESTING.md)** - 123+ test cases
+- **[extension/ARCHITECTURE.md](./extension/ARCHITECTURE.md)** - Technical design documentation
+
+### Development
+- **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)** - Complete development guide (setup, standards, debugging)
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Project overview and status
+- **[ROADMAP.md](./ROADMAP.md)** - Product roadmap (v1.0 → v3.0)
+- **[PERFORMANCE_OPTIMIZATION.md](./PERFORMANCE_OPTIMIZATION.md)** - Optimization strategies and implementation roadmap
+
+<details>
+<summary><strong>📚 All Documentation Files</strong></summary>
+
+- `README.md` - Main project overview (this file)
+- `QUICK_START.md` - Quick reference guide
+- `PRODUCTION_SETUP.md` - Production deployment (7 steps)
+- `DEVELOPER_GUIDE.md` - Development guide (setup, conventions, debugging)
+- `PROJECT_STATUS.md` - Complete project status and inventory
+- `ROADMAP.md` - Product roadmap through v3.0
+- `PERFORMANCE_OPTIMIZATION.md` - Build optimization guide
+- `EXTENSION_COMPLETION_SUMMARY.md` - Extension implementation summary
+- `EXTENSION_IMPLEMENTATION_COMPLETE.md` - Completion report
+- `extension/README.md` - Extension feature documentation
+- `extension/INSTALLATION.md` - Extension setup guide
+- `extension/TESTING.md` - Comprehensive test checklist
+- `extension/ARCHITECTURE.md` - Extension technical design
+
+</details>
 
 <details>
 <summary><strong>License and Intellectual Property</strong></summary>
