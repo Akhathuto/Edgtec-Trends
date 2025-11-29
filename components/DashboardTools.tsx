@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import KeywordBatchAnalyzer from './KeywordBatchAnalyzer';
 import TrendFilters from './TrendFilters';
 import ContentCalendar from './ContentCalendar';
+import YouTubeAnalytics from './YouTubeAnalytics';
 import exportToCsv from '@/utils/exportCsv';
 
 const sampleRows = [
@@ -16,6 +17,7 @@ const DashboardTools: React.FC = () => {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showYouTube, setShowYouTube] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -26,11 +28,18 @@ const DashboardTools: React.FC = () => {
         <Button onClick={() => setShowAnalyzer((s) => !s)}>🔎 Keyword Batch Analyzer</Button>
         <Button onClick={() => setShowFilters((s) => !s)}>🧰 Trend Filters</Button>
         <Button onClick={() => setShowCalendar((s) => !s)}>📅 Content Calendar</Button>
+        <Button onClick={() => setShowYouTube((s) => !s)}>📊 YouTube Analytics</Button>
       </div>
 
       {showCalendar && (
         <div className="mt-4">
           <ContentCalendar />
+        </div>
+      )}
+
+      {showYouTube && (
+        <div className="mt-4">
+          <YouTubeAnalytics />
         </div>
       )}
 
