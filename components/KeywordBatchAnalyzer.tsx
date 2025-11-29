@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import exportToCsv from '@/utils/exportCsv';
+import ActionPackModal from './ActionPackModal';
 
 type ResultRow = { keyword: string; volume: number; difficulty: number; score: number };
 
@@ -25,6 +26,8 @@ const KeywordBatchAnalyzer: React.FC = () => {
   const [input, setInput] = useState('');
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [saved, setSaved] = useState<SavedAnalysis[]>([]);
+  const [packOpen, setPackOpen] = useState(false);
+  const [currentPack, setCurrentPack] = useState<any | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -62,6 +65,30 @@ const KeywordBatchAnalyzer: React.FC = () => {
 
   const deleteAnalysis = (id: string) => setSaved((s) => s.filter((x) => x.id !== id));
 
+  const generateActionPackFor = (keyword: string, score?: number) => {
+    // Simple template-based generator. Replace with LLM calls later.
+    const urgency = (score || 0) > 50 ? 'High' : (score || 0) > 20 ? 'Medium' : 'Low';
+    const titles = [
+      `${keyword} — Quick Wins for 2025`,
+      `How to ${keyword} and Grow Fast`,
+      `${keyword}: Tips, Tricks & Examples`
+    ];
+    const descriptions = [
+      `Short guide: ${titles[0]}. Learn practical steps and tools to get traction quickly.`,
+      `Step-by-step: ${titles[1]}. Includes publishing checklist and hashtag suggestions.`,
+      `Examples and templates to help you create fast content on ${keyword}.`
+    ];
+    const hashtags = [keyword.replace(/\s+/g, ''), 'growth', 'creator', 'shorts', 'howto'].slice(0,5);
+    const script = `Hook: Quick stat or question about ${keyword}.
+Explain: 2-3 bullets with value.
+CTA: Subscribe + check link.`;
+    const suggestedTime = new Date(Date.now() + 1000 * 60 * 60 * 24).toLocaleString();
+    const pack = { keyword, titles, descriptions, hashtags, script, suggestedTime, urgency };
+    setCurrentPack(pack);
+    setPackOpen(true);
+    return pack;
+  };
+
   return (
     <div className="bg-brand-glass p-4 rounded-md">
       <h4 className="font-semibold text-white mb-2">Keyword Batch Analyzer</h4>
@@ -77,6 +104,12 @@ const KeywordBatchAnalyzer: React.FC = () => {
         <Button onClick={run}>Analyze</Button>
         <Button onClick={() => { setInput(''); setRows([]); }}>Clear</Button>
         <Button onClick={() => saveCurrent()} disabled={rows.length === 0}>Save Analysis</Button>
+        <Button onClick={() => {
+          // generate an action pack for top score
+          if (rows.length === 0) return;
+          const top = rows.sort((a,b) => b.score - a.score)[0];
+          generateActionPackFor(top.keyword, top.score);
+        }}>Generate Action Pack</Button>
         <Button onClick={() => exportToCsv('keywords.csv', rows)} className="ml-auto">Export CSV</Button>
       </div>
 
@@ -119,12 +152,16 @@ const KeywordBatchAnalyzer: React.FC = () => {
                   <td className="px-3 py-2 text-right">{r.volume}</td>
                   <td className="px-3 py-2 text-right">{r.difficulty}</td>
                   <td className="px-3 py-2 text-right font-semibold">{r.score}</td>
+                  <td className="px-3 py-2 text-right">
+                    <Button onClick={() => generateActionPackFor(r.keyword, r.score)}>Action Pack</Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      <ActionPackModal open={packOpen} onClose={() => setPackOpen(false)} pack={currentPack} />
     </div>
   );
 };
