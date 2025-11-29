@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Header from './Header';
 import TrendingTicker from './TrendingTicker';
@@ -14,12 +14,16 @@ import Dashboard from './Dashboard';
 import TrendDiscovery from './TrendDiscovery';
 import KeywordResearch from './KeywordResearch';
 import ChannelAnalytics from './ChannelAnalytics';
-import { AIChat } from './AIChat';
+import Spinner from './Spinner';
+// Lazy-load heavy components to reduce initial bundle size
+const AIChat = React.lazy(() => import('./AIChat').then(mod => ({ default: mod.AIChat })));
+const VideoGenerator = React.lazy(() => import('./VideoGenerator'));
+const AnimationCreator = React.lazy(() => import('./AnimationCreator'));
+const AvatarCreator = React.lazy(() => import('./AvatarCreator').then(mod => ({ default: mod.AvatarCreator })));
 import AIAgents from './AIAgents';
 import AIVoiceCoPilot from './AIVoiceCoPilot';
 import ContentHistory from './ContentHistory';
 import ContentGenerator from './ContentGenerator';
-import VideoGenerator from './VideoGenerator';
 import MonetizationGuide from './MonetizationGuide';
 import StrategyReport from './StrategyReport';
 import ChannelGrowth from './ChannelGrowth';
@@ -32,12 +36,10 @@ import ContactPage from './ContactPage';
 import About from './About';
 import LegalPage from './LegalPage';
 import PromptGenerator from './PromptGenerator';
-import AnimationCreator from './AnimationCreator';
 import GifCreator from './GifCreator';
 import ImageEditor from './ImageEditor';
 import { LogoCreator } from './LogoCreator';
 import { ImageGenerator } from './ImageGenerator';
-import { AvatarCreator } from './AvatarCreator';
 import VideoEditor from './VideoEditor';
 import ThumbnailGenerator from './ThumbnailGenerator';
 import CommentResponder from './CommentResponder';
@@ -133,11 +135,19 @@ const AppLayout: React.FC = () => {
       case Tab.Trends: return <TrendDiscovery />;
       case Tab.Keywords: return <KeywordResearch />;
       case Tab.Analytics: return <ChannelAnalytics setActiveTab={setActiveTab} activeChannelId={activeAnalyticsChannelId} setActiveChannelId={setActiveAnalyticsChannelId}/>;
-      case Tab.Chat: return <AIChat setActiveTab={setActiveTab} />;
+      case Tab.Chat: return (
+        <Suspense fallback={<Spinner />}>
+          <AIChat setActiveTab={setActiveTab} />
+        </Suspense>
+      );
       case Tab.Agents: return <AIAgents setActiveTab={setActiveTab} />;
       case Tab.AIVoiceCoPilot: return <AIVoiceCoPilot setActiveTab={setActiveTab} />;
       case Tab.Ideas: return <ContentGenerator />;
-      case Tab.Video: return <VideoGenerator setActiveTab={setActiveTab} />;
+      case Tab.Video: return (
+        <Suspense fallback={<Spinner />}>
+          <VideoGenerator setActiveTab={setActiveTab} />
+        </Suspense>
+      );
       case Tab.Monetization: return <MonetizationGuide />;
       case Tab.Report: return <StrategyReport setActiveTab={setActiveTab} />;
       case Tab.ChannelGrowth: return <ChannelGrowth setActiveTab={setActiveTab} />;
@@ -154,12 +164,20 @@ const AppLayout: React.FC = () => {
       case Tab.VideoAnalyzer: return <VideoAnalyzer />;
       case Tab.RepurposeContent: return <RepurposeContent />;
       case Tab.Prompt: return <PromptGenerator />;
-      case Tab.AnimationCreator: return <AnimationCreator setActiveTab={setActiveTab} />;
+      case Tab.AnimationCreator: return (
+        <Suspense fallback={<Spinner />}>
+          <AnimationCreator setActiveTab={setActiveTab} />
+        </Suspense>
+      );
       case Tab.GifCreator: return <GifCreator setActiveTab={setActiveTab} />;
       case Tab.ImageEditor: return <ImageEditor setActiveTab={setActiveTab} />;
       case Tab.LogoCreator: return <LogoCreator setActiveTab={setActiveTab} />;
       case Tab.ImageGenerator: return <ImageGenerator setActiveTab={setActiveTab} />;
-      case Tab.AvatarCreator: return <AvatarCreator setActiveTab={setActiveTab} />;
+      case Tab.AvatarCreator: return (
+        <Suspense fallback={<Spinner />}>
+          <AvatarCreator setActiveTab={setActiveTab} />
+        </Suspense>
+      );
       case Tab.VideoEditor: return <VideoEditor setActiveTab={setActiveTab} />;
       case Tab.ThumbnailGenerator: return <ThumbnailGenerator />;
       case Tab.CommentResponder: return <CommentResponder />;
