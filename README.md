@@ -11,7 +11,14 @@
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/Gemini_API-8E44AD?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Gemini API">
+  <img src="https://img.shields.io/badge/Chrome_Extension-FF9800?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Chrome Extension">
   <a href="https://github.com/Akhathuto/Edgtec-Trends.git"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
+</div>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square" alt="Status">
+  <img src="https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </div>
 
 <div align="center">
@@ -24,11 +31,13 @@
 ### 📋 Table of Contents
 
 - [About The App](#about-the-app)
+- [🆕 Browser Extension](#-browser-extension-new)
 - [📂 Repository](#-repository)
 - [🚀 Getting Started](#-getting-started)
 - [✨ Key Features](#-key-features)
 - [🤖 Meet Your AI Agents](#-meet-your-ai-agents)
 - [💻 Technology Stack](#-technology-stack)
+- [📦 What's Included](#-whats-included)
 - [Legal & Company Information](#legal--company-information)
 
 ---
@@ -36,6 +45,44 @@
 ## About The App
 
 `utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to streamline your entire workflow, from discovering real-time trends to generating production-ready video scripts and assets.
+
+---
+
+## 🆕 Browser Extension (NEW!)
+
+**Edgtec Browser Extension** - Real-time trend insights while you browse YouTube and TikTok!
+
+### Key Highlights
+- 📊 **Live Trend Analysis** - Get trend scores and direction instantly while watching videos
+- 💾 **One-Click Export** - Save video ideas directly to your Edgtec calendar
+- 🎯 **Auto-Extract Metadata** - Automatically captures video title, channel, and stats
+- ⚙️ **Personalized Settings** - Configure app URL, toggle features, persist settings
+- 🔗 **Context Menu Integration** - Right-click any YouTube/TikTok page to export
+- 🎨 **Dark Theme UI** - Beautiful, modern interface with smooth animations
+
+### Supported Platforms
+- ✅ YouTube watch pages
+- ✅ TikTok video pages
+- ✅ Chrome, Chromium, Edge, Brave (v88+)
+- 🔄 Firefox & Safari (v2.0 planned)
+
+### Quick Start
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start development server
+npm run dev
+
+# 3. Load extension (chrome://extensions → Developer mode → Load unpacked)
+# Select the extension/ folder
+
+# 4. Visit any YouTube video and start using!
+```
+
+**📖 [Extension Installation Guide](./extension/INSTALLATION.md)** - 5-minute setup  
+**📖 [Extension Features Guide](./extension/README.md)** - Complete documentation  
+**📖 [Testing Checklist](./extension/TESTING.md)** - 123+ test cases
 
 ## 📂 Repository
 
@@ -196,7 +243,52 @@ Consult your personal team of AI experts, each with a unique specialty to guide 
 
 ---
 
-## Legal & Company Information
+## 📦 What's Included
+
+### 🎯 Main Application
+- **Dashboard** with trend filters, tag cloud, keyword analyzer
+- **Content Calendar** - Plan and organize your content
+- **Keyword Batch Analyzer** - Analyze multiple keywords and get trend insights
+- **Action Pack Generator** - AI-powered content suggestions
+- **YouTube Analytics** - Connect and monitor your channel metrics
+- **Affiliate Program** - Join and manage partnerships
+
+### 🔌 Browser Extension
+- **YouTube Content Script** - Auto-inject insights on watch pages
+- **TikTok Content Script** - Inline trend analysis
+- **Popup Interface** - 3-tab UI (Insights, Export, Settings)
+- **Real-time Trends** - Live trend scores and direction
+- **One-Click Export** - Save to calendar instantly
+- **Context Menu** - Right-click to export videos
+- **Settings Panel** - Customize and persist preferences
+
+### 🔗 API Routes
+- `/api/trends` - Get trend data and analysis
+- `/api/action-pack` - Generate AI-powered content packs
+- `/api/youtube/auth` - OAuth 2.0 authentication
+- `/api/youtube/metrics` - Fetch channel analytics
+- `/api/youtube/publish` - Schedule and publish videos
+
+### 📚 Documentation
+- **README.md** - Project overview
+- **PRODUCTION_SETUP.md** - 7-step production deployment guide
+- **QUICK_START.md** - 3-minute quick reference
+- **PROJECT_STATUS.md** - Complete project status
+- **EXTENSION_COMPLETION_SUMMARY.md** - Extension overview
+- **EXTENSION_IMPLEMENTATION_COMPLETE.md** - Completion report
+- **extension/README.md** - Extension features
+- **extension/INSTALLATION.md** - Extension setup (5 min)
+- **extension/TESTING.md** - Testing checklist (123+ tests)
+- **extension/ARCHITECTURE.md** - Technical design
+
+### 🛠️ Scripts & Configuration
+- **scripts/setup.js** - Interactive setup automation
+- **scripts/verify.js** - Setup verification
+- **Dockerfile** - Production container image
+- **docker-compose.yml** - Container orchestration
+- **.env.local.example** - Environment variables template
+
+
 
 <details>
 <summary><strong>License and Intellectual Property</strong></summary>
