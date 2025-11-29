@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import KeywordBatchAnalyzer from './KeywordBatchAnalyzer';
 import TrendFilters from './TrendFilters';
+import ContentCalendar from './ContentCalendar';
 import exportToCsv from '@/utils/exportCsv';
 
 const sampleRows = [
@@ -14,6 +15,7 @@ const sampleRows = [
 const DashboardTools: React.FC = () => {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -23,7 +25,14 @@ const DashboardTools: React.FC = () => {
         </Button>
         <Button onClick={() => setShowAnalyzer((s) => !s)}>🔎 Keyword Batch Analyzer</Button>
         <Button onClick={() => setShowFilters((s) => !s)}>🧰 Trend Filters</Button>
+        <Button onClick={() => setShowCalendar((s) => !s)}>📅 Content Calendar</Button>
       </div>
+
+      {showCalendar && (
+        <div className="mt-4">
+          <ContentCalendar />
+        </div>
+      )}
 
       {showAnalyzer && (
         <div className="mt-4">
