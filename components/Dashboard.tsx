@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Tab, Channel } from '../types';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
-import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown } from './Icons';
+import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown, Download, Eye, Heart, Share2 } from './Icons';
+import DashboardTools from './DashboardTools';
 
 interface DashboardProps {
   setActiveTab: (tab: Tab) => void;
@@ -193,6 +194,14 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
                      </button>
                 </div>
             </div>
+
+                {/* Dashboard Tools (export, filters, keyword analyzer) */}
+                <div>
+                    <h2 className="text-2xl font-bold mb-4">Quick Tools</h2>
+                    <div className="bg-transparent">
+                        <DashboardTools />
+                    </div>
+                </div>
 
         </div>
     );
