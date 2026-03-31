@@ -711,6 +711,7 @@ const availableTools: { [key: string]: (args: any) => Promise<string> } = {
 };
 
 export async function sendMessageToAgent(agent: AgentType, history: AppChatMessage[], settings: AgentSettings): Promise<AppChatMessage[]> {
+    if (history.length === 0) return [];
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const message = history[history.length - 1].content;
 
@@ -718,7 +719,7 @@ export async function sendMessageToAgent(agent: AgentType, history: AppChatMessa
         if (msg.role === 'tool') {
             return {
                 role: 'model',
-                parts: [{ functionResponse: { name: msg.toolCall!.name, response: msg.toolResult } }]
+                parts: [{ functionResponse: { name: msg.toolCall?.name || 'unknown_tool', response: msg.toolResult } }]
             };
         }
         return {
