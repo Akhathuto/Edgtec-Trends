@@ -50,8 +50,12 @@ export interface AuthContextType {
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithFacebook: () => Promise<void>;
   signUp: (name: string, email: string, pass: string, plan: PlanName) => Promise<void>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<void>;
+  signInWithPhone: (phoneNumber: string, recaptchaContainerId: string) => Promise<void>;
+  verifyOtp: (otp: string) => Promise<void>;
   upgradePlan: (plan: PlanName) => Promise<void>;
   getAllUsers: () => Promise<User[]>;
   updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => Promise<void>;

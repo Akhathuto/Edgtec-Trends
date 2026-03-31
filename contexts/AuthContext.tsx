@@ -1,12 +1,15 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { User, AuthContextType, ActivityLog, KeywordUsage, HistoryItem, PlanName } from '../types';
-import { auth, db, googleProvider } from '../firebase';
+import { auth, db, googleProvider, facebookProvider } from '../firebase';
 import { 
     onAuthStateChanged, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     signOut, 
-    signInWithPopup
+    signInWithPopup,
+    RecaptchaVerifier,
+    signInWithPhoneNumber,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { 
     doc, 
@@ -30,6 +33,7 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
     const [loading, setLoading] = useState(true);
     const [activities, setActivities] = useState<ActivityLog[]>([]);
     const [history, setHistory] = useState<HistoryItem[]>([]);
+    const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
     const handleFirestoreError = (error: unknown, operationType: string, path: string | null) => {
         const errInfo = {
@@ -60,6 +64,7 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
                             id: firebaseUser.uid,
                             name: firebaseUser.displayName || 'User',
                             email: firebaseUser.email || '',
+                            phone: firebaseUser.phoneNumber || '',
                             plan: 'free',
                             role: firebaseUser.email === 'akhathuto@gmail.com' ? 'admin' : 'user',
                             channels: []
@@ -156,6 +161,10 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
         await signInWithPopup(auth, googleProvider);
     };
 
+    const loginWithFacebook = async (): Promise<void> => {
+        await signInWithPopup(auth, facebookProvider);
+    };
+
     const signUp = async (name: string, email: string, pass: string, plan: PlanName): Promise<void> => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const firebaseUser = userCredential.user;
@@ -175,6 +184,24 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
 
     const logout = async () => {
         await signOut(auth);
+    };
+
+    const resetPassword = async (email: string) => {
+        await sendPasswordResetEmail(auth, email);
+    };
+
+    const signInWithPhone = async (phoneNumber: string, recaptchaContainerId: string) => {
+        const appVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+            size: 'invisible'
+        });
+        const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+        setConfirmationResult(result);
+    };
+
+    const verifyOtp = async (otp: string) => {
+        if (!confirmationResult) throw new Error("No confirmation result found. Please request a code first.");
+        await confirmationResult.confirm(otp);
+        setConfirmationResult(null);
     };
 
     const upgradePlan = useCallback(async (plan: PlanName) => {
@@ -282,8 +309,12 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
             loading, 
             login, 
             loginWithGoogle,
+            loginWithFacebook,
             signUp, 
             logout, 
+            resetPassword,
+            signInWithPhone,
+            verifyOtp,
             upgradePlan, 
             getAllUsers, 
             updateUser, 
