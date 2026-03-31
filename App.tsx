@@ -170,7 +170,7 @@ const App: React.FC = () => {
     if (showAuth) {
       return <Login />;
     }
-    return <LandingPage />;
+    return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
   return (
