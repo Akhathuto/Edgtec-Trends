@@ -3,7 +3,7 @@ import { generateAnimation, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Star, Clapperboard, RefreshCw, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
@@ -27,10 +27,10 @@ const animationTemplates: { name: string; prompt: string; }[] = [
 
 
 interface AnimationCreatorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => {
+const AnimationCreator: React.FC<AnimationCreatorProps> = ({ onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [animationStyle, setAnimationStyle] = useState(animationStyles[0]);
@@ -194,7 +194,7 @@ const AnimationCreator: React.FC<AnimationCreatorProps> = ({ setActiveTab }) => 
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the Animation Creator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The Animation Creator is a Pro feature. Upgrade your account to start creating custom animations.</p>
                 <button
-                    onClick={() => setActiveTab(Tab.Pricing)}
+                    onClick={() => onNavigate('pricing')}
                     className="button-primary"
                     title="View subscription plans to upgrade"
                 >

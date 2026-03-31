@@ -3,17 +3,17 @@ import { generateLogo } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Star, Wand, RefreshCw, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 import GalleryModal from './GalleryModal';
 
 const logoStyles = ['Minimalist', 'Geometric', 'Abstract', 'Vintage', 'Modern', 'Hand-drawn', 'Futuristic'];
 
 interface LogoCreatorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-export const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
+export const LogoCreator: React.FC<LogoCreatorProps> = ({ onNavigate }) => {
     const { user, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [style, setStyle] = useState(logoStyles[0]);
@@ -63,7 +63,7 @@ export const LogoCreator: React.FC<LogoCreatorProps> = ({ setActiveTab }) => {
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Logo Creator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The AI Logo Creator is a Pro feature. Upgrade to design a professional logo for your brand.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary">View Plans</button>
             </div>
         );
     }

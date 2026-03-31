@@ -73,6 +73,71 @@ export interface Plan {
   isFeatured?: boolean;
 }
 
+export interface Tool {
+  id: ToolId;
+  name: string;
+  description: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  color: string;
+  category: 'content' | 'growth' | 'monetization' | 'ai' | 'other';
+  component: React.FC<any>;
+}
+
+export type ToolId = 
+  | 'dashboard'
+  | 'content-repurposing'
+  | 'growth-planner'
+  | 'engagement-tools'
+  | 'avatar-studio'
+  | 'media-editor'
+  | 'image-editor'
+  | 'media-generator'
+  | 'script-writer'
+  | 'content-analyzer'
+  | 'trends-keywords'
+  | 'nolo-ai'
+  | 'ai-voice-copilot'
+  | 'my-content'
+  | 'thumbnail-ideas'
+  | 'video-editor'
+  | 'monetization-guide'
+  | 'content-calendar'
+  | 'collaboration'
+  | 'analytics'
+  | 'seo-automation'
+  | 'brand-connect'
+  | 'video-analyzer'
+  | 'strategy-report'
+  | 'ai-agents'
+  | 'settings'
+  | 'profile'
+  | 'pricing'
+  | 'admin'
+  | 'support'
+  | 'content-history'
+  | 'contact'
+  | 'about'
+  | 'terms'
+  | 'license'
+  | 'prompt';
+
+export type ToolType = 
+  | ToolId
+  | 'image-generator'
+  | 'logo-creator'
+  | 'video-generator'
+  | 'animation-creator'
+  | 'gif-creator'
+  | 'trend-discovery'
+  | 'keyword-research'
+  | 'channel-analytics'
+  | 'ai-agents'
+  | 'content-generator'
+  | 'strategy-report'
+  | 'channel-growth-plan'
+  | 'brand-connect'
+  | 'repurpose-content';
+
 export enum Tab {
   Dashboard = 'dashboard',
   Trends = 'trends',
@@ -108,7 +173,6 @@ export enum Tab {
   VideoEditor = 'video-editor',
   ThumbnailGenerator = 'thumbnail-generator',
   CommentResponder = 'comment-responder',
-  Affiliate = 'affiliate',
 }
 
 export interface GroundingSource {
@@ -252,7 +316,7 @@ export interface ThumbnailIdea {
 }
 
 export interface AgentSettings {
-  model: 'gemini-2.5-flash' | 'gemini-2.5-pro';
+  model: 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview';
   temperature: number;
 }
 
@@ -270,6 +334,7 @@ export interface Agent {
     icon: React.FC<React.SVGProps<SVGSVGElement>>;
   }[];
   tools?: any[];
+  skills?: string[];
 }
 
 export interface AvatarProfile {

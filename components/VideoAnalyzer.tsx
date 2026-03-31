@@ -1,11 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { analyzeVideoUrl } from '../services/geminiService';
-import { VideoAnalysis } from '../types';
+import { ToolId, VideoAnalysis } from '../types';
 import Spinner from './Spinner';
 import { Film, Link, CheckCircle } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
-const VideoAnalyzer: React.FC = () => {
+interface VideoAnalyzerProps {
+    onNavigate: (toolId: ToolId, state?: any) => void;
+}
+
+const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ onNavigate }) => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

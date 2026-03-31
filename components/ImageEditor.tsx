@@ -3,16 +3,16 @@ import { editImage } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Edit, Star, UploadCloud, RefreshCw, Download, Sliders, Trash2 } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ImageEditorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
 const imageStyles = ['Default', 'Cinematic', 'Vintage Film', 'Anime', 'Documentary', 'Hyperlapse', 'Claymation', 'Black and White', 'Vibrant Colors'];
 
-const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
+const ImageEditor: React.FC<ImageEditorProps> = ({ onNavigate }) => {
   const { user, addContentToHistory } = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<{ data: string, mimeType: string, url: string } | null>(null);
@@ -139,7 +139,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ setActiveTab }) => {
         <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Image Editor</h2>
         <p className="text-slate-400 mb-6 max-w-md">The AI Image Editor is a Pro feature. Upgrade your account to start creating.</p>
         <button
-          onClick={() => setActiveTab(Tab.Pricing)}
+          onClick={() => onNavigate('pricing')}
           className="button-primary"
         >
           View Plans

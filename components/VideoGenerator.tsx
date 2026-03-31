@@ -3,7 +3,7 @@ import { generateVideo, checkVideoStatus, extendVideo } from '../services/gemini
 import Spinner from './Spinner';
 import { Star, Video, UploadCloud, RefreshCw, Download, Film, X, ChevronsRight } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
@@ -15,10 +15,10 @@ const loadingMessages = [
 ];
 
 interface VideoGeneratorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
+const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [referenceImages, setReferenceImages] = useState<{ data: string, mimeType: string, url: string, file: File }[]>([]);
@@ -234,7 +234,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({ setActiveTab }) => {
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Video Generator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The Video Generator is a Pro feature. Upgrade your account to start creating videos from text or images.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary" title="View subscription plans to upgrade">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary" title="View subscription plans to upgrade">View Plans</button>
             </div>
         )
     }

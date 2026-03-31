@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateChannelGrowthPlan } from '../services/geminiService';
-import { ChannelGrowthPlan, Tab } from '../types';
+import { ChannelGrowthPlan, ToolId } from '../types';
 import Spinner from './Spinner';
 import { Star, Link, Rocket, CheckCircle, FileText, BarChart2, Users, Eye, ChevronDown } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelGrowthProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
 const GrowthSection: React.FC<{ title: string; icon: React.ReactNode; analysis: string; recommendations: string[] }> = ({ title, icon, analysis, recommendations }) => (
@@ -56,7 +56,7 @@ const GrowthPlanSkeleton = () => (
 );
 
 
-const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
+const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -107,7 +107,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Personalized Growth Plans</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Get a custom, AI-powered strategy to grow your channel, including content, SEO, and thumbnail analysis.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} title="View subscription plans to upgrade" className="button-primary">
+                <button onClick={() => onNavigate('pricing')} title="View subscription plans to upgrade" className="button-primary">
                     View Plans
                 </button>
             </div>
@@ -120,7 +120,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ setActiveTab }) => {
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Connect a YouTube or TikTok Channel</h2>
                 <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add a YouTube or TikTok channel URL to your profile.</p>
-                <button onClick={() => setActiveTab(Tab.Profile)} title="Go to your profile to connect a channel" className="button-primary">
+                <button onClick={() => onNavigate('profile')} title="Go to your profile to connect a channel" className="button-primary">
                     Go to Profile
                 </button>
             </div>

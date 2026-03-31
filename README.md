@@ -11,14 +11,7 @@
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/Gemini_API-8E44AD?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Gemini API">
-  <img src="https://img.shields.io/badge/Chrome_Extension-FF9800?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Chrome Extension">
   <a href="https://github.com/Akhathuto/Edgtec-Trends.git"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
-</div>
-
-<div align="center">
-  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square" alt="Status">
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </div>
 
 <div align="center">
@@ -31,14 +24,11 @@
 ### 📋 Table of Contents
 
 - [About The App](#about-the-app)
-- [🆕 Browser Extension](#-browser-extension-new)
 - [📂 Repository](#-repository)
 - [🚀 Getting Started](#-getting-started)
 - [✨ Key Features](#-key-features)
 - [🤖 Meet Your AI Agents](#-meet-your-ai-agents)
 - [💻 Technology Stack](#-technology-stack)
-- [📦 What's Included](#-whats-included)
-- [📖 Documentation & Resources](#-documentation--resources)
 - [Legal & Company Information](#legal--company-information)
 
 ---
@@ -46,44 +36,6 @@
 ## About The App
 
 `utrend` is an all-in-one, AI-powered content suite designed to help YouTube and TikTok creators ideate, strategize, create, and grow their channels. Powered by Google's Gemini API, `utrend` provides a comprehensive toolkit to streamline your entire workflow, from discovering real-time trends to generating production-ready video scripts and assets.
-
----
-
-## 🆕 Browser Extension (NEW!)
-
-**Edgtec Browser Extension** - Real-time trend insights while you browse YouTube and TikTok!
-
-### Key Highlights
-- 📊 **Live Trend Analysis** - Get trend scores and direction instantly while watching videos
-- 💾 **One-Click Export** - Save video ideas directly to your Edgtec calendar
-- 🎯 **Auto-Extract Metadata** - Automatically captures video title, channel, and stats
-- ⚙️ **Personalized Settings** - Configure app URL, toggle features, persist settings
-- 🔗 **Context Menu Integration** - Right-click any YouTube/TikTok page to export
-- 🎨 **Dark Theme UI** - Beautiful, modern interface with smooth animations
-
-### Supported Platforms
-- ✅ YouTube watch pages
-- ✅ TikTok video pages
-- ✅ Chrome, Chromium, Edge, Brave (v88+)
-- 🔄 Firefox & Safari (v2.0 planned)
-
-### Quick Start
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start development server
-npm run dev
-
-# 3. Load extension (chrome://extensions → Developer mode → Load unpacked)
-# Select the extension/ folder
-
-# 4. Visit any YouTube video and start using!
-```
-
-**📖 [Extension Installation Guide](./extension/INSTALLATION.md)** - 5-minute setup  
-**📖 [Extension Features Guide](./extension/README.md)** - Complete documentation  
-**📖 [Testing Checklist](./extension/TESTING.md)** - 123+ test cases
 
 ## 📂 Repository
 
@@ -126,28 +78,6 @@ This is a modern React application built with Vite.
 
 4.  **Open in browser:**
     Open your browser and navigate to the local address provided by the Vercel CLI (e.g., `http://localhost:3000`). The application should now be running.
-
-### Developer notes (deployment fixes)
-
-- If you see an error like `vite' is not recognized` when running `npm run dev`, you likely haven't installed dependencies yet. Run:
-
-```bash
-npm install
-```
-
-- On some Windows systems there may be insufficient space on the system (C:) to download npm packages. To avoid this, a project-local `.npmrc` has been added that points the npm cache to the project folder on the D: drive. If you prefer another location, update or remove the `.npmrc` file.
-
-- If you encounter peer dependency resolution errors (ERESOLVE) during install, use the legacy resolver:
-
-```bash
-npm install --legacy-peer-deps
-```
-
-- Recommended environment:
-    - Node.js 18.x or later
-    - npm 9.x (or compatible)
-
-These changes were applied to help get the development server running locally (Vite) and avoid common Windows/C: disk-space issues during npm install.
 
 ## ✨ Key Features
 
@@ -244,89 +174,7 @@ Consult your personal team of AI experts, each with a unique specialty to guide 
 
 ---
 
-## 📦 What's Included
-
-### 🎯 Main Application
-- **Dashboard** with trend filters, tag cloud, keyword analyzer
-- **Content Calendar** - Plan and organize your content
-- **Keyword Batch Analyzer** - Analyze multiple keywords and get trend insights
-- **Action Pack Generator** - AI-powered content suggestions
-- **YouTube Analytics** - Connect and monitor your channel metrics
-- **Affiliate Program** - Join and manage partnerships
-
-### 🔌 Browser Extension
-- **YouTube Content Script** - Auto-inject insights on watch pages
-- **TikTok Content Script** - Inline trend analysis
-- **Popup Interface** - 3-tab UI (Insights, Export, Settings)
-- **Real-time Trends** - Live trend scores and direction
-- **One-Click Export** - Save to calendar instantly
-- **Context Menu** - Right-click to export videos
-- **Settings Panel** - Customize and persist preferences
-
-### 🔗 API Routes
-- `/api/trends` - Get trend data and analysis
-- `/api/action-pack` - Generate AI-powered content packs
-- `/api/youtube/auth` - OAuth 2.0 authentication
-- `/api/youtube/metrics` - Fetch channel analytics
-- `/api/youtube/publish` - Schedule and publish videos
-
-### 📚 Documentation
-- **README.md** - Project overview
-- **PRODUCTION_SETUP.md** - 7-step production deployment guide
-- **QUICK_START.md** - 3-minute quick reference
-- **PROJECT_STATUS.md** - Complete project status
-- **EXTENSION_COMPLETION_SUMMARY.md** - Extension overview
-- **EXTENSION_IMPLEMENTATION_COMPLETE.md** - Completion report
-- **extension/README.md** - Extension features
-- **extension/INSTALLATION.md** - Extension setup (5 min)
-- **extension/TESTING.md** - Testing checklist (123+ tests)
-- **extension/ARCHITECTURE.md** - Technical design
-
-### 🛠️ Scripts & Configuration
-- **scripts/setup.js** - Interactive setup automation
-- **scripts/verify.js** - Setup verification
-- **Dockerfile** - Production container image
-- **docker-compose.yml** - Container orchestration
-- **.env.local.example** - Environment variables template
-
----
-
-## 📖 Documentation & Resources
-
-### Getting Started
-- **[QUICK_START.md](./QUICK_START.md)** - 3-minute quick reference
-- **[PRODUCTION_SETUP.md](./PRODUCTION_SETUP.md)** - Production deployment guide
-
-### Browser Extension
-- **[extension/README.md](./extension/README.md)** - Feature overview and troubleshooting
-- **[extension/INSTALLATION.md](./extension/INSTALLATION.md)** - 5-minute setup guide
-- **[extension/TESTING.md](./extension/TESTING.md)** - 123+ test cases
-- **[extension/ARCHITECTURE.md](./extension/ARCHITECTURE.md)** - Technical design documentation
-
-### Development
-- **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)** - Complete development guide (setup, standards, debugging)
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Project overview and status
-- **[ROADMAP.md](./ROADMAP.md)** - Product roadmap (v1.0 → v3.0)
-- **[PERFORMANCE_OPTIMIZATION.md](./PERFORMANCE_OPTIMIZATION.md)** - Optimization strategies and implementation roadmap
-
-<details>
-<summary><strong>📚 All Documentation Files</strong></summary>
-
-- `README.md` - Main project overview (this file)
-- `QUICK_START.md` - Quick reference guide
-- `PRODUCTION_SETUP.md` - Production deployment (7 steps)
-- `DEVELOPER_GUIDE.md` - Development guide (setup, conventions, debugging)
-- `PROJECT_STATUS.md` - Complete project status and inventory
-- `ROADMAP.md` - Product roadmap through v3.0
-- `PERFORMANCE_OPTIMIZATION.md` - Build optimization guide
-- `EXTENSION_COMPLETION_SUMMARY.md` - Extension implementation summary
-- `EXTENSION_IMPLEMENTATION_COMPLETE.md` - Completion report
-- `extension/README.md` - Extension feature documentation
-- `extension/INSTALLATION.md` - Extension setup guide
-- `extension/TESTING.md` - Comprehensive test checklist
-- `extension/ARCHITECTURE.md` - Extension technical design
-
-</details>
+## Legal & Company Information
 
 <details>
 <summary><strong>License and Intellectual Property</strong></summary>
@@ -392,7 +240,7 @@ By using `utrend`, you agree to the following terms and conditions:
 
 ### Company Details
 
-- **Legal Name:** Edgtec pty ltd
+- **Legal Name:** utrend
 - **Business Status:** In Business
 - **Country of Origin:** South Africa
 - **Registration Number:** 2025/534716/07

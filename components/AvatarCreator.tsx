@@ -3,13 +3,13 @@ import { generateAvatar, generateAvatarFromPhoto, generateRandomAvatarProfile, s
 import Spinner from './Spinner';
 import { Star, User as UserIcon, RefreshCw, Download, Wand, UploadCloud, MessageSquare, Send, Trash2, Bot, Sparkles } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab, AvatarProfile } from '../types';
+import { ToolId, AvatarProfile } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 import { useToast } from '../contexts/ToastContext';
 import { avatarStyles, genders, shotTypes, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions';
 
 interface AvatarCreatorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
 interface ChatMessage {
@@ -26,7 +26,7 @@ const TypingIndicator: React.FC = () => (
 );
 
 
-export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) => {
+export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ onNavigate }) => {
     const { user, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     
@@ -106,12 +106,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
         try {
             let result: string | null = null;
             if (creationMode === 'profile' && profile) {
-                const { gender, avatarStyle, background, shotType, ...featuresObj } = profile;
-                const features = Object.entries(featuresObj)
-                    .filter(([, value]) => value && typeof value === 'string' && value.toLowerCase() !== 'none')
-                    .map(([key, value]) => `${key.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${value}`)
-                    .join(', ');
-                result = await generateAvatar(gender, avatarStyle, features, background, shotType);
+                result = await generateAvatar(profile);
             } else if (creationMode === 'photo' && photoFile) {
                 const base64 = await fileToBase64(photoFile);
                 result = await generateAvatarFromPhoto(base64, photoFile.type, photoPrompt);
@@ -177,7 +172,7 @@ export const AvatarCreator: React.FC<AvatarCreatorProps> = ({ setActiveTab }) =>
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Avatar Creator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The Avatar Creator is a Pro feature. Upgrade to design your own custom AI avatar and chat with it.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary">View Plans</button>
             </div>
         );
     }

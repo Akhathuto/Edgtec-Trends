@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateContentIdeas, generateVideoScript } from '../services/geminiService';
-import { ContentIdea } from '../types';
+import { ContentIdea, ToolId } from '../types';
 import Spinner from './Spinner';
 import { Lightbulb, Youtube, TikTok, Star, FileText, Sparkles, Copy, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,7 @@ import ErrorDisplay from './ErrorDisplay';
 
 interface ContentGeneratorProps {
   initialInput?: string | null;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
 const IdeaCardSkeleton = () => (
@@ -34,7 +35,7 @@ const IdeaCardSkeleton = () => (
     </div>
 );
 
-const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput }) => {
+const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput, onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     const [topic, setTopic] = useState('');

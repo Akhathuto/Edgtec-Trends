@@ -3,7 +3,7 @@ import { generateGif, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Star, RefreshCw, Gif, Download } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
@@ -15,10 +15,10 @@ const loadingMessages = [
 ];
 
 interface GifCreatorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
+const GifCreator: React.FC<GifCreatorProps> = ({ onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
@@ -165,7 +165,7 @@ const GifCreator: React.FC<GifCreatorProps> = ({ setActiveTab }) => {
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI GIF Creator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The GIF Creator is a Pro feature. Upgrade your account to create your own animated GIFs.</p>
                 <button
-                    onClick={() => setActiveTab(Tab.Pricing)}
+                    onClick={() => onNavigate('pricing')}
                     className="button-primary"
                 >
                     View Plans

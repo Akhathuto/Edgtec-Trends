@@ -7,6 +7,7 @@
     "build": "vite build",
     "start": "vite build && node server.js",
     "preview": "vite preview",
+    "lint": "tsc --noEmit",
     "vercel-build": "vite build",
     "mock-api": "node dev-mock-api/server.js",
     "serve-dist": "node serve-dist/server.js",
@@ -15,9 +16,14 @@
   },
   "dependencies": {
     "@google/genai": "^1.24.0",
+    "@types/express": "^5.0.6",
     "date-fns": "^3.6.0",
+    "express": "^5.2.1",
+    "lucide-react": "^1.0.1",
+    "motion": "^12.38.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",

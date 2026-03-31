@@ -100,13 +100,22 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Refs to stabilize callbacks and prevent infinite re-renders
+  const historyRef = useRef(history);
+  const activeAgentRef = useRef(activeAgent);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => { historyRef.current = history; }, [history]);
+  useEffect(() => { activeAgentRef.current = activeAgent; }, [activeAgent]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+
   // Search
   const [searchTerm, setSearchTerm] = useState('');
 
   // Agent Settings
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [agentSettings, setAgentSettings] = useState<AgentSettings>({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     temperature: 0.7,
   });
   
@@ -120,10 +129,10 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   }, [user]);
 
   const handleSendMessage = useCallback(async (message: string, agentOverride?: AgentType, historyOverride?: ChatMessage[]) => {
-    const currentAgent = agentOverride || activeAgent;
-    const currentHistoryBase = historyOverride || history;
+    const currentAgent = agentOverride || activeAgentRef.current;
+    const currentHistoryBase = historyOverride || historyRef.current;
 
-    if (!message.trim() || loading) return;
+    if (!message.trim() || loadingRef.current) return;
 
     const newUserMessage: ChatMessage = { role: 'user', content: message };
     const currentHistoryWithNewMessage = [...currentHistoryBase, newUserMessage];
@@ -142,7 +151,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     } finally {
         setLoading(false);
     }
-}, [activeAgent, history, loading, agentSettings, logActivity]);
+}, [agentSettings, logActivity]);
 
 
   const switchAgent = useCallback((agent: AgentType, initialPrompt?: string) => {
@@ -169,7 +178,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
     if (user) {
       switchAgent(agents[0]);
     }
-  }, [user, switchAgent]);
+  }, [user?.id, switchAgent]);
 
   useEffect(() => {
     if (user && history.length > 0) {
@@ -186,7 +195,7 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
   
   const handleSaveSettings = (newSettings: AgentSettings) => {
     if (user) {
-        if (newSettings.model === 'gemini-2.5-pro' && user.plan !== 'pro') {
+        if (newSettings.model === 'gemini-3.1-pro-preview' && user.plan !== 'pro') {
             showToast('The Pro model is only available on the Pro plan.');
             return;
         }
@@ -275,7 +284,16 @@ const AIAgents: React.FC<AIAgentsProps> = ({ setActiveTab }) => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-white">{agent.name}</h3>
-                    <p className="text-sm text-slate-400 line-clamp-2">{agent.description}</p>
+                    <p className="text-sm text-slate-400 line-clamp-2 mb-2">{agent.description}</p>
+                    {agent.skills && (
+                      <div className="flex flex-wrap gap-1">
+                        {agent.skills.map((skill, i) => (
+                          <span key={i} className="text-[10px] px-1.5 py-0.5 bg-slate-700/50 text-slate-300 rounded border border-slate-600/50">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>

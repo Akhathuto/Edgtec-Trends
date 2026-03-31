@@ -25,9 +25,9 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
   }, [currentSettings, isOpen]);
 
   const handleSave = () => {
-    if (model === 'gemini-2.5-pro' && user?.plan !== 'pro') {
+    if (model === 'gemini-3.1-pro-preview' && user?.plan !== 'pro') {
       showToast('The Pro model is only available on the Pro plan.');
-      setModel('gemini-2.5-flash'); 
+      setModel('gemini-3-flash-preview'); 
       return;
     }
     onSave({ model, temperature });
@@ -52,9 +52,9 @@ const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({ isOpen, onClose
             title="Choose the underlying AI model for the agents"
             className="form-select"
           >
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast & Balanced)</option>
-            <option value="gemini-2.5-pro" disabled={user?.plan !== 'pro'}>
-              Gemini 2.5 Pro (Highest Quality) {user?.plan !== 'pro' && '(Pro Plan only)'}
+            <option value="gemini-3-flash-preview">Gemini 3 Flash (Fast & Balanced)</option>
+            <option value="gemini-3.1-pro-preview" disabled={user?.plan !== 'pro'}>
+              Gemini 3.1 Pro (Highest Quality) {user?.plan !== 'pro' && '(Pro Plan only)'}
             </option>
           </select>
           <p className="text-xs text-slate-500 mt-1">"Pro" model provides more nuanced and higher-quality responses.</p>

@@ -3,7 +3,7 @@ import { generateImage } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Star, Image } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 import GalleryModal from './GalleryModal';
 
@@ -18,10 +18,10 @@ interface GeneratedImage {
 }
 
 interface ImageGeneratorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) => {
+export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onNavigate }) => {
     const { user, addContentToHistory } = useAuth();
     const [prompt, setPrompt] = useState('');
     const [style, setStyle] = useState(imageStyles[0]);
@@ -66,7 +66,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ setActiveTab }) 
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Image Generator</h2>
                 <p className="text-slate-400 mb-6 max-w-md">The Image Generator is a Pro feature. Upgrade your account to create stunning, unique images from text.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary">View Plans</button>
             </div>
         );
     }

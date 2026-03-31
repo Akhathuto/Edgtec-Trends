@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
-import { ChannelAnalyticsData, Tab } from '../types';
+import { ChannelAnalyticsData, ToolId } from '../types';
 import Spinner from './Spinner';
 import { Star, BarChart2, Youtube, TikTok, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelAnalyticsProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
   activeChannelId: string | null;
   setActiveChannelId: (id: string | null) => void;
   initialInput?: string | null;
@@ -39,7 +39,7 @@ const ChannelAnalyticsSkeleton = () => (
     </div>
 );
 
-const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activeChannelId, setActiveChannelId, initialInput }) => {
+const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeChannelId, setActiveChannelId, initialInput }) => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -122,7 +122,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ setActiveTab, activ
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for Channel Analytics</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Get AI-powered insights on your channels, analyze competitors, and receive actionable growth opportunities.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary">View Plans</button>
             </div>
         );
     }

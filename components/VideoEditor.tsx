@@ -3,7 +3,7 @@ import { editVideo, checkVideoStatus } from '../services/geminiService';
 import Spinner from './Spinner';
 import { Star, Scissors, RefreshCw, Download, UploadCloud, Sliders } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { Tab } from '../types';
+import { ToolId } from '../types';
 import ErrorDisplay from './ErrorDisplay';
 
 const loadingMessages = [
@@ -19,10 +19,10 @@ const specialEffects = ['None', 'Confetti', 'Fireworks', 'VHS Glitch', 'Lens Fla
 const cameraMotions = ['None', 'Slow Pan Left', 'Slow Zoom In', 'Drone Shot Rising', 'Spinning'];
 
 interface VideoEditorProps {
-  setActiveTab: (tab: Tab) => void;
+  onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
-const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
+const VideoEditor: React.FC<VideoEditorProps> = ({ onNavigate }) => {
     const { user, addContentToHistory } = useAuth();
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageBase64, setImageBase64] = useState<{ data: string, mimeType: string, url: string } | null>(null);
@@ -185,7 +185,7 @@ const VideoEditor: React.FC<VideoEditorProps> = ({ setActiveTab }) => {
                 <Star className="w-12 h-12 text-yellow-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Upgrade to Pro for the AI Video Editor</h2>
                 <p className="text-slate-400 mb-6 max-w-md">Animate images into short video clips using text prompts and an advanced AI toolkit.</p>
-                <button onClick={() => setActiveTab(Tab.Pricing)} className="button-primary">View Plans</button>
+                <button onClick={() => onNavigate('pricing')} className="button-primary">View Plans</button>
             </div>
         );
     }
