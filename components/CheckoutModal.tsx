@@ -28,25 +28,27 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, plan }) 
   const planDetails = plans.find(p => p.name.toLowerCase() === plan);
   if (!planDetails) return null; 
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
       e.preventDefault();
       setError('');
       setLoading(true);
-      setTimeout(() => {
-          try {
-             if (plan === 'starter' || plan === 'pro') {
-                upgradePlan(plan);
-                showToast(`Successfully upgraded to the ${planDetails.name} plan!`);
-                onClose();
-             } else {
-                 throw new Error("Invalid plan selected");
-             }
-          } catch (err) {
-              setError("Payment failed. Please try again.");
-          } finally {
-              setLoading(false);
+      
+      try {
+          // Simulate payment delay
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          if (plan === 'starter' || plan === 'pro') {
+              await upgradePlan(plan);
+              showToast(`Successfully upgraded to the ${planDetails.name} plan!`);
+              onClose();
+          } else {
+              throw new Error("Invalid plan selected");
           }
-      }, 1500);
+      } catch (err) {
+          setError("Payment failed. Please try again.");
+      } finally {
+          setLoading(false);
+      }
   }
 
   return (

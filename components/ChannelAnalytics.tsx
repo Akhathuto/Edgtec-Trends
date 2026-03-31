@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
 import { ChannelAnalyticsData, ToolId } from '../types';
 import Spinner from './Spinner';
-import { Star, BarChart2, Youtube, TikTok, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
+import { Star, BarChart2, Youtube, TikTok, Facebook, Instagram, Twitch, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelAnalyticsProps {
@@ -46,14 +46,14 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
     const [analytics, setAnalytics] = useState<ChannelAnalyticsData | null>(null);
     const [opportunities, setOpportunities] = useState<string[]>([]);
     
-    const compatibleChannels = user?.channels?.filter(c => c.platform === 'YouTube' || c.platform === 'TikTok') || [];
+    const compatibleChannels = user?.channels?.filter(c => ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'].includes(c.platform)) || [];
     
     const [analysisUrl, setAnalysisUrl] = useState('');
-    const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'>('YouTube');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const comboboxRef = useRef<HTMLDivElement>(null);
 
-    const handleAnalyze = useCallback(async (channelUrl: string, channelPlatform: 'YouTube' | 'TikTok') => {
+    const handleAnalyze = useCallback(async (channelUrl: string, channelPlatform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch') => {
         if (!channelUrl) {
             setError("Please select or enter a channel URL.");
             return;
@@ -81,14 +81,14 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
         const channelToAnalyze = compatibleChannels.find(c => c.id === activeChannelId);
         if (channelToAnalyze) {
             setAnalysisUrl(channelToAnalyze.url);
-            setPlatform(channelToAnalyze.platform as 'YouTube' | 'TikTok');
-            handleAnalyze(channelToAnalyze.url, channelToAnalyze.platform as 'YouTube' | 'TikTok');
+            setPlatform(channelToAnalyze.platform as any);
+            handleAnalyze(channelToAnalyze.url, channelToAnalyze.platform as any);
         } else if (initialInput) {
             setAnalysisUrl(initialInput);
             handleAnalyze(initialInput, platform);
         } else if (compatibleChannels.length > 0) {
             setAnalysisUrl(compatibleChannels[0].url);
-            setPlatform(compatibleChannels[0].platform as 'YouTube' | 'TikTok');
+            setPlatform(compatibleChannels[0].platform as any);
         }
     }, [activeChannelId, initialInput, compatibleChannels, handleAnalyze]);
 
@@ -104,7 +104,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
     
     const handleSelectChannel = (channel: (typeof compatibleChannels)[0]) => {
         setAnalysisUrl(channel.url);
-        setPlatform(channel.platform as 'YouTube' | 'TikTok');
+        setPlatform(channel.platform as any);
         setIsDropdownOpen(false);
     };
 
@@ -157,17 +157,24 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
                                             onClick={() => handleSelectChannel(channel)}
                                             className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-violet-500/30 flex items-center gap-2"
                                         >
-                                           {channel.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : <TikTok className="w-5 h-5" />}
-                                           <span className="truncate">{channel.url.split('/').pop() || channel.url}</span>
+                                            {channel.platform === 'YouTube' && <Youtube className="w-5 h-5 text-red-500"/>}
+                                            {channel.platform === 'TikTok' && <TikTok className="w-5 h-5" />}
+                                            {channel.platform === 'Facebook' && <Facebook className="w-5 h-5 text-blue-600" />}
+                                            {channel.platform === 'Instagram' && <Instagram className="w-5 h-5 text-pink-500" />}
+                                            {channel.platform === 'Twitch' && <Twitch className="w-5 h-5 text-purple-500" />}
+                                            <span className="truncate">{channel.url.split('/').pop() || channel.url}</span>
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <div className="segmented-control">
+                            <div className="segmented-control overflow-x-auto">
                                 <button onClick={() => setPlatform('YouTube')} title="Set platform to YouTube" className={platform === 'YouTube' ? 'active' : ''}><Youtube className="w-5 h-5"/> </button>
                                 <button onClick={() => setPlatform('TikTok')} title="Set platform to TikTok" className={platform === 'TikTok' ? 'active' : ''}><TikTok className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Instagram')} title="Set platform to Instagram" className={platform === 'Instagram' ? 'active' : ''}><Instagram className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Facebook')} title="Set platform to Facebook" className={platform === 'Facebook' ? 'active' : ''}><Facebook className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Twitch')} title="Set platform to Twitch" className={platform === 'Twitch' ? 'active' : ''}><Twitch className="w-5 h-5"/> </button>
                             </div>
                             <button onClick={() => handleAnalyze(analysisUrl, platform)} disabled={loading} title="Analyze the entered channel (Pro feature)" className="button-primary">Analyze</button>
                         </div>

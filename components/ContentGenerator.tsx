@@ -3,6 +3,7 @@ import { generateContentIdeas, generateVideoScript } from '../services/geminiSer
 import { ContentIdea, ToolId } from '../types';
 import Spinner from './Spinner';
 import { Lightbulb, Youtube, TikTok, Star, FileText, Sparkles, Copy, Download } from './Icons';
+import * as Icons from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import Modal from './Modal';
@@ -39,7 +40,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput, onNav
     const { user, logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     const [topic, setTopic] = useState('');
-    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('Both');
+    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch' | 'All'>('All');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [ideas, setIdeas] = useState<ContentIdea[]>([]);
@@ -139,10 +140,13 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialInput, onNav
                     />
                     <div>
                         <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-                        <div className="segmented-control">
+                        <div className="segmented-control overflow-x-auto">
                           <button onClick={() => setPlatform('YouTube')} className={platform === 'YouTube' ? 'active' : ''} title="Generate ideas for YouTube"><Youtube className="w-5 h-5"/> YouTube</button>
                           <button onClick={() => setPlatform('TikTok')} className={platform === 'TikTok' ? 'active' : ''} title="Generate ideas for TikTok"><TikTok className="w-5 h-5"/> TikTok</button>
-                          <button onClick={() => setPlatform('Both')} className={platform === 'Both' ? 'active' : ''} title="Generate ideas for both YouTube and TikTok">Both</button>
+                          <button onClick={() => setPlatform('Instagram')} className={platform === 'Instagram' ? 'active' : ''} title="Generate ideas for Instagram"><Icons.Instagram className="w-5 h-5"/> Instagram</button>
+                          <button onClick={() => setPlatform('Facebook')} className={platform === 'Facebook' ? 'active' : ''} title="Generate ideas for Facebook"><Icons.Facebook className="w-5 h-5"/> Facebook</button>
+                          <button onClick={() => setPlatform('Twitch')} className={platform === 'Twitch' ? 'active' : ''} title="Generate ideas for Twitch"><Icons.Twitch className="w-5 h-5"/> Twitch</button>
+                          <button onClick={() => setPlatform('All')} className={platform === 'All' ? 'active' : ''} title="Generate ideas for all platforms">All</button>
                         </div>
                     </div>
                     <div className="flex items-end">

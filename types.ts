@@ -49,19 +49,20 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   signUp: (name: string, email: string, pass: string, plan: PlanName) => Promise<void>;
   logout: () => void;
-  upgradePlan: (plan: 'starter' | 'pro') => void;
-  getAllUsers: () => User[];
-  updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => void;
+  upgradePlan: (plan: PlanName) => Promise<void>;
+  getAllUsers: () => Promise<User[]>;
+  updateUser: (userId: string, updates: Partial<Pick<User, 'plan' | 'role'>>) => Promise<void>;
   updateProfile: (userId: string, updates: Partial<Pick<User, 'name' | 'email' | 'country' | 'phone' | 'company' | 'channels'>>) => Promise<void>;
-  logActivity: (action: string, icon: string) => void;
+  logActivity: (action: string, icon: string) => Promise<void>;
   getAllActivities: () => ActivityLog[];
-  deleteUser: (userId: string) => void;
+  deleteUser: (userId: string) => Promise<void>;
   getKeywordUsage: () => { remaining: number; limit: number | 'unlimited' };
-  logKeywordAnalysis: () => void;
+  logKeywordAnalysis: () => Promise<void>;
   getContentHistory: () => HistoryItem[];
-  addContentToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
+  addContentToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => Promise<void>;
 }
 
 export interface Plan {
@@ -182,13 +183,13 @@ export interface GroundingSource {
 
 export interface TrendingChannel {
     name: string;
-    platform: 'YouTube' | 'TikTok';
+    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
     channel_url: string;
 }
 
 export interface TrendingTopic {
     name: string;
-    platform: 'YouTube' | 'TikTok';
+    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
     description: string;
 }
 
@@ -249,7 +250,7 @@ export interface KeywordAnalysis {
 
 export interface ChannelAnalyticsData {
     channelName: string;
-    platform: 'YouTube' | 'TikTok';
+    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
     followerCount: string;
     totalViews: string;
     totalLikes: string;

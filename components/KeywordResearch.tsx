@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService';
 import { KeywordAnalysis } from '../types';
 import Spinner from './Spinner';
-import { Search, Lightbulb, TrendingUp } from './Icons';
+import { Search, Lightbulb, TrendingUp, Youtube, TikTok } from './Icons';
+import * as Icons from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -48,6 +49,7 @@ const KeywordAnalysisSkeleton = () => (
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
     const { getKeywordUsage, logKeywordAnalysis } = useAuth();
     const [keyword, setKeyword] = useState('');
+    const [platform, setPlatform] = useState<'All' | 'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch'>('All');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<KeywordAnalysis | null>(null);
@@ -73,7 +75,7 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
         setError(null);
         setAnalysis(null);
         try {
-            const result = await getKeywordAnalysis(keywordToAnalyze);
+            const result = await getKeywordAnalysis(keywordToAnalyze, platform);
             setAnalysis(result);
             logKeywordAnalysis();
             setUsage(getKeywordUsage()); // Refresh usage after analysis
@@ -114,6 +116,27 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
                     <Search className="w-6 h-6 text-violet-400" /> Keyword Research
                 </h2>
                 <p className="text-center text-slate-400 mb-6">Analyze keywords to find your next video topic.</p>
+                <div className="mb-6">
+                    <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
+                    <div className="segmented-control overflow-x-auto">
+                        <button onClick={() => setPlatform('All')} className={platform === 'All' ? 'active' : ''}>All</button>
+                        <button onClick={() => setPlatform('YouTube')} className={platform === 'YouTube' ? 'active' : ''}>
+                            <Youtube className="w-4 h-4"/> YouTube
+                        </button>
+                        <button onClick={() => setPlatform('TikTok')} className={platform === 'TikTok' ? 'active' : ''}>
+                            <TikTok className="w-4 h-4"/> TikTok
+                        </button>
+                        <button onClick={() => setPlatform('Instagram')} className={platform === 'Instagram' ? 'active' : ''}>
+                            <Icons.Instagram className="w-4 h-4"/> Instagram
+                        </button>
+                        <button onClick={() => setPlatform('Facebook')} className={platform === 'Facebook' ? 'active' : ''}>
+                            <Icons.Facebook className="w-4 h-4"/> Facebook
+                        </button>
+                        <button onClick={() => setPlatform('Twitch')} className={platform === 'Twitch' ? 'active' : ''}>
+                            <Icons.Twitch className="w-4 h-4"/> Twitch
+                        </button>
+                    </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                     <input
                         type="text"

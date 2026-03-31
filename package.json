@@ -19,6 +19,7 @@
     "@types/express": "^5.0.6",
     "date-fns": "^3.6.0",
     "express": "^5.2.1",
+    "firebase": "^12.11.0",
     "lucide-react": "^1.0.1",
     "motion": "^12.38.0",
     "react": "^18.3.1",

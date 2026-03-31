@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "starter", "pro"] },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "country": { "type": "string" },
+        "phone": { "type": "string" },
+        "company": { "type": "string" },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "platform": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["id", "name", "email", "plan", "role"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Log of user actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "icon": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "action", "icon", "timestamp"]
+    },
+    "HistoryItem": {
+      "title": "HistoryItem",
+      "description": "History of generated content",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "object" }
+      },
+      "required": ["id", "timestamp", "type", "summary", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "ActivityLog",
+      "description": "User activity logs"
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": "HistoryItem",
+      "description": "User content generation history"
+    },
+    "/activities/{activityId}": {
+      "schema": "ActivityLog",
+      "description": "Global activity logs (for admin view)"
+    }
+  }
+}

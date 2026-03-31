@@ -59,7 +59,7 @@ export const ScriptWriter: React.FC<ScriptWriterProps> = ({ onNavigate }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const { showToast } = useToast();
     const [topic, setTopic] = useState('');
-    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('Both');
+    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch' | 'All'>('All');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [ideas, setIdeas] = useState<ContentIdea[]>([]);
@@ -114,9 +114,12 @@ export const ScriptWriter: React.FC<ScriptWriterProps> = ({ onNavigate }) => {
                         onChange={(e) => setPlatform(e.target.value as any)}
                         className="form-input sm:w-32"
                     >
-                        <option value="Both">Both</option>
+                        <option value="All">All</option>
                         <option value="YouTube">YouTube</option>
                         <option value="TikTok">TikTok</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Twitch">Twitch</option>
                     </select>
                     <button onClick={handleGenerate} disabled={loading} className="button-primary whitespace-nowrap">
                         {loading ? <Spinner /> : 'Generate Ideas'}

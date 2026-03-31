@@ -48,7 +48,7 @@ import { PromptGenerator } from './tools/PromptGenerator';
 import AIAgents from './components/AIAgents';
 
 const App: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [activeTool, setActiveTool] = useState<ToolId>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -275,7 +275,7 @@ const App: React.FC = () => {
                   </button>
                 </div>
                 <div className="p-2 border-t border-slate-800">
-                  <button onClick={() => useAuth().logout()} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-3">
+                  <button onClick={logout} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-3">
                     <LogOut className="w-4 h-4" /> Logout
                   </button>
                 </div>

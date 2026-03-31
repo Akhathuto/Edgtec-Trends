@@ -41,7 +41,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     {
       icon: <TrendingUp className="w-6 h-6 text-cyan-400" />,
       title: "Growth Planner",
-      description: "Data-driven strategies and trend analysis to explode your reach on YouTube, TikTok, and Instagram.",
+      description: "Data-driven strategies and trend analysis to explode your reach on YouTube, TikTok, Instagram, Facebook, and Twitch.",
       color: "cyan"
     },
     {
@@ -74,7 +74,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     {
       number: "01",
       title: "Connect Your Channels",
-      description: "Securely link your YouTube, TikTok, and Instagram accounts to our unified dashboard."
+      description: "Securely link your YouTube, TikTok, Instagram, Facebook, and Twitch accounts to our unified dashboard."
     },
     {
       number: "02",
@@ -238,8 +238,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <span className="text-3xl font-black tracking-tighter">YOUTUBE</span>
             <span className="text-3xl font-black tracking-tighter">TIKTOK</span>
             <span className="text-3xl font-black tracking-tighter">INSTAGRAM</span>
+            <span className="text-3xl font-black tracking-tighter">FACEBOOK</span>
             <span className="text-3xl font-black tracking-tighter">TWITCH</span>
-            <span className="text-3xl font-black tracking-tighter">SPOTIFY</span>
           </div>
         </div>
       </section>

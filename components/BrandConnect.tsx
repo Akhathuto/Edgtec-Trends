@@ -83,7 +83,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
     const [error, setError] = useState<string | null>(null);
     const [opportunities, setOpportunities] = useState<SponsorshipOpportunity[]>([]);
     
-    const compatibleChannels = user?.channels?.filter(c => c.platform === 'YouTube' || c.platform === 'TikTok') || [];
+    const compatibleChannels = user?.channels?.filter(c => ['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitch'].includes(c.platform)) || [];
     const [selectedChannelId, setSelectedChannelId] = useState<string | null>(compatibleChannels[0]?.id || null);
     
     const [pitchData, setPitchData] = useState<{ [key: string]: { loading: boolean; error: string | null; pitch: BrandPitch | null } }>({});
@@ -100,7 +100,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
             return;
         }
 
-        if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
+        if (!['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitch'].includes(selectedChannel.platform)) {
             setError(`Sponsor search for "${selectedChannel.platform}" channels is not supported.`);
             return;
         }
@@ -110,7 +110,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
         setOpportunities([]);
         setPitchData({});
         try {
-            const result = await findSponsorshipOpportunities(selectedChannel.url, selectedChannel.platform);
+            const result = await findSponsorshipOpportunities(selectedChannel.url, selectedChannel.platform as any);
             setOpportunities(result);
             logActivity(`found ${result.length} sponsors for their ${selectedChannel.platform} channel`, 'Briefcase');
             addContentToHistory({
@@ -132,7 +132,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
 
         const key = opportunity.brandName;
 
-        if (selectedChannel.platform !== 'YouTube' && selectedChannel.platform !== 'TikTok') {
+        if (!['YouTube', 'TikTok', 'Instagram', 'Facebook', 'Twitch'].includes(selectedChannel.platform)) {
             setPitchData(prev => ({ ...prev, [key]: { loading: false, error: 'Pitch generation is not supported for this platform.', pitch: null } }));
             return;
         }
@@ -141,7 +141,7 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
 
         try {
             const channelName = selectedChannel.url.split('/').pop() || user.name;
-            const result = await generateBrandPitch(channelName, selectedChannel.platform, opportunity.brandName, opportunity.industry);
+            const result = await generateBrandPitch(channelName, selectedChannel.platform as any, opportunity.brandName, opportunity.industry);
             setPitchData(prev => ({ ...prev, [key]: { loading: false, error: null, pitch: result } }));
              addContentToHistory({
                 type: 'Brand Pitch',
@@ -176,8 +176,8 @@ const BrandConnect: React.FC<BrandConnectProps> = ({ setActiveTab }) => {
         return (
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Connect a YouTube or TikTok Channel</h2>
-                <p className="text-slate-400 mb-6 max-w-md">To find brand sponsors, please add a YouTube or TikTok channel URL to your profile first.</p>
+                <h2 className="text-2xl font-bold mb-2">Connect a Social Media Channel</h2>
+                <p className="text-slate-400 mb-6 max-w-md">To find brand sponsors, please add a YouTube, TikTok, Instagram, Facebook, or Twitch channel URL to your profile first.</p>
                 <button onClick={() => setActiveTab(Tab.Profile)} title="Go to your profile to connect a channel" className="button-primary">
                     Go to Profile
                 </button>

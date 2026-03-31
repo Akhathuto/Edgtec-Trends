@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getRealtimeTrends, findTrends } from '../services/geminiService';
 import { TrendingChannel, TrendingTopic, GroundingSource } from '../types';
 import Spinner from './Spinner';
-import { TrendingUp, Youtube, TikTok, Search, ExternalLink } from './Icons';
+import { TrendingUp, Youtube, TikTok, Facebook, Instagram, Twitch, Search, ExternalLink } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -17,7 +17,7 @@ const TrendDiscovery: React.FC = () => {
 
     // Search state
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok' | 'Both'>('YouTube');
+    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch' | 'All'>('YouTube');
     const [searchCategory, setSearchCategory] = useState<string>('All');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<{ text: string, sources: GroundingSource[] } | null>(null);
@@ -45,7 +45,7 @@ const TrendDiscovery: React.FC = () => {
         setSearchResult(null);
         setError(null);
         try {
-            const result = await findTrends(searchTerm, searchPlatform, country, searchCategory);
+            const result = await findTrends(searchTerm, searchPlatform === 'All' ? 'Both' : searchPlatform as any, country, searchCategory);
             const sources = result.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => c.web).filter((c:any) => c.uri && c.title) || [];
             setSearchResult({ text: result.text, sources });
         } catch (e: any) {
@@ -61,7 +61,7 @@ const TrendDiscovery: React.FC = () => {
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
                     <TrendingUp className="w-6 h-6 text-violet-400" /> Trend Discovery
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Find what's hot right now on YouTube and TikTok.</p>
+                <p className="text-center text-slate-400 mb-6">Find what's hot right now on YouTube, TikTok, Instagram, Facebook, and Twitch.</p>
                 <ErrorDisplay message={error} />
             </div>
 
@@ -71,7 +71,17 @@ const TrendDiscovery: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 className="font-semibold mb-2">Trending Channels</h4>
-                            <div className="space-y-2">{realtime.channels.map((c, i) => <div key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded-md"> {c.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : <TikTok className="w-5 h-5" />} <span className="font-semibold">{c.name}</span> <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-auto"><ExternalLink className="w-4 h-4"/></a> </div>)}</div>
+                            <div className="space-y-2">{realtime.channels.map((c, i) => (
+                                <div key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded-md"> 
+                                    {c.platform === 'YouTube' && <Youtube className="w-5 h-5 text-red-500"/>}
+                                    {c.platform === 'TikTok' && <TikTok className="w-5 h-5" />}
+                                    {c.platform === 'Facebook' && <Facebook className="w-5 h-5 text-blue-600" />}
+                                    {c.platform === 'Instagram' && <Instagram className="w-5 h-5 text-pink-500" />}
+                                    {c.platform === 'Twitch' && <Twitch className="w-5 h-5 text-purple-500" />}
+                                    <span className="font-semibold">{c.name}</span> 
+                                    <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-auto"><ExternalLink className="w-4 h-4"/></a> 
+                                </div>
+                            ))}</div>
                         </div>
                         <div>
                             <h4 className="font-semibold mb-2">Trending Topics</h4>
@@ -93,13 +103,16 @@ const TrendDiscovery: React.FC = () => {
                     />
                     <select 
                         value={searchPlatform} 
-                        onChange={e => setSearchPlatform(e.target.value as 'YouTube' | 'TikTok' | 'Both')}
+                        onChange={e => setSearchPlatform(e.target.value as any)}
                         className="form-select md:col-span-2"
                         title="Select a platform to search"
                     >
                         <option value="YouTube">YouTube</option>
                         <option value="TikTok">TikTok</option>
-                        <option value="Both">Both</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Twitch">Twitch</option>
+                        <option value="All">All Platforms</option>
                     </select>
                     <select 
                         value={searchCategory} 

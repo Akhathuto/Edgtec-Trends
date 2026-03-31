@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { generateFullReport } from '../services/geminiService';
 import { FullReport, Tab } from '../types';
 import Spinner from './Spinner';
-import { FileText, Star, Download, Sparkles, Lightbulb, DollarSign } from './Icons';
+import { FileText, Star, Download, Sparkles, Lightbulb, DollarSign, Youtube, TikTok } from './Icons';
+import * as Icons from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 
 interface StrategyReportProps {
@@ -13,6 +14,7 @@ interface StrategyReportProps {
 const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialInput }) => {
     const { user, logActivity, addContentToHistory } = useAuth();
     const [topic, setTopic] = useState('');
+    const [platform, setPlatform] = useState<'All' | 'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch'>('All');
     const [followers, setFollowers] = useState(10000);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -28,9 +30,9 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
         setError(null);
         setReport(null);
         try {
-            const result = await generateFullReport(topicToReport, followers);
+            const result = await generateFullReport(topicToReport, followers, platform);
             setReport(result);
-            logActivity(`generated a strategy report for "${topicToReport}"`, 'FileText');
+            logActivity(`generated a strategy report for "${topicToReport}" on ${platform}`, 'FileText');
             addContentToHistory({
                 type: 'Strategy Report',
                 summary: `Report for topic: ${topicToReport}`,
@@ -107,6 +109,27 @@ const StrategyReport: React.FC<StrategyReportProps> = ({ setActiveTab, initialIn
                     <FileText className="w-6 h-6 text-violet-400" /> Full Strategy Report
                 </h2>
                 <p className="text-center text-slate-400 mb-6">Generate an all-in-one strategy document for any topic.</p>
+                <div className="mb-6">
+                    <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
+                    <div className="segmented-control overflow-x-auto">
+                        <button onClick={() => setPlatform('All')} className={platform === 'All' ? 'active' : ''}>All</button>
+                        <button onClick={() => setPlatform('YouTube')} className={platform === 'YouTube' ? 'active' : ''}>
+                            <Youtube className="w-4 h-4"/> YouTube
+                        </button>
+                        <button onClick={() => setPlatform('TikTok')} className={platform === 'TikTok' ? 'active' : ''}>
+                            <TikTok className="w-4 h-4"/> TikTok
+                        </button>
+                        <button onClick={() => setPlatform('Instagram')} className={platform === 'Instagram' ? 'active' : ''}>
+                            <Icons.Instagram className="w-4 h-4"/> Instagram
+                        </button>
+                        <button onClick={() => setPlatform('Facebook')} className={platform === 'Facebook' ? 'active' : ''}>
+                            <Icons.Facebook className="w-4 h-4"/> Facebook
+                        </button>
+                        <button onClick={() => setPlatform('Twitch')} className={platform === 'Twitch' ? 'active' : ''}>
+                            <Icons.Twitch className="w-4 h-4"/> Twitch
+                        </button>
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <input
                         type="text"

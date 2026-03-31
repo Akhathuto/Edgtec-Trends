@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User as UserIcon, Star, Shield, Edit, Save, X, Phone, Users, Link, Youtube, TikTok, Trash2 } from './Icons';
+import * as Icons from './Icons';
 import { useToast } from '../contexts/ToastContext';
 import Spinner from './Spinner';
 import { Channel } from '../types';
@@ -36,7 +37,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
     const [followersLoading, setFollowersLoading] = useState(false);
 
     // State for new channel form
-    const [newChannelPlatform, setNewChannelPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+    const [newChannelPlatform, setNewChannelPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'>('YouTube');
     const [newChannelUrl, setNewChannelUrl] = useState('');
 
     useEffect(() => {
@@ -145,7 +146,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
         setChannels(prev => prev.map(c => c.id === id ? { ...c, url: newUrl } : c));
     };
     
-    const handleChannelPlatformChange = (id: string, newPlatform: 'YouTube' | 'TikTok') => {
+    const handleChannelPlatformChange = (id: string, newPlatform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch') => {
          setChannels(prev => prev.map(c => c.id === id ? { ...c, platform: newPlatform } : c));
     };
 
@@ -248,17 +249,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                                 <div key={channel.id} className="flex flex-col sm:flex-row items-center gap-2 p-2 bg-slate-900/40 rounded-lg">
                                     <div className="flex items-center gap-2 w-full sm:w-auto">
                                         <span className="p-2 bg-slate-700 rounded-lg">
-                                            {channel.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500" /> : <TikTok className="w-5 h-5 text-white" />}
+                                            {channel.platform === 'YouTube' && <Youtube className="w-5 h-5 text-red-500" />}
+                                            {channel.platform === 'TikTok' && <TikTok className="w-5 h-5 text-white" />}
+                                            {channel.platform === 'Facebook' && <Icons.Facebook className="w-5 h-5 text-blue-500" />}
+                                            {channel.platform === 'Instagram' && <Icons.Instagram className="w-5 h-5 text-pink-500" />}
+                                            {channel.platform === 'Twitch' && <Icons.Twitch className="w-5 h-5 text-purple-500" />}
                                         </span>
                                         {isEditing && (
                                             <select 
                                                 value={channel.platform}
-                                                onChange={(e) => handleChannelPlatformChange(channel.id, e.target.value as 'YouTube' | 'TikTok')}
+                                                onChange={(e) => handleChannelPlatformChange(channel.id, e.target.value as any)}
                                                 className="bg-slate-700 border-slate-600 rounded-lg p-2 text-white"
                                                 title={`Change platform for ${channel.url.split('/').pop()}`}
                                             >
                                                 <option value="YouTube">YouTube</option>
                                                 <option value="TikTok">TikTok</option>
+                                                <option value="Facebook">Facebook</option>
+                                                <option value="Instagram">Instagram</option>
+                                                <option value="Twitch">Twitch</option>
                                             </select>
                                         )}
                                     </div>
@@ -280,10 +288,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUpgradeClick }) => {
                              {isEditing && (
                                 <div className="pt-4 border-t border-slate-700/50">
                                     <h4 className="text-lg font-semibold text-slate-200 mb-2">Add New Channel</h4>
-                                    <div className="flex flex-col sm:flex-row items-center gap-2 p-2">
-                                        <select value={newChannelPlatform} onChange={(e) => setNewChannelPlatform(e.target.value as 'YouTube' | 'TikTok')} className="bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white" title="Select the platform for the new channel">
+                                     <div className="flex flex-col sm:flex-row items-center gap-2 p-2">
+                                        <select value={newChannelPlatform} onChange={(e) => setNewChannelPlatform(e.target.value as any)} className="bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white" title="Select the platform for the new channel">
                                             <option value="YouTube">YouTube</option>
                                             <option value="TikTok">TikTok</option>
+                                            <option value="Facebook">Facebook</option>
+                                            <option value="Instagram">Instagram</option>
+                                            <option value="Twitch">Twitch</option>
                                         </select>
                                         <input type="url" value={newChannelUrl} onChange={(e) => setNewChannelUrl(e.target.value)} placeholder="Enter new channel URL..." className="flex-grow w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white" title="Enter the full URL of the new channel"/>
                                         <button onClick={handleAddChannel} className="w-full sm:w-auto bg-violet hover:bg-violet-dark font-semibold text-white px-4 py-2 rounded-lg transition-colors" title="Add the new channel to your profile">Add</button>

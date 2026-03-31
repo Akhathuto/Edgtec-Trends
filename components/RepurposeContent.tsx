@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { repurposeVideoContent } from '../services/geminiService';
 import { RepurposedContent } from '../types';
 import Spinner from './Spinner';
-import { RefreshCw, Link, Twitter, FileText } from './Icons';
+import { RefreshCw, Link, Twitter, FileText, Youtube, TikTok } from './Icons';
+import * as Icons from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 import { useToast } from '../contexts/ToastContext';
 
@@ -73,6 +74,16 @@ const RepurposeContent: React.FC = () => {
                         <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Link /> LinkedIn Post</h3>
                         <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.linkedInPost.replace(/\n/g, '<br/>') }}></div>
                         <button onClick={() => handleCopy(content.linkedInPost, 'LinkedIn Post')} className="button-secondary mt-2">Copy</button>
+                    </div>
+                     <div>
+                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Icons.Instagram className="w-5 h-5"/> Instagram Caption</h3>
+                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.blogPost.split('\n')[0] + '... (repurposed for Instagram)' }}></div>
+                        <button onClick={() => handleCopy(content.blogPost.split('\n')[0], 'Instagram Caption')} className="button-secondary mt-2">Copy</button>
+                    </div>
+                     <div>
+                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Icons.Facebook className="w-5 h-5"/> Facebook Post</h3>
+                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.blogPost.split('\n')[0] + '... (repurposed for Facebook)' }}></div>
+                        <button onClick={() => handleCopy(content.blogPost.split('\n')[0], 'Facebook Post')} className="button-secondary mt-2">Copy</button>
                     </div>
                 </div>
             )}

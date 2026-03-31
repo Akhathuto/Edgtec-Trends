@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Tab, Channel } from '../types';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
 import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown } from './Icons';
+import * as Icons from './Icons';
 
 interface DashboardProps {
   setActiveTab: (tab: Tab) => void;
@@ -66,7 +67,11 @@ const ChannelSnapshotCard: React.FC<{ channel: Channel; onAnalyze: () => void; }
         <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-4 transition-all hover:border-violet-500 hover:shadow-glow-md">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                    {channel.platform === 'YouTube' ? <Youtube className="w-6 h-6 text-red-500" /> : <TikTok className="w-6 h-6 text-white" />}
+                    {channel.platform === 'YouTube' && <Youtube className="w-6 h-6 text-red-500" />}
+                    {channel.platform === 'TikTok' && <TikTok className="w-6 h-6 text-white" />}
+                    {channel.platform === 'Facebook' && <Icons.Facebook className="w-6 h-6 text-blue-500" />}
+                    {channel.platform === 'Instagram' && <Icons.Instagram className="w-6 h-6 text-pink-500" />}
+                    {channel.platform === 'Twitch' && <Icons.Twitch className="w-6 h-6 text-purple-500" />}
                     <h3 className="font-bold text-lg truncate">{snapshot?.channelName || channel.url.split('/').pop()}</h3>
                 </div>
                 <button onClick={onAnalyze} className="text-xs font-semibold text-violet-400 hover:underline">Full Analytics</button>
@@ -169,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setActiveAnalyticsC
                      <button onClick={() => setActiveTab(Tab.Trends)} className="interactive-card text-left">
                         <TrendingUp className="w-6 h-6 text-violet-400 mb-2"/>
                         <h3 className="font-bold text-lg text-white">Trend Discovery</h3>
-                        <p className="text-sm text-slate-400">Find what's hot right now on YouTube and TikTok.</p>
+                        <p className="text-sm text-slate-400">Find what's hot right now on YouTube, TikTok, Instagram, Facebook, and Twitch.</p>
                      </button>
                       <button onClick={() => setActiveTab(Tab.Keywords)} className="interactive-card text-left">
                         <Search className="w-6 h-6 text-violet-400 mb-2"/>

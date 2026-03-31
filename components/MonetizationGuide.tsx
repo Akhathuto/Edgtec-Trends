@@ -3,9 +3,10 @@ import { getMonetizationStrategies } from '../services/geminiService';
 import { MonetizationStrategy } from '../types';
 import Spinner from './Spinner';
 import { Youtube, Film, DollarSign, Users, Target, CheckCircle, TikTok } from './Icons';
+import * as Icons from './Icons';
 
 const MonetizationGuide: React.FC = () => {
-  const [platform, setPlatform] = useState<'YouTube' | 'TikTok'>('YouTube');
+  const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'>('YouTube');
   const [followers, setFollowers] = useState(1000);
   const [debouncedFollowers, setDebouncedFollowers] = useState(followers);
   const [loading, setLoading] = useState(true);
@@ -55,12 +56,21 @@ const MonetizationGuide: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
             <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-            <div className="segmented-control">
+            <div className="segmented-control overflow-x-auto">
               <button onClick={() => setPlatform('YouTube')} title="Get monetization strategies for YouTube" className={platform === 'YouTube' ? 'active' : ''}>
                 <Youtube className="w-5 h-5"/> YouTube
               </button>
               <button onClick={() => setPlatform('TikTok')} title="Get monetization strategies for TikTok" className={platform === 'TikTok' ? 'active' : ''}>
                 <TikTok className="w-5 h-5"/> TikTok
+              </button>
+              <button onClick={() => setPlatform('Instagram')} title="Get monetization strategies for Instagram" className={platform === 'Instagram' ? 'active' : ''}>
+                <Icons.Instagram className="w-5 h-5"/> Instagram
+              </button>
+              <button onClick={() => setPlatform('Facebook')} title="Get monetization strategies for Facebook" className={platform === 'Facebook' ? 'active' : ''}>
+                <Icons.Facebook className="w-5 h-5"/> Facebook
+              </button>
+              <button onClick={() => setPlatform('Twitch')} title="Get monetization strategies for Twitch" className={platform === 'Twitch' ? 'active' : ''}>
+                <Icons.Twitch className="w-5 h-5"/> Twitch
               </button>
             </div>
           </div>

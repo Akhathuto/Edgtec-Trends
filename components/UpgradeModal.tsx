@@ -20,8 +20,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
   const { upgradePlan } = useAuth();
   if (!isOpen) return null;
   
-  const handleUpgrade = () => {
-      upgradePlan('pro');
+  const handleUpgrade = async () => {
+      await upgradePlan('pro');
       onClose();
   }
 

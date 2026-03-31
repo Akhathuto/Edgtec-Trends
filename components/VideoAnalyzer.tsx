@@ -40,7 +40,7 @@ const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ onNavigate }) => {
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
                     <Film className="w-6 h-6 text-violet-400" /> AI Video Analyzer
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Get an AI breakdown of any YouTube or TikTok video.</p>
+                <p className="text-center text-slate-400 mb-6">Get an AI breakdown of any YouTube, TikTok, Instagram, Facebook, or Twitch video.</p>
                 <div className="flex flex-col sm:flex-row gap-4">
                     <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Enter video URL..." className="form-input flex-grow"/>
                     <button onClick={handleAnalyze} disabled={loading} className="button-primary">{loading ? <Spinner/> : 'Analyze'}</button>

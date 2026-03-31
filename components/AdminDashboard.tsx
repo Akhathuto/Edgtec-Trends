@@ -23,9 +23,10 @@ const AdminDashboard: React.FC = () => {
     const [activities, setActivities] = useState<ActivityLog[]>([]);
     const [activeTab, setActiveTab] = useState<'overview' | 'users'>('overview');
 
-    const refreshData = useCallback(() => {
+    const refreshData = useCallback(async () => {
         if (user?.role === 'admin') {
-            setUsers(getAllUsers());
+            const allUsers = await getAllUsers();
+            setUsers(allUsers);
             setActivities(getAllActivities());
         }
     }, [user?.role, getAllUsers, getAllActivities]);
@@ -34,13 +35,13 @@ const AdminDashboard: React.FC = () => {
         refreshData();
     }, [refreshData]);
 
-    const handlePlanChange = useCallback((userId: string, newPlan: User['plan']) => {
+    const handlePlanChange = useCallback(async (userId: string, newPlan: User['plan']) => {
         try {
             const userToUpdate = users.find(u => u.id === userId);
             if (!userToUpdate) return;
             
-            updateUser(userId, { plan: newPlan });
-            refreshData(); // Refresh all data to keep it in sync
+            await updateUser(userId, { plan: newPlan });
+            await refreshData(); // Refresh all data to keep it in sync
             showToast(`Updated ${userToUpdate.name}'s plan to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}.`);
         } catch (e: any) {
             showToast(e.message);
@@ -48,7 +49,7 @@ const AdminDashboard: React.FC = () => {
         }
     }, [users, updateUser, showToast, refreshData]);
 
-    const handleRoleChange = useCallback((userId: string, newRole: 'admin' | 'user') => {
+    const handleRoleChange = useCallback(async (userId: string, newRole: 'admin' | 'user') => {
         if (user?.id === userId && newRole === 'user') {
             alert("You cannot remove your own admin role.");
             return;
@@ -57,23 +58,23 @@ const AdminDashboard: React.FC = () => {
             const userToUpdate = users.find(u => u.id === userId);
             if (!userToUpdate) return;
 
-            updateUser(userId, { role: newRole });
-            refreshData();
+            await updateUser(userId, { role: newRole });
+            await refreshData();
             showToast(`Updated ${userToUpdate.name}'s role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}.`);
         } catch (e: any) {
-             showToast(e.message);
-             console.error("Failed to update role:", e.message);
+            showToast(e.message);
+            console.error("Failed to update role:", e.message);
         }
     }, [user?.id, users, updateUser, showToast, refreshData]);
 
-    const handleDeleteUser = useCallback((userId: string) => {
+    const handleDeleteUser = useCallback(async (userId: string) => {
         const userToDelete = users.find(u => u.id === userId);
         if (!userToDelete) return;
 
         if (window.confirm(`Are you sure you want to delete ${userToDelete.name}? This action cannot be undone.`)) {
             try {
-                deleteUser(userId);
-                refreshData();
+                await deleteUser(userId);
+                await refreshData();
                 showToast(`User ${userToDelete.name} has been deleted.`);
             } catch (e: any) {
                 alert(e.message);
