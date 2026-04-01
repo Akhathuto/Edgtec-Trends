@@ -165,36 +165,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTool, setActiveTool, isO
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 
-        transform transition-transform duration-300 ease-in-out
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-950/40 backdrop-blur-2xl border-r border-white/5 
+        transform transition-transform duration-500 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         flex flex-col h-full
       `}>
-        <div className="p-6 flex items-center justify-between">
+        <div className="p-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <UtrendLogo className="h-8 w-8" />
-            <span className="text-xl font-bold text-white">uTrends</span>
+            <UtrendLogo className="h-9 w-9" />
+            <span className="text-2xl font-bold text-white tracking-tighter">uTrends</span>
           </div>
           <button 
             onClick={() => setIsOpen(false)}
-            className="md:hidden text-slate-400 hover:text-white"
+            className="md:hidden text-slate-400 hover:text-white p-2 hover:bg-white/5 rounded-lg transition-all"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-6 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-8 custom-scrollbar">
           {categories.map((category) => (
-            <div key={category.name} className="space-y-1">
+            <div key={category.name} className="space-y-2">
               <button 
                 onClick={() => toggleCategory(category.name)}
-                className="w-full flex items-center justify-between px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors group"
+                className="w-full flex items-center justify-between px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] hover:text-slate-300 transition-colors group"
               >
                 <span>{category.name}</span>
                 {collapsedCategories[category.name] ? (
-                  <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400" />
                 ) : (
-                  <ChevronDown className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400" />
                 )}
               </button>
               
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTool, setActiveTool, isO
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    transition={{ duration: 0.3, ease: 'circOut' }}
                     className="overflow-hidden space-y-1"
                   >
                     {category.items.map((item) => (
@@ -215,18 +215,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTool, setActiveTool, isO
                           setIsOpen(false);
                         }}
                         className={`
-                          w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all group
+                          w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all group active:scale-95
                           ${activeTool === item.id 
-                            ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20' 
-                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}
+                            ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/40' 
+                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}
                         `}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className={`h-4 w-4 ${activeTool === item.id ? 'text-white' : 'text-slate-500 group-hover:text-violet-400'}`} />
+                          <item.icon className={`h-4.5 w-4.5 transition-colors ${activeTool === item.id ? 'text-white' : 'text-slate-500 group-hover:text-violet-400'}`} />
                           {item.name}
                         </div>
                         {item.isPro && user?.plan !== 'pro' && (
-                          <Sparkles className="w-3 h-3 text-yellow-500" />
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                         )}
                       </button>
                     ))}
@@ -237,20 +237,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTool, setActiveTool, isO
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800 space-y-4">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-inner">
+        <div className="p-6 border-t border-white/5 space-y-4 bg-white/[0.02]">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-white/5 group transition-all hover:bg-white/10">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-inner">
               {user?.name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-white truncate">{user?.name}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                 {user?.plan ? user.plan : 'Free'} Plan
               </p>
             </div>
             <button 
               onClick={logout}
-              className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+              className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -260,7 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTool, setActiveTool, isO
           {user?.plan !== 'pro' && (
             <button 
               onClick={() => setActiveTool('pricing')}
-              className="w-full py-3 px-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-xl flex items-center justify-center gap-2 text-yellow-500 text-xs font-bold hover:from-yellow-500/20 hover:to-orange-500/20 transition-all group"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center gap-2 text-amber-500 text-xs font-bold hover:from-amber-500/20 hover:to-orange-500/20 transition-all group shadow-lg shadow-amber-900/10"
             >
               <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
               Upgrade to Pro

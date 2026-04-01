@@ -175,7 +175,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden">
+    <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden relative">
+      <div className="aurora-bg" />
       <Sidebar 
         activeTool={activeTool} 
         setActiveTool={setActiveTool} 
@@ -183,8 +184,8 @@ const App: React.FC = () => {
         setIsOpen={setIsSidebarOpen} 
       />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-4 md:px-8 bg-slate-900/50 backdrop-blur-md z-30">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-slate-900/40 backdrop-blur-xl z-30">
           <div className="flex items-center gap-4 flex-1">
             <button 
               onClick={() => setIsSidebarOpen(true)}
@@ -194,9 +195,9 @@ const App: React.FC = () => {
             </button>
             <div className="md:hidden flex items-center gap-2">
               <UtrendLogo className="h-8 w-8" />
-              <span className="text-xl font-bold text-white">uTrends</span>
+              <span className="text-xl font-bold text-white tracking-tighter">uTrends</span>
             </div>
-            <h2 className="hidden md:block text-xl font-bold text-white capitalize min-w-[150px]">
+            <h2 className="hidden md:block text-xl font-bold text-white capitalize min-w-[150px] tracking-tight">
               {activeTool.replace(/-/g, ' ')}
             </h2>
             
@@ -210,7 +211,7 @@ const App: React.FC = () => {
             {/* Theme Toggle */}
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all"
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -218,65 +219,65 @@ const App: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="hidden sm:block relative group">
-              <button className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-4 py-2 rounded-full transition-all shadow-lg shadow-violet-900/20">
+              <button className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-violet-900/40 active:scale-95">
                 <Plus className="w-4 h-4" />
                 <span>Create</span>
               </button>
-              <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 p-2">
-                <button onClick={() => handleNavigate('media-generator')} className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors flex items-center gap-2">
+              <div className="absolute right-0 mt-3 w-52 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 p-2">
+                <button onClick={() => handleNavigate('media-generator')} className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                   <Video className="w-4 h-4 text-violet-400" /> Generate Video
                 </button>
-                <button onClick={() => handleNavigate('image-editor')} className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors flex items-center gap-2">
+                <button onClick={() => handleNavigate('image-editor')} className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                   <ImageIcon className="w-4 h-4 text-violet-400" /> Edit Image
                 </button>
-                <button onClick={() => handleNavigate('script-writer')} className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors flex items-center gap-2">
+                <button onClick={() => handleNavigate('script-writer')} className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                   <FileText className="w-4 h-4 text-violet-400" /> Write Script
                 </button>
               </div>
             </div>
 
             <button 
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors relative"
+              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-all relative"
               title="Notifications"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full border-2 border-slate-900" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-violet-500 rounded-full border-2 border-slate-900" />
             </button>
 
             {/* User Menu */}
             <div className="relative group">
               <button 
-                className="flex items-center gap-2 p-1 pr-3 rounded-full bg-slate-800/50 hover:bg-slate-800 transition-colors border border-slate-700/50"
+                className="flex items-center gap-2 p-1 pr-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-inner">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-inner">
                   {user.name.charAt(0)}
                 </div>
-                <span className="hidden sm:block text-sm font-medium text-slate-200">{user.name}</span>
+                <span className="hidden sm:block text-sm font-semibold text-slate-200">{user.name}</span>
                 <ChevronDown className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors" />
               </button>
 
-              <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
-                <div className="p-4 border-b border-slate-800 bg-slate-800/30">
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Account</p>
+              <div className="absolute right-0 mt-3 w-60 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
+                <div className="p-5 border-b border-white/5 bg-white/5">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1.5">Account</p>
                   <p className="text-sm font-bold text-white truncate">{user.name}</p>
                   <p className="text-xs text-slate-400 truncate">{user.email}</p>
                 </div>
                 <div className="p-2">
-                  <button onClick={() => handleNavigate('profile')} className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors flex items-center gap-3">
+                  <button onClick={() => handleNavigate('profile')} className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                     <User className="w-4 h-4 text-slate-500" /> My Profile
                   </button>
-                  <button onClick={() => handleNavigate('pricing')} className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors flex items-center gap-3">
+                  <button onClick={() => handleNavigate('pricing')} className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                     <CreditCard className="w-4 h-4 text-slate-500" /> Subscription
                   </button>
-                  <button onClick={() => handleNavigate('settings')} className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors flex items-center gap-3">
+                  <button onClick={() => handleNavigate('settings')} className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                     <SettingsIcon className="w-4 h-4 text-slate-500" /> Settings
                   </button>
-                  <button onClick={() => handleNavigate('support')} className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors flex items-center gap-3">
+                  <button onClick={() => handleNavigate('support')} className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors flex items-center gap-3">
                     <LifeBuoy className="w-4 h-4 text-slate-500" /> Help & Support
                   </button>
                 </div>
-                <div className="p-2 border-t border-slate-800">
-                  <button onClick={logout} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-3">
+                <div className="p-2 border-t border-white/5">
+                  <button onClick={logout} className="w-full text-left px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-3">
                     <LogOut className="w-4 h-4" /> Logout
                   </button>
                 </div>

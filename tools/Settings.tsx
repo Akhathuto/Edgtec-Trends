@@ -168,77 +168,101 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
           </section>
 
           {/* AI Configuration Section */}
-          <section id="ai-configuration" className="bg-brand-glass border border-slate-700/50 rounded-xl overflow-hidden shadow-xl">
-            <div className="p-6 border-b border-slate-700/50 flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <h3 className="text-lg font-bold text-white">AI Configuration</h3>
+          <section id="ai-configuration" className="premium-card rounded-2xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">AI Configuration</h3>
+              </div>
+              <div className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full">
+                <span className="text-[10px] font-bold text-violet-300 uppercase tracking-widest">Premium Feature</span>
+              </div>
             </div>
             <div className="p-6 space-y-6">
-              <div className="flex flex-col gap-4 p-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${hasAIKey ? 'bg-green-500/20' : 'bg-slate-700/50'}`}>
-                      <Zap className={`w-5 h-5 ${hasAIKey ? 'text-green-400' : 'text-slate-500'}`} />
+              <div className="flex flex-col gap-4 p-5 bg-slate-900/60 rounded-xl border border-white/5 relative group">
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-xl transition-all duration-500 ${hasAIKey ? 'bg-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 'bg-slate-800'}`}>
+                      <Zap className={`w-6 h-6 ${hasAIKey ? 'text-green-400' : 'text-slate-500'}`} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">Google AI Account</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-base font-bold text-white">Google AI Account</p>
+                      <p className="text-xs text-slate-400 mt-0.5 max-w-sm">
                         {hasAIKey 
-                          ? 'Connected using your personal Google AI key.' 
+                          ? 'Your personal Google AI quota is active. You have access to advanced models and higher rate limits.' 
                           : isAIStudio 
-                            ? 'Connect your Google account to use your own AI quota.'
-                            : 'Enter your Gemini API key to use your own quota.'}
+                            ? 'Connect your Google account to bypass platform limits and use your own free AI tokens.'
+                            : 'Enter your Gemini API key to unlock full platform potential and higher performance.'}
                       </p>
                     </div>
                   </div>
                   {!isEditingKey && (
                     <button 
                       onClick={handleConnectAI}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                         hasAIKey 
-                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
-                          : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-900/20'
+                          ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-white/5' 
+                          : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:scale-105 shadow-lg shadow-violet-900/40'
                       }`}
                     >
-                      {hasAIKey ? 'Change Account' : 'Connect Account'}
+                      {hasAIKey ? 'Manage Connection' : 'Connect Now'}
                     </button>
                   )}
                 </div>
 
                 {isEditingKey && (
-                  <div className="space-y-3 pt-3 border-t border-slate-700/50 animate-in fade-in slide-in-from-top-2">
+                  <div className="space-y-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Gemini API Key</label>
-                      <div className="flex gap-2">
+                      <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Gemini API Key</label>
+                      <div className="flex gap-3">
                         <input 
                           type="password"
                           value={manualKey}
                           onChange={(e) => setManualKey(e.target.value)}
-                          placeholder="Enter your API key (sk-...)"
-                          className="form-input flex-1 bg-slate-900/50 text-sm"
+                          placeholder="Paste your API key here..."
+                          className="form-input flex-1 bg-slate-950/50 border-white/10 text-sm h-11"
                         />
                         <button 
                           onClick={handleSaveManualKey}
-                          className="px-4 py-2 bg-violet-600 text-white rounded-lg text-xs font-bold hover:bg-violet-500 transition-all"
+                          className="px-6 py-2 bg-violet-600 text-white rounded-xl text-xs font-bold hover:bg-violet-500 transition-all shadow-lg shadow-violet-900/20"
                         >
-                          Save
+                          Save Key
                         </button>
                         <button 
                           onClick={() => setIsEditingKey(false)}
-                          className="px-4 py-2 bg-slate-700 text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all"
+                          className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition-all"
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-500">
-                      Don't have a key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline">Google AI Studio</a>.
-                    </p>
+                    <div className="flex items-center gap-2 p-3 bg-violet-500/5 border border-violet-500/10 rounded-lg">
+                      <Info className="w-4 h-4 text-violet-400 shrink-0" />
+                      <p className="text-[11px] text-slate-400">
+                        Get your free API key from the <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline font-bold">Google AI Studio Dashboard</a>.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-slate-500 italic">
-                * Connecting your own account allows you to use your personal Google AI Studio quota and access advanced models.
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-900/40 border border-white/5 rounded-xl">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</p>
+                  <p className={`text-sm font-bold ${hasAIKey ? 'text-green-400' : 'text-amber-400'}`}>
+                    {hasAIKey ? 'Active & Optimized' : 'Platform Default'}
+                  </p>
+                </div>
+                <div className="p-4 bg-slate-900/40 border border-white/5 rounded-xl">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Model Access</p>
+                  <p className="text-sm font-bold text-white">Gemini 1.5 Pro / Flash</p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-500 text-center">
+                Your API key is stored securely on your device and is never sent to our servers.
               </p>
             </div>
           </section>

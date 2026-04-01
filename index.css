@@ -4,59 +4,87 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-main: #02040a;
+    --accent-primary: #8B5CF6; /* Violet 500 */
+    --accent-secondary: #14b8a6; /* Teal 500 */
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-dim: #94a3b8;
+  }
+
   body {
-    @apply bg-slate-950 font-sans text-slate-200;
+    @apply bg-slate-950 font-sans text-slate-200 antialiased;
+    background-color: var(--bg-main);
   }
 
   /* Add Firefox scrollbar styles */
   @supports (scrollbar-color: auto) {
     html {
       scrollbar-width: thin;
-      scrollbar-color: #475569 transparent; /* thumb track */
+      scrollbar-color: #334155 transparent;
     }
   }
 }
 
-/* New futuristic background */
+/* Enhanced futuristic background with layered gradients */
 body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: #02040a;
-  opacity: 1;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.05), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1), rgba(2, 4, 10, 1));
   z-index: -2;
 }
+
 body::after {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background:
-    radial-gradient(ellipse 40% 50% at 20% 20%, rgba(139, 92, 246, 0.15), transparent),
-    radial-gradient(ellipse 40% 50% at 80% 70%, rgba(20, 184, 166, 0.1), transparent);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3e%3cfilter id='noiseFilter'%3e%3cturbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3e%3c/filter%3e%3crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3e%3c/svg%3e");
+  opacity: 0.03;
   z-index: -1;
-  animation: aurora 15s linear infinite;
   pointer-events: none;
 }
 
+.aurora-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 50% 60% at 20% 10%, rgba(139, 92, 246, 0.12), transparent),
+    radial-gradient(ellipse 50% 60% at 80% 90%, rgba(20, 184, 166, 0.08), transparent);
+  z-index: -1;
+  animation: aurora-float 20s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes aurora-float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(2%, 2%) scale(1.05); }
+}
+
 .text-glow {
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 20px rgba(167, 139, 250, 0.3);
+  text-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
 }
 
 .bg-brand-glass {
-  @apply bg-slate-900/70 backdrop-blur-2xl border border-slate-700/50 shadow-2xl;
+  @apply bg-slate-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl;
 }
 
 .interactive-card {
-  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-xl p-6 transition-all duration-300;
+  @apply bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 transition-all duration-500;
 }
 
 .interactive-card:hover {
-  @apply transform -translate-y-1.5 border-violet-500/80 shadow-glow-lg bg-slate-900/80;
+  @apply transform -translate-y-2 border-violet-500/40 bg-slate-900/60;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.1);
 }
 
 /* Form elements */
 .form-input, .form-select {
-  @apply w-full bg-slate-900/80 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-inner;
+  @apply w-full bg-slate-900/40 border border-white/10 rounded-xl py-3 px-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all;
 }
 
 textarea.form-input {
@@ -140,10 +168,10 @@ input[type="checkbox"]:focus-visible {
 
 /* Buttons */
 .button-primary {
-    @apply flex items-center justify-center bg-gradient-to-br from-violet to-violet-dark hover:from-violet-light hover:to-violet text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-600/30 hover:shadow-xl hover:shadow-violet-500/30 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-violet-400;
+    @apply flex items-center justify-center bg-gradient-to-br from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-900/20 active:scale-95;
 }
 .button-secondary {
-    @apply flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-100 font-semibold py-2.5 px-5 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-slate-500;
+    @apply flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-bold py-3 px-6 rounded-xl transition-all duration-300 active:scale-95;
 }
 .button-danger {
     @apply flex items-center justify-center bg-red-600/90 hover:bg-red-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
@@ -195,6 +223,39 @@ input[type="checkbox"]:focus-visible {
   background: #64748b; /* slate-500 */
 }
 
+/* Bento Grid Helper */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; filter: blur(20px); }
+  50% { opacity: 0.8; filter: blur(30px); }
+}
+.pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* Typography refinements */
+h1, h2, h3, h4 {
+  @apply tracking-tight font-bold text-white;
+}
+
+.text-dim {
+  @apply text-slate-400;
+}
+
 /* Custom animation for text fade cycle */
 @keyframes text-fade-cycle {
   0%, 100% { opacity: 1; }
@@ -232,4 +293,72 @@ input[type="checkbox"]:focus-visible {
 
 .input-label {
     @apply block text-sm font-medium text-slate-300 mb-1;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 40s linear infinite;
+}
+
+.pause-on-hover:hover {
+  animation-play-state: paused;
+}
+
+/* Text Mask for Gradients */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400;
+}
+
+/* Refined Glassmorphism */
+.glass-panel {
+  @apply bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+}
+
+.glass-panel-hover {
+  @apply hover:bg-white/5 hover:border-white/10 transition-all duration-500;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.premium-card {
+  @apply relative overflow-hidden bg-slate-900/40 backdrop-blur-xl border border-violet-500/20 shadow-2xl;
+}
+
+.premium-card::before {
+  content: '';
+  @apply absolute inset-0 pointer-events-none;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 4s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
