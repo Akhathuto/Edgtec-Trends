@@ -35,23 +35,31 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
     marketing: false
   });
   const [hasAIKey, setHasAIKey] = useState<boolean>(false);
+  const [manualKey, setManualKey] = useState<string>('');
+  const [isEditingKey, setIsEditingKey] = useState<boolean>(false);
+  const [isAIStudio, setIsAIStudio] = useState<boolean>(false);
 
   React.useEffect(() => {
     const checkAIKey = async () => {
-      if ((window as any).aistudio?.hasSelectedApiKey) {
+      const inAIStudio = !!(window as any).aistudio?.hasSelectedApiKey;
+      setIsAIStudio(inAIStudio);
+
+      if (inAIStudio) {
         const hasKey = await (window as any).aistudio.hasSelectedApiKey();
         setHasAIKey(hasKey);
+      } else {
+        const storedKey = localStorage.getItem('user_gemini_api_key');
+        setHasAIKey(!!storedKey);
+        if (storedKey) setManualKey(storedKey);
       }
     };
     checkAIKey();
   }, []);
 
   const handleConnectAI = async () => {
-    if ((window as any).aistudio?.openSelectKey) {
+    if (isAIStudio && (window as any).aistudio?.openSelectKey) {
       try {
         await (window as any).aistudio.openSelectKey();
-        // After opening, we assume success or at least the user tried.
-        // The platform handles the actual key injection.
         const hasKey = await (window as any).aistudio.hasSelectedApiKey();
         setHasAIKey(hasKey);
         showToast("Google AI account connection updated.");
@@ -60,7 +68,21 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
         showToast("Failed to connect Google AI account.");
       }
     } else {
-      showToast("AI Key selection is only available in the AI Studio environment.");
+      setIsEditingKey(true);
+    }
+  };
+
+  const handleSaveManualKey = () => {
+    if (manualKey.trim()) {
+      localStorage.setItem('user_gemini_api_key', manualKey.trim());
+      setHasAIKey(true);
+      setIsEditingKey(false);
+      showToast("API Key saved successfully.");
+    } else {
+      localStorage.removeItem('user_gemini_api_key');
+      setHasAIKey(false);
+      setIsEditingKey(false);
+      showToast("API Key removed.");
     }
   };
 
@@ -152,30 +174,68 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
               <h3 className="text-lg font-bold text-white">AI Configuration</h3>
             </div>
             <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${hasAIKey ? 'bg-green-500/20' : 'bg-slate-700/50'}`}>
-                    <Zap className={`w-5 h-5 ${hasAIKey ? 'text-green-400' : 'text-slate-500'}`} />
+              <div className="flex flex-col gap-4 p-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${hasAIKey ? 'bg-green-500/20' : 'bg-slate-700/50'}`}>
+                      <Zap className={`w-5 h-5 ${hasAIKey ? 'text-green-400' : 'text-slate-500'}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Google AI Account</p>
+                      <p className="text-xs text-slate-400">
+                        {hasAIKey 
+                          ? 'Connected using your personal Google AI key.' 
+                          : isAIStudio 
+                            ? 'Connect your Google account to use your own AI quota.'
+                            : 'Enter your Gemini API key to use your own quota.'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Google AI Account</p>
-                    <p className="text-xs text-slate-400">
-                      {hasAIKey 
-                        ? 'Connected using your personal Google AI key.' 
-                        : 'Connect your Google account to use your own AI quota.'}
+                  {!isEditingKey && (
+                    <button 
+                      onClick={handleConnectAI}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        hasAIKey 
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                          : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-900/20'
+                      }`}
+                    >
+                      {hasAIKey ? 'Change Account' : 'Connect Account'}
+                    </button>
+                  )}
+                </div>
+
+                {isEditingKey && (
+                  <div className="space-y-3 pt-3 border-t border-slate-700/50 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Gemini API Key</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="password"
+                          value={manualKey}
+                          onChange={(e) => setManualKey(e.target.value)}
+                          placeholder="Enter your API key (sk-...)"
+                          className="form-input flex-1 bg-slate-900/50 text-sm"
+                        />
+                        <button 
+                          onClick={handleSaveManualKey}
+                          className="px-4 py-2 bg-violet-600 text-white rounded-lg text-xs font-bold hover:bg-violet-500 transition-all"
+                        >
+                          Save
+                        </button>
+                        <button 
+                          onClick={() => setIsEditingKey(false)}
+                          className="px-4 py-2 bg-slate-700 text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500">
+                      Don't have a key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline">Google AI Studio</a>.
                     </p>
                   </div>
-                </div>
-                <button 
-                  onClick={handleConnectAI}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    hasAIKey 
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
-                      : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-900/20'
-                  }`}
-                >
-                  {hasAIKey ? 'Change Account' : 'Connect Account'}
-                </button>
+                )}
               </div>
               <p className="text-xs text-slate-500 italic">
                 * Connecting your own account allows you to use your personal Google AI Studio quota and access advanced models.

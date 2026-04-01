@@ -7,8 +7,12 @@ import { avatarStyles, genders, shotTypes, hairStyles, eyeColors, facialHairOpti
 
 // Helper to get the correct API key
 export const getApiKey = () => {
-    // For Veo/Paid models, process.env.API_KEY is used after selection
-    // For free/standard models, process.env.GEMINI_API_KEY is used
+    // 1. Check for user-provided key in localStorage (for BYOK on custom domains)
+    const userKey = typeof window !== 'undefined' ? localStorage.getItem('user_gemini_api_key') : null;
+    if (userKey) return userKey;
+
+    // 2. For Veo/Paid models in AI Studio, process.env.API_KEY is used after selection
+    // 3. For free/standard models, process.env.GEMINI_API_KEY is used
     return (process.env as any).API_KEY || (process.env as any).GEMINI_API_KEY;
 };
 
