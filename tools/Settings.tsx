@@ -15,7 +15,9 @@ import {
   Sun,
   ChevronRight,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -32,6 +34,35 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
     push: false,
     marketing: false
   });
+  const [hasAIKey, setHasAIKey] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    const checkAIKey = async () => {
+      if ((window as any).aistudio?.hasSelectedApiKey) {
+        const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+        setHasAIKey(hasKey);
+      }
+    };
+    checkAIKey();
+  }, []);
+
+  const handleConnectAI = async () => {
+    if ((window as any).aistudio?.openSelectKey) {
+      try {
+        await (window as any).aistudio.openSelectKey();
+        // After opening, we assume success or at least the user tried.
+        // The platform handles the actual key injection.
+        const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+        setHasAIKey(hasKey);
+        showToast("Google AI account connection updated.");
+      } catch (error) {
+        console.error("Failed to open AI key selection:", error);
+        showToast("Failed to connect Google AI account.");
+      }
+    } else {
+      showToast("AI Key selection is only available in the AI Studio environment.");
+    }
+  };
 
   const handleToggleNotification = (key: keyof typeof notifications) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
@@ -61,7 +92,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
         {/* Sidebar Navigation for Settings (Optional, but let's use sections) */}
         <div className="md:col-span-1 space-y-2">
           <nav className="space-y-1">
-            {['Account', 'Preferences', 'Security', 'Integrations', 'Danger Zone', 'About'].map((section) => (
+            {['Account', 'AI Configuration', 'Preferences', 'Security', 'Integrations', 'Danger Zone', 'About'].map((section) => (
               <a
                 key={section}
                 href={`#${section.toLowerCase().replace(' ', '-')}`}
@@ -111,6 +142,44 @@ export const Settings: React.FC<SettingsProps> = ({ theme, setTheme, onNavigate 
                   Upgrade
                 </button>
               </div>
+            </div>
+          </section>
+
+          {/* AI Configuration Section */}
+          <section id="ai-configuration" className="bg-brand-glass border border-slate-700/50 rounded-xl overflow-hidden shadow-xl">
+            <div className="p-6 border-b border-slate-700/50 flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <h3 className="text-lg font-bold text-white">AI Configuration</h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${hasAIKey ? 'bg-green-500/20' : 'bg-slate-700/50'}`}>
+                    <Zap className={`w-5 h-5 ${hasAIKey ? 'text-green-400' : 'text-slate-500'}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Google AI Account</p>
+                    <p className="text-xs text-slate-400">
+                      {hasAIKey 
+                        ? 'Connected using your personal Google AI key.' 
+                        : 'Connect your Google account to use your own AI quota.'}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleConnectAI}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    hasAIKey 
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' 
+                      : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-900/20'
+                  }`}
+                >
+                  {hasAIKey ? 'Change Account' : 'Connect Account'}
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 italic">
+                * Connecting your own account allows you to use your personal Google AI Studio quota and access advanced models.
+              </p>
             </div>
           </section>
 

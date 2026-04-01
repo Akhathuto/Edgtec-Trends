@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx server.ts",
     "build": "vite build",
     "start": "vite build && node server.js",
     "preview": "vite preview",
@@ -16,14 +16,19 @@
   },
   "dependencies": {
     "@google/genai": "^1.24.0",
+    "@stripe/stripe-js": "^9.0.1",
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.6",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "firebase": "^12.11.0",
     "lucide-react": "^1.0.1",
     "motion": "^12.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-paystack": "^6.0.0",
+    "stripe": "^21.0.1",
     "tsx": "^4.21.0"
   },
   "devDependencies": {

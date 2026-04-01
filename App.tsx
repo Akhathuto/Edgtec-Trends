@@ -48,8 +48,9 @@ import { PromptGenerator } from './tools/PromptGenerator';
 import AIAgents from './components/AIAgents';
 
 const App: React.FC = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, upgradePlan } = useAuth();
   const [activeTool, setActiveTool] = useState<ToolId>('dashboard');
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('utrend-theme', 'dark');

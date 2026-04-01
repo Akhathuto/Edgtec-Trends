@@ -190,9 +190,7 @@ const AIVoiceCoPilot: React.FC<AIVoiceCoPilotProps> = ({ onNavigate }) => {
     nextStartTimeRef.current = 0;
 
     try {
-        if (!aiRef.current) {
-            aiRef.current = new GoogleGenAI({ apiKey: getApiKey() });
-        }
+        aiRef.current = new GoogleGenAI({ apiKey: getApiKey() });
         inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
