@@ -274,6 +274,43 @@ export const Link: React.FC<IconProps> = (props) => (
   </svg>
 );
 
+export const LinkedIn: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
+
+export const Pinterest: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="8" y1="20" x2="12" y2="11" />
+    <path d="M12 11c1.5 0 3 .5 3 2.5s-1.5 3.5-3 3.5c-1.2 0-2.3-.7-2.7-1.8" />
+    <path d="M12 2C6.48 2 2 6.48 2 12c0 4.27 2.67 7.9 6.45 9.34-.1-.8-.19-2.02.04-2.89l1.18-5.01c-.13-.26-.2-.54-.2-.84 0-1.42.82-2.48 1.85-2.48.87 0 1.29.65 1.29 1.44 0 .88-.56 2.19-.85 3.41-.24 1.02.51 1.85 1.51 1.85 1.81 0 3.21-1.91 3.21-4.66 0-2.44-1.75-4.14-4.25-4.14-2.9 0-4.6 2.17-4.6 4.42 0 .88.34 1.82.76 2.32.08.1.09.19.07.3l-.29 1.18c-.05.19-.16.23-.36.14-1.35-.63-2.19-2.6-2.19-4.19 0-3.41 2.48-6.54 7.14-6.54 3.75 0 6.66 2.67 6.66 6.24 0 3.72-2.35 6.72-5.61 6.72-1.1 0-2.13-.57-2.48-1.24l-.68 2.58c-.24.93-.9 2.09-1.34 2.81C9.07 21.82 10.49 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+  </svg>
+);
+
+export const Snapchat: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 3c4.42 0 8 3 8 7.5 0 .83-.12 1.62-.35 2.36.72.4 1.35 1.14 1.35 2.14 0 1.5-1.5 2.5-3 2.5-.5 0-1-.1-1.5-.3-.5.8-1.5 1.3-2.5 1.3s-2-.5-2.5-1.3c-.5.2-1 .3-1.5.3-1.5 0-3-1-3-2.5 0-1 .63-1.74 1.35-2.14C8.12 12.12 8 11.33 8 10.5 8 6 11.58 3 12 3z" />
+  </svg>
+);
+
+export const Reddit: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm5.5 11.5a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5zm-8.5 0a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5zm6.5 3.5c-.5 1-2 1.5-3.5 1.5s-3-.5-3.5-1.5" />
+    <path d="M12 8c1 0 2 .5 2 1.5" />
+    <circle cx="14" cy="7" r="1" />
+  </svg>
+);
+
+export const Threads: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+    <path d="M12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+  </svg>
+);
+
 export const Loader2: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -380,6 +417,13 @@ export const PieChart: React.FC<IconProps> = (props) => (
 export const Play: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+export const Plus: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 

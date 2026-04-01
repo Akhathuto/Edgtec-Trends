@@ -331,6 +331,10 @@ h1, h2, h3, h4 {
   text-wrap: balance;
 }
 
+.bento-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -354,11 +358,93 @@ h1, h2, h3, h4 {
   animation: shimmer 4s infinite;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+/* AI Content & Markdown Styles */
+.ai-content-body {
+    @apply text-slate-300 leading-relaxed font-medium;
+}
+
+.ai-content-body strong {
+    @apply text-violet-400 font-bold;
+}
+
+.ai-content-body h1, .ai-content-body h2, .ai-content-body h3 {
+    @apply text-white font-bold tracking-tight mb-4 mt-6 first:mt-0;
+}
+
+.ai-content-body h1 { @apply text-2xl; }
+.ai-content-body h2 { @apply text-xl; }
+.ai-content-body h3 { @apply text-lg; }
+
+.ai-content-body p {
+    @apply mb-4 last:mb-0;
+}
+
+.ai-content-body ul, .ai-content-body ol {
+    @apply mb-4 space-y-2;
+}
+
+.ai-content-body li {
+    @apply relative pl-6;
+}
+
+.ai-content-body ul li::before {
+    content: "•";
+    @apply absolute left-0 text-violet-500 font-bold;
+}
+
+.ai-content-body ol {
+    counter-reset: list-counter;
+}
+
+.ai-content-body ol li {
+    counter-increment: list-counter;
+}
+
+.ai-content-body ol li::before {
+    content: counter(list-counter) ".";
+    @apply absolute left-0 text-violet-500 font-bold;
+}
+
+.ai-content-body blockquote {
+    @apply border-l-4 border-violet-500/30 bg-violet-500/5 px-4 py-3 rounded-r-xl italic text-slate-400 mb-4;
+}
+
+.ai-content-body code {
+    @apply bg-slate-800/50 text-violet-300 px-1.5 py-0.5 rounded border border-white/5 font-mono text-sm;
+}
+
+.ai-content-body pre {
+    @apply bg-slate-950/80 border border-white/5 rounded-xl p-4 mb-4 overflow-x-auto;
+}
+
+.ai-content-body pre code {
+    @apply bg-transparent border-none p-0 text-slate-300;
+}
+
+/* Animations */
+@keyframes text-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.animate-text-shimmer {
+    background: linear-gradient(90deg, #a78bfa 0%, #ffffff 50%, #a78bfa 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text-shimmer 3s linear infinite;
+}
+
+.typing-cursor {
+    @apply inline-block w-2 h-5 bg-violet-500 ml-1 translate-y-1;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from, to { opacity: 1; }
+    50% { opacity: 0; }
 }

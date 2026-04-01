@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
+import { BottomNav } from './components/BottomNav';
+import { Breadcrumbs } from './components/Breadcrumbs';
 import { GlobalSearch } from './components/GlobalSearch';
 import { MenuIcon, Bell, Search, Command, Sun, Moon, Plus, ChevronDown, LogOut, User, CreditCard, LifeBuoy, Settings as SettingsIcon, Sparkles, Video, Image as ImageIcon, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -184,22 +186,40 @@ const App: React.FC = () => {
         setIsOpen={setIsSidebarOpen} 
       />
 
+      <BottomNav 
+        activeTool={activeTool} 
+        setActiveTool={setActiveTool} 
+      />
+
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-slate-900/40 backdrop-blur-xl z-30">
           <div className="flex items-center gap-4 flex-1">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <MenuIcon className="w-6 h-6" />
-            </button>
-            <div className="md:hidden flex items-center gap-2">
-              <UtrendLogo className="h-8 w-8" />
-              <span className="text-xl font-bold text-white tracking-tighter">uTrends</span>
+            <div className="md:hidden flex items-center gap-1">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <MenuIcon className="w-6 h-6" />
+              </button>
+              {activeTool !== 'dashboard' && (
+                <button 
+                  onClick={() => handleNavigate('dashboard')}
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  <ChevronDown className="w-5 h-5 rotate-90" />
+                </button>
+              )}
             </div>
-            <h2 className="hidden md:block text-xl font-bold text-white capitalize min-w-[150px] tracking-tight">
-              {activeTool.replace(/-/g, ' ')}
-            </h2>
+            <div className="md:hidden flex items-center gap-2" onClick={() => handleNavigate('dashboard')}>
+              <UtrendLogo className="h-8 w-8 cursor-pointer" />
+              <span className="text-xl font-bold text-white tracking-tighter cursor-pointer">uTrends</span>
+            </div>
+            <div className="hidden md:flex flex-col">
+              <h2 className="text-xl font-bold text-white capitalize min-w-[150px] tracking-tight">
+                {activeTool.replace(/-/g, ' ')}
+              </h2>
+              <Breadcrumbs activeTool={activeTool} onNavigate={handleNavigate} />
+            </div>
             
             {/* Global Search Bar */}
             <div className="hidden md:flex flex-1 justify-center max-w-2xl px-8">
@@ -286,7 +306,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {renderActiveTool()}
           </div>

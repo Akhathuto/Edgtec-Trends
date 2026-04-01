@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getChannelAnalytics, generateChannelOpportunities } from '../services/geminiService';
-import { ChannelAnalyticsData, ToolId } from '../types';
+import { ChannelAnalyticsData, ToolId, Platform } from '../types';
 import Spinner from './Spinner';
-import { Star, BarChart2, Youtube, TikTok, Facebook, Instagram, Twitch, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
+import * as Icons from './Icons';
+import { Star, BarChart2, Youtube, TikTok, Facebook, Instagram, Twitch, LinkedIn, Pinterest, Snapchat, Reddit, Threads, Lightbulb, TrendingUp, TrendingDown, ExternalLink, ChevronDown } from './Icons';
 import ErrorDisplay from './ErrorDisplay';
 
 interface ChannelAnalyticsProps {
@@ -46,14 +47,14 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
     const [analytics, setAnalytics] = useState<ChannelAnalyticsData | null>(null);
     const [opportunities, setOpportunities] = useState<string[]>([]);
     
-    const compatibleChannels = user?.channels?.filter(c => ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'].includes(c.platform)) || [];
+    const compatibleChannels = user?.channels || [];
     
     const [analysisUrl, setAnalysisUrl] = useState('');
-    const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'>('YouTube');
+    const [platform, setPlatform] = useState<Platform>('YouTube');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const comboboxRef = useRef<HTMLDivElement>(null);
 
-    const handleAnalyze = useCallback(async (channelUrl: string, channelPlatform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch') => {
+    const handleAnalyze = useCallback(async (channelUrl: string, channelPlatform: Platform) => {
         if (!channelUrl) {
             setError("Please select or enter a channel URL.");
             return;
@@ -162,6 +163,12 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
                                             {channel.platform === 'Facebook' && <Facebook className="w-5 h-5 text-blue-600" />}
                                             {channel.platform === 'Instagram' && <Instagram className="w-5 h-5 text-pink-500" />}
                                             {channel.platform === 'Twitch' && <Twitch className="w-5 h-5 text-purple-500" />}
+                                            {channel.platform === 'LinkedIn' && <LinkedIn className="w-5 h-5 text-blue-600" />}
+                                            {channel.platform === 'X' && <Icons.Twitter className="w-5 h-5" />}
+                                            {channel.platform === 'Pinterest' && <Pinterest className="w-5 h-5 text-red-600" />}
+                                            {channel.platform === 'Snapchat' && <Snapchat className="w-5 h-5 text-yellow-400" />}
+                                            {channel.platform === 'Reddit' && <Reddit className="w-5 h-5 text-orange-500" />}
+                                            {channel.platform === 'Threads' && <Threads className="w-5 h-5" />}
                                             <span className="truncate">{channel.url.split('/').pop() || channel.url}</span>
                                         </button>
                                     ))}
@@ -169,12 +176,18 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onNavigate, activeC
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <div className="segmented-control overflow-x-auto">
+                            <div className="segmented-control overflow-x-auto pb-2">
                                 <button onClick={() => setPlatform('YouTube')} title="Set platform to YouTube" className={platform === 'YouTube' ? 'active' : ''}><Youtube className="w-5 h-5"/> </button>
                                 <button onClick={() => setPlatform('TikTok')} title="Set platform to TikTok" className={platform === 'TikTok' ? 'active' : ''}><TikTok className="w-5 h-5"/> </button>
                                 <button onClick={() => setPlatform('Instagram')} title="Set platform to Instagram" className={platform === 'Instagram' ? 'active' : ''}><Instagram className="w-5 h-5"/> </button>
                                 <button onClick={() => setPlatform('Facebook')} title="Set platform to Facebook" className={platform === 'Facebook' ? 'active' : ''}><Facebook className="w-5 h-5"/> </button>
                                 <button onClick={() => setPlatform('Twitch')} title="Set platform to Twitch" className={platform === 'Twitch' ? 'active' : ''}><Twitch className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('LinkedIn')} title="Set platform to LinkedIn" className={platform === 'LinkedIn' ? 'active' : ''}><LinkedIn className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('X')} title="Set platform to X" className={platform === 'X' ? 'active' : ''}><Icons.Twitter className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Pinterest')} title="Set platform to Pinterest" className={platform === 'Pinterest' ? 'active' : ''}><Pinterest className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Snapchat')} title="Set platform to Snapchat" className={platform === 'Snapchat' ? 'active' : ''}><Snapchat className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Reddit')} title="Set platform to Reddit" className={platform === 'Reddit' ? 'active' : ''}><Reddit className="w-5 h-5"/> </button>
+                                <button onClick={() => setPlatform('Threads')} title="Set platform to Threads" className={platform === 'Threads' ? 'active' : ''}><Threads className="w-5 h-5"/> </button>
                             </div>
                             <button onClick={() => handleAnalyze(analysisUrl, platform)} disabled={loading} title="Analyze the entered channel (Pro feature)" className="button-primary">Analyze</button>
                         </div>

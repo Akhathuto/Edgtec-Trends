@@ -12,43 +12,45 @@ interface ScriptWriterProps {
 }
 
 const IdeaCard: React.FC<{ idea: ContentIdea; onCopy: (text: string) => void }> = ({ idea, onCopy }) => (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-violet-500/50 transition-all group">
-        <div className="flex justify-between items-start mb-4">
-            <h3 className="text-xl font-bold text-white group-hover:text-violet-300 transition-colors">{idea.title}</h3>
-            <div className="flex items-center gap-1 bg-violet-900/40 px-2 py-1 rounded text-xs font-bold text-violet-300 border border-violet-500/30">
-                <TrendingUp className="w-3 h-3" /> {idea.virality_potential.score}/100
+    <div className="premium-card rounded-2xl p-6 group hover:scale-[1.02] transition-all duration-500">
+        <div className="flex justify-between items-start mb-6">
+            <h3 className="text-xl font-bold text-white group-hover:text-violet-300 transition-colors leading-tight">{idea.title}</h3>
+            <div className="flex items-center gap-1.5 bg-violet-500/10 px-3 py-1.5 rounded-full text-xs font-bold text-violet-400 border border-violet-500/20 shadow-lg shadow-violet-900/20">
+                <TrendingUp className="w-3.5 h-3.5" /> {idea.virality_potential.score}%
             </div>
         </div>
         
-        <div className="space-y-4">
-            <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">The Hook</h4>
-                <p className="text-slate-300 text-sm italic">"{idea.hook}"</p>
+        <div className="space-y-6">
+            <div className="p-4 bg-slate-950/40 border border-white/5 rounded-xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-violet-500" />
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">The Hook</h4>
+                <p className="text-slate-200 text-sm italic leading-relaxed">"{idea.hook}"</p>
             </div>
             
-            <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Script Outline</h4>
-                <ul className="space-y-1">
+            <div className="space-y-3">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Script Outline</h4>
+                <ul className="space-y-2.5">
                     {idea.script_outline.map((step, i) => (
-                        <li key={i} className="flex items-start text-sm text-slate-400">
-                            <span className="text-violet-500 mr-2 font-bold">{i + 1}.</span> {step}
+                        <li key={i} className="flex items-start text-sm text-slate-400 group/item">
+                            <span className="flex-shrink-0 w-5 h-5 bg-violet-500/10 border border-violet-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-violet-400 mr-3 mt-0.5 group-hover/item:bg-violet-500 group-hover/item:text-white transition-colors">{i + 1}</span> 
+                            <span className="group-hover/item:text-slate-200 transition-colors">{step}</span>
                         </li>
                     ))}
                 </ul>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-2">
                 {idea.hashtags.map(tag => (
-                    <span key={tag} className="text-xs bg-slate-700/50 text-slate-400 px-2 py-1 rounded">#{tag}</span>
+                    <span key={tag} className="text-[10px] font-bold bg-slate-800/50 text-slate-500 px-2.5 py-1 rounded-lg border border-white/5 hover:border-violet-500/30 hover:text-violet-400 transition-colors cursor-default">#{tag}</span>
                 ))}
             </div>
 
             <div className="pt-4 flex gap-3">
                 <button 
                     onClick={() => onCopy(`${idea.title}\n\nHook: ${idea.hook}\n\nOutline:\n${idea.script_outline.join('\n')}`)}
-                    className="button-secondary text-xs py-2 flex items-center gap-2"
+                    className="button-secondary w-full text-xs py-2.5 flex items-center justify-center gap-2"
                 >
-                    <Copy className="w-3 h-3" /> Copy Script
+                    <Copy className="w-4 h-4" /> Copy Full Script
                 </button>
             </div>
         </div>
@@ -95,48 +97,63 @@ export const ScriptWriter: React.FC<ScriptWriterProps> = ({ onNavigate }) => {
 
     return (
         <div className="animate-slide-in-up space-y-8">
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <Zap className="w-6 h-6 text-violet-400" /> AI Script Writer
-                </h2>
-                <p className="text-center text-slate-400 mb-6">Generate viral video ideas and script outlines.</p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-                    <input 
-                        type="text" 
-                        value={topic} 
-                        onChange={(e) => setTopic(e.target.value)} 
-                        placeholder="Enter a topic (e.g., 'AI tools for creators')..." 
-                        className="form-input flex-grow"
-                    />
-                    <select 
-                        value={platform} 
-                        onChange={(e) => setPlatform(e.target.value as any)}
-                        className="form-input sm:w-32"
-                    >
-                        <option value="All">All</option>
-                        <option value="YouTube">YouTube</option>
-                        <option value="TikTok">TikTok</option>
-                        <option value="Instagram">Instagram</option>
-                        <option value="Facebook">Facebook</option>
-                        <option value="Twitch">Twitch</option>
-                    </select>
-                    <button onClick={handleGenerate} disabled={loading} className="button-primary whitespace-nowrap">
-                        {loading ? <Spinner /> : 'Generate Ideas'}
-                    </button>
+            <div className="premium-card rounded-2xl p-8 shadow-2xl">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="p-4 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-4 animate-float">
+                        <Zap className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white tracking-tight">AI Script Writer</h2>
+                    <p className="text-slate-400 mt-2">Generate viral video concepts and structured script outlines.</p>
                 </div>
-                <ErrorDisplay message={error} className="mt-4" />
+                
+                <div className="max-w-3xl mx-auto">
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-grow">
+                            <Lightbulb className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="text" 
+                                value={topic} 
+                                onChange={(e) => setTopic(e.target.value)} 
+                                placeholder="Enter a topic (e.g., 'AI tools for creators')..." 
+                                className="form-input pl-11 bg-slate-950/50 border-white/10 h-12"
+                            />
+                        </div>
+                        <select 
+                            value={platform} 
+                            onChange={(e) => setPlatform(e.target.value as any)}
+                            className="form-input md:w-40 h-12"
+                        >
+                            <option value="All">All Platforms</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Twitch">Twitch</option>
+                        </select>
+                        <button 
+                            onClick={handleGenerate} 
+                            disabled={loading} 
+                            className="button-primary whitespace-nowrap px-8 h-12 flex items-center justify-center min-w-[160px]"
+                        >
+                            {loading ? <Spinner /> : 'Generate Ideas'}
+                        </button>
+                    </div>
+                    <ErrorDisplay message={error} className="mt-4" />
+                </div>
             </div>
 
             {loading && (
-                <div className="text-center py-10">
-                    <Spinner size="lg" />
-                    <p className="mt-4 text-slate-300">Brainstorming viral concepts...</p>
+                <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                    <div className="relative">
+                        <Spinner size="lg" />
+                        <div className="absolute inset-0 bg-violet-500/20 blur-xl rounded-full" />
+                    </div>
+                    <p className="mt-6 text-slate-300 font-medium tracking-wide">Brainstorming viral concepts...</p>
                 </div>
             )}
 
             {ideas.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
                     {ideas.map((idea, index) => (
                         <IdeaCard key={index} idea={idea} onCopy={handleCopy} />
                     ))}

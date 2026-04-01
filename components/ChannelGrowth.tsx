@@ -62,7 +62,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ onNavigate }) => {
     const [error, setError] = useState<string | null>(null);
     const [plan, setPlan] = useState<ChannelGrowthPlan | null>(null);
 
-    const compatibleChannels = user?.channels?.filter(c => ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'].includes(c.platform)) || [];
+    const compatibleChannels = user?.channels || [];
     const [selectedChannelId, setSelectedChannelId] = useState<string | null>(compatibleChannels[0]?.id || null);
 
     const handleGenerate = useCallback(async () => {
@@ -114,7 +114,7 @@ const ChannelGrowth: React.FC<ChannelGrowthProps> = ({ onNavigate }) => {
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-8 shadow-xl backdrop-blur-xl text-center flex flex-col items-center animate-slide-in-up">
                 <Link className="w-12 h-12 text-violet-400 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Connect a Social Channel</h2>
-                <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add a YouTube, TikTok, Instagram, Facebook, or Twitch channel URL to your profile.</p>
+                <p className="text-slate-400 mb-6 max-w-md">To generate a personalized growth plan, please add a social channel URL to your profile.</p>
                 <button onClick={() => onNavigate('profile')} title="Go to your profile to connect a channel" className="button-primary">
                     Go to Profile
                 </button>

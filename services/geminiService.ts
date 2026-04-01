@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type, Modality, Part, VideoGenerationReferenceImage, VideoGenerationReferenceType, GenerateContentResponse } from "@google/genai";
 import { 
     TrendingChannel, TrendingTopic, ContentIdea, MonetizationStrategy, FullReport, KeywordAnalysis, 
-    ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel, AvatarProfile, Agent as AgentType, AgentSettings, ChatMessage as AppChatMessage
+    ChannelAnalyticsData, ChannelGrowthPlan, SponsorshipOpportunity, BrandPitch, VideoAnalysis, RepurposedContent, ThumbnailIdea, Channel, AvatarProfile, Agent as AgentType, AgentSettings, ChatMessage as AppChatMessage, Platform
 } from '../types';
 import { avatarStyles, genders, shotTypes, hairStyles, eyeColors, facialHairOptions, glassesOptions } from '../data/avatarOptions';
 
@@ -40,9 +40,10 @@ const parseJsonResponse = <T>(text: string | undefined | null, fallback: T): T =
 
 export async function getRealtimeTrends(plan: string, country: string): Promise<{ channels: TrendingChannel[], topics: TrendingTopic[] }> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
+    const platforms = 'YouTube, TikTok, Instagram, Facebook, Twitch, LinkedIn, X, Pinterest, Snapchat, Reddit, and Threads';
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Get the top 4 trending YouTube, TikTok, Instagram, Facebook, and Twitch channels and topics in ${country}. The user is on the ${plan} plan. Free plan users see less.`,
+        contents: `Get the top 4 trending channels and topics across ${platforms} in ${country}. The user is on the ${plan} plan. Free plan users see less.`,
         config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -54,7 +55,7 @@ export async function getRealtimeTrends(plan: string, country: string): Promise<
                             type: Type.OBJECT,
                             properties: {
                                 name: { type: Type.STRING },
-                                platform: { type: Type.STRING, enum: ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'] },
+                                platform: { type: Type.STRING },
                                 channel_url: { type: Type.STRING }
                             },
                             required: ["name", "platform", "channel_url"],
@@ -66,7 +67,7 @@ export async function getRealtimeTrends(plan: string, country: string): Promise<
                             type: Type.OBJECT,
                             properties: {
                                 name: { type: Type.STRING },
-                                platform: { type: Type.STRING, enum: ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'] },
+                                platform: { type: Type.STRING },
                                 description: { type: Type.STRING }
                             },
                             required: ["name", "platform", "description"],
@@ -79,12 +80,12 @@ export async function getRealtimeTrends(plan: string, country: string): Promise<
     return parseJsonResponse(response.text, { channels: [], topics: [] });
 }
 
-export async function getTrendingContent(contentType: string, plan: string, country: string, category: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'): Promise<any[]> {
+export async function getTrendingContent(contentType: string, plan: string, country: string, category: string, platform: Platform): Promise<any[]> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const videoSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, channelName: { type: Type.STRING }, videoUrl: { type: Type.STRING }, thumbnailUrl: { type: Type.STRING }, viewCount: { type: Type.STRING }, publishedTime: { type: Type.STRING }, }, required: ["title", "channelName", "videoUrl", "thumbnailUrl", "viewCount", "publishedTime"] } };
     const musicSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { trackTitle: { type: Type.STRING }, artistName: { type: Type.STRING }, videosUsingSound: { type: Type.STRING }, reason: { type: Type.STRING }, }, required: ["trackTitle", "artistName", "videosUsingSound", "reason"] } };
     const creatorSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, category: { type: Type.STRING }, subscriberCount: { type: Type.STRING }, channelUrl: { type: Type.STRING }, reason: { type: Type.STRING }, }, required: ["name", "category", "subscriberCount", "channelUrl", "reason"] } };
-    const topicSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, platform: { type: Type.STRING, enum: ['YouTube', 'TikTok', 'Facebook', 'Instagram', 'Twitch'] }, description: { type: Type.STRING } }, required: ["name", "platform", "description"], } };
+    const topicSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, platform: { type: Type.STRING }, description: { type: Type.STRING } }, required: ["name", "platform", "description"], } };
     let schema;
     switch (contentType) {
         case 'videos': schema = videoSchema; break;
@@ -102,17 +103,18 @@ export async function getTrendingContent(contentType: string, plan: string, coun
     return parseJsonResponse(response.text, []);
 }
 
-export async function findTrends(term: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch' | 'All', country: string, category: string): Promise<any> {
+export async function findTrends(term: string, platform: Platform | 'All', country: string, category: string): Promise<any> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
+    const platforms = 'YouTube, TikTok, Instagram, Facebook, Twitch, LinkedIn, X, Pinterest, Snapchat, Reddit, and Threads';
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze and summarize the current trends for "${term}" on ${platform === 'All' ? 'YouTube, TikTok, Instagram, Facebook, and Twitch' : platform} in ${country} for the ${category} category. Provide content ideas and relevant insights.`,
+        contents: `Analyze and summarize the current trends for "${term}" on ${platform === 'All' ? platforms : platform} in ${country} for the ${category} category. Provide content ideas and relevant insights.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return response; // Return the full response object to access grounding metadata
 }
 
-export async function generateContentIdeas(topic: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch' | 'All', plan: string): Promise<ContentIdea[]> {
+export async function generateContentIdeas(topic: string, platform: Platform | 'All', plan: string): Promise<ContentIdea[]> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -151,7 +153,7 @@ export async function generateVideoScript(idea: ContentIdea): Promise<string> {
     return response.text || '';
 }
 
-export async function getMonetizationStrategies(platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch', followers: number): Promise<MonetizationStrategy[]> {
+export async function getMonetizationStrategies(platform: Platform, followers: number): Promise<MonetizationStrategy[]> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -378,7 +380,7 @@ export async function getKeywordAnalysis(keyword: string, platform: string = 'Al
     return parseJsonResponse(response.text, { searchVolume: 'Medium', competition: 'Medium', relatedKeywords: [], contentIdeas: [] });
 }
 
-export async function getChannelAnalytics(channelUrl: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'): Promise<ChannelAnalyticsData> {
+export async function getChannelAnalytics(channelUrl: string, platform: Platform): Promise<ChannelAnalyticsData> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -388,7 +390,7 @@ export async function getChannelAnalytics(channelUrl: string, platform: 'YouTube
     return parseJsonResponse(response.text, { channelName: 'N/A', platform: 'YouTube', followerCount: 'N/A', totalViews: 'N/A', totalLikes: 'N/A', followerTrend: 'stable', viewsTrend: 'stable', aiSummary: 'Analysis failed. Please try again.', recentVideos: [] } as ChannelAnalyticsData);
 }
 
-export async function generateChannelOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'): Promise<string[]> {
+export async function generateChannelOpportunities(channelUrl: string, platform: Platform): Promise<string[]> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -408,7 +410,7 @@ export async function generateDashboardTip(channels: Channel[]): Promise<string>
     return response.text || '';
 }
 
-export async function generateChannelGrowthPlan(channelUrl: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'): Promise<ChannelGrowthPlan> {
+export async function generateChannelGrowthPlan(channelUrl: string, platform: Platform): Promise<ChannelGrowthPlan> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview', // Pro for better analysis
@@ -418,7 +420,7 @@ export async function generateChannelGrowthPlan(channelUrl: string, platform: 'Y
     return parseJsonResponse(response.text, { contentStrategy: { analysis: 'Analysis failed. Please try again.', recommendations: [] }, seoAndDiscoverability: { analysis: 'Analysis failed. Please try again.', recommendations: [] }, audienceEngagement: { analysis: 'Analysis failed. Please try again.', recommendations: [] }, thumbnailCritique: { analysis: 'Analysis failed. Please try again.', recommendations: [] } } as ChannelGrowthPlan);
 }
 
-export async function findSponsorshipOpportunities(channelUrl: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'): Promise<SponsorshipOpportunity[]> {
+export async function findSponsorshipOpportunities(channelUrl: string, platform: Platform): Promise<SponsorshipOpportunity[]> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -428,7 +430,7 @@ export async function findSponsorshipOpportunities(channelUrl: string, platform:
     return parseJsonResponse(response.text, []);
 }
 
-export async function generateBrandPitch(channelName: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch', brandName: string, industry: string): Promise<BrandPitch> {
+export async function generateBrandPitch(channelName: string, platform: Platform, brandName: string, industry: string): Promise<BrandPitch> {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -787,7 +789,7 @@ export async function sendMessageToAgent(agent: AgentType, history: AppChatMessa
 
 const getAI = () => new GoogleGenAI({ apiKey: getApiKey() });
 
-export async function generateSEOMetadata(topic: string, platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch' = 'YouTube'): Promise<{ titles: string[], description: string, tags: string[] }> {
+export async function generateSEOMetadata(topic: string, platform: Platform = 'YouTube'): Promise<{ titles: string[], description: string, tags: string[] }> {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',

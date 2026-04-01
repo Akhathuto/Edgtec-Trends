@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getMonetizationStrategies } from '../services/geminiService';
-import { MonetizationStrategy } from '../types';
+import { MonetizationStrategy, Platform } from '../types';
 import Spinner from './Spinner';
 import { Youtube, Film, DollarSign, Users, Target, CheckCircle, TikTok } from './Icons';
 import * as Icons from './Icons';
 
 const MonetizationGuide: React.FC = () => {
-  const [platform, setPlatform] = useState<'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch'>('YouTube');
+  const [platform, setPlatform] = useState<Platform>('YouTube');
   const [followers, setFollowers] = useState(1000);
   const [debouncedFollowers, setDebouncedFollowers] = useState(followers);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ const MonetizationGuide: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
             <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-            <div className="segmented-control overflow-x-auto">
+            <div className="segmented-control overflow-x-auto pb-2">
               <button onClick={() => setPlatform('YouTube')} title="Get monetization strategies for YouTube" className={platform === 'YouTube' ? 'active' : ''}>
                 <Youtube className="w-5 h-5"/> YouTube
               </button>
@@ -71,6 +71,24 @@ const MonetizationGuide: React.FC = () => {
               </button>
               <button onClick={() => setPlatform('Twitch')} title="Get monetization strategies for Twitch" className={platform === 'Twitch' ? 'active' : ''}>
                 <Icons.Twitch className="w-5 h-5"/> Twitch
+              </button>
+              <button onClick={() => setPlatform('LinkedIn')} title="Get monetization strategies for LinkedIn" className={platform === 'LinkedIn' ? 'active' : ''}>
+                <Icons.LinkedIn className="w-5 h-5"/> LinkedIn
+              </button>
+              <button onClick={() => setPlatform('X')} title="Get monetization strategies for X" className={platform === 'X' ? 'active' : ''}>
+                <Icons.Twitter className="w-5 h-5"/> X
+              </button>
+              <button onClick={() => setPlatform('Pinterest')} title="Get monetization strategies for Pinterest" className={platform === 'Pinterest' ? 'active' : ''}>
+                <Icons.Pinterest className="w-5 h-5"/> Pinterest
+              </button>
+              <button onClick={() => setPlatform('Snapchat')} title="Get monetization strategies for Snapchat" className={platform === 'Snapchat' ? 'active' : ''}>
+                <Icons.Snapchat className="w-5 h-5"/> Snapchat
+              </button>
+              <button onClick={() => setPlatform('Reddit')} title="Get monetization strategies for Reddit" className={platform === 'Reddit' ? 'active' : ''}>
+                <Icons.Reddit className="w-5 h-5"/> Reddit
+              </button>
+              <button onClick={() => setPlatform('Threads')} title="Get monetization strategies for Threads" className={platform === 'Threads' ? 'active' : ''}>
+                <Icons.Threads className="w-5 h-5"/> Threads
               </button>
             </div>
           </div>

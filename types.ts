@@ -15,9 +15,11 @@ export interface User {
   channels?: Channel[];
 }
 
+export type Platform = 'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch' | 'LinkedIn' | 'X' | 'Pinterest' | 'Snapchat' | 'Reddit' | 'Threads';
+
 export interface Channel {
   id: string;
-  platform: 'YouTube' | 'TikTok' | string;
+  platform: Platform | string;
   url: string;
 }
 
@@ -187,13 +189,13 @@ export interface GroundingSource {
 
 export interface TrendingChannel {
     name: string;
-    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
+    platform: Platform;
     channel_url: string;
 }
 
 export interface TrendingTopic {
     name: string;
-    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
+    platform: Platform;
     description: string;
 }
 
@@ -254,7 +256,7 @@ export interface KeywordAnalysis {
 
 export interface ChannelAnalyticsData {
     channelName: string;
-    platform: 'YouTube' | 'TikTok' | 'Facebook' | 'Instagram' | 'Twitch';
+    platform: Platform;
     followerCount: string;
     totalViews: string;
     totalLikes: string;

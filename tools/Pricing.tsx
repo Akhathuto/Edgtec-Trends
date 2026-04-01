@@ -27,51 +27,56 @@ export const Pricing: React.FC<PricingProps> = ({ onUpgradeClick, onNavigate }) 
   };
 
   return (
-    <div className="animate-slide-in-up">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-white text-glow">Find the Perfect Plan (RSA)</h2>
-        <p className="text-slate-400 mt-2 max-w-2xl mx-auto">
-          Secure payments via Paystack. Pricing in South African Rand (ZAR).
+    <div className="animate-slide-in-up space-y-12">
+      <div className="text-center max-w-2xl mx-auto">
+        <h2 className="text-4xl font-bold text-white tracking-tight mb-4">Upgrade Your Strategy</h2>
+        <p className="text-slate-400 text-lg">
+          Secure payments via Paystack. Choose the plan that fits your content goals.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {plans.map((plan) => {
           const planName = plan.name.toLowerCase() as User['plan'];
-          const zarPrice = planName === 'starter' ? 'R199' : planName === 'pro' ? 'R499' : 'R0';
+          const zarPrice = planName === 'starter' ? '199' : planName === 'pro' ? '499' : '0';
+          const isCurrent = user?.plan.toLowerCase() === planName;
           
           return (
             <div
               key={plan.name}
-              className={`interactive-card flex flex-col relative ${
-                plan.isFeatured ? '!border-violet-500 shadow-glow-lg hover:shadow-violet-rich/40' : 'border-slate-700/50'
+              className={`premium-card rounded-3xl p-8 flex flex-col relative overflow-hidden transition-all duration-500 hover:scale-[1.02] ${
+                plan.isFeatured ? 'border-violet-500/50 shadow-2xl shadow-violet-500/10' : ''
               }`}
             >
               {plan.isFeatured && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                   <span className="inline-flex items-center gap-1.5 font-bold text-sm px-4 py-1.5 rounded-full bg-violet text-white shadow-lg">
-                      <Star className="w-4 h-4" />
-                      Most Popular
-                  </span>
+                <div className="absolute top-0 right-0">
+                  <div className="bg-violet-500 text-white text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-widest">
+                    Most Popular
+                  </div>
                 </div>
               )}
-              <h3 className="text-2xl font-bold text-white text-glow">{plan.name}</h3>
-              <p className="text-slate-400 mt-2 flex-grow">{plan.description}</p>
-              <div className="mt-6">
-                <span className="text-5xl font-extrabold text-white">{zarPrice}</span>
-                <span className="text-slate-400">/month</span>
+
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-white tracking-tight">R{zarPrice}</span>
+                  <span className="text-slate-500 font-medium">/month</span>
+                </div>
+                <p className="text-slate-400 mt-3 text-sm leading-relaxed">{plan.description}</p>
               </div>
-              <ul className="mt-8 space-y-4 text-slate-300">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 mr-3 text-green-400 flex-shrink-0 mt-0.5" />
+
+              <ul className="space-y-4 mb-10 flex-grow">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                    <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-8">
-                {user?.plan.toLowerCase() === planName ? (
-                  <button className="w-full bg-slate-700 text-slate-300 font-semibold py-3 px-6 rounded-lg cursor-default">
+
+              <div className="mt-auto">
+                {isCurrent ? (
+                  <button className="w-full py-4 rounded-2xl font-bold bg-slate-800 text-slate-500 cursor-default flex items-center justify-center">
                     Current Plan
                   </button>
                 ) : (
@@ -90,6 +95,19 @@ export const Pricing: React.FC<PricingProps> = ({ onUpgradeClick, onNavigate }) 
             </div>
           );
         })}
+      </div>
+
+      <div className="premium-card rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 max-w-6xl mx-auto">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-violet-500/10 rounded-xl border border-violet-500/20">
+            <Star className="w-6 h-6 text-violet-400" />
+          </div>
+          <div>
+            <h4 className="text-lg font-bold text-white">Need a custom solution?</h4>
+            <p className="text-slate-400 text-sm">Contact us for enterprise-grade features and dedicated support.</p>
+          </div>
+        </div>
+        <button className="button-secondary px-8 py-3 whitespace-nowrap">Contact Sales</button>
       </div>
     </div>
   );

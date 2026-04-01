@@ -12,6 +12,8 @@ interface ContentRepurposingProps {
   onNavigate: (toolId: ToolId, state?: any) => void;
 }
 
+import { AIContent } from '../components/AIContent';
+
 export const ContentRepurposing: React.FC<ContentRepurposingProps> = ({ onNavigate }) => {
     const { showToast } = useToast();
     const [url, setUrl] = useState('');
@@ -38,47 +40,70 @@ export const ContentRepurposing: React.FC<ContentRepurposingProps> = ({ onNaviga
         }
     }, [url]);
 
-    const handleCopy = (text: string, type: string) => {
-        navigator.clipboard.writeText(text);
-        showToast(`${type} copied to clipboard!`);
-    }
-
     return (
         <div className="animate-slide-in-up space-y-8">
-            <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
-                <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 flex items-center justify-center gap-2">
-                    <RefreshCw className="w-6 h-6 text-violet-400" /> Repurpose Content
-                </h2>
-                <p className="text-center text-slate-400 mb-6">Turn one video into multiple assets.</p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Enter video URL..." className="form-input flex-grow"/>
-                    <button onClick={handleRepurpose} disabled={loading} className="button-primary">{loading ? <Spinner/> : 'Repurpose'}</button>
+            <div className="premium-card rounded-2xl p-8 shadow-2xl">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="p-4 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-4 animate-float">
+                        <RefreshCw className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white tracking-tight">Repurpose Content</h2>
+                    <p className="text-slate-400 mt-2">Transform a single video into a multi-platform content strategy.</p>
                 </div>
-                <ErrorDisplay message={error} className="mt-4" />
+
+                <div className="max-w-2xl mx-auto">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-grow">
+                            <Link className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="url" 
+                                value={url} 
+                                onChange={(e) => setUrl(e.target.value)} 
+                                placeholder="Paste YouTube or TikTok URL..." 
+                                className="form-input pl-11 bg-slate-950/50 border-white/10"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleRepurpose} 
+                            disabled={loading} 
+                            className="button-primary px-8 py-3 h-12 flex items-center justify-center min-w-[140px]"
+                        >
+                            {loading ? <Spinner/> : 'Repurpose'}
+                        </button>
+                    </div>
+                    <ErrorDisplay message={error} className="mt-4" />
+                </div>
             </div>
 
             {loading && (
-                <div className="text-center py-10"><Spinner size="lg" /><p className="mt-4 text-slate-300">Repurposing content...</p></div>
+                <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                    <div className="relative">
+                        <Spinner size="lg" />
+                        <div className="absolute inset-0 bg-violet-500/20 blur-xl rounded-full" />
+                    </div>
+                    <p className="mt-6 text-slate-300 font-medium tracking-wide">AI is analyzing your content...</p>
+                </div>
             )}
 
             {content && (
-                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-fade-in space-y-6">
-                    <div>
-                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><FileText /> Blog Post</h3>
-                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.blogPost.replace(/\n/g, '<br/>') }}></div>
-                        <button onClick={() => handleCopy(content.blogPost, 'Blog Post')} className="button-secondary mt-2">Copy</button>
-                    </div>
-                     <div>
-                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Twitter /> Tweet Thread</h3>
-                        <div className="space-y-2 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                            {content.tweetThread.map((tweet, i) => <p key={i} className="text-sm border-b border-slate-700 pb-2 last:border-b-0">{i + 1}. {tweet}</p>)}
-                        </div>
-                        <button onClick={() => handleCopy(content.tweetThread.join('\n\n'), 'Tweet Thread')} className="button-secondary mt-2">Copy</button>
-                    </div>
-                     <div>
-                        <h3 className="text-xl font-bold text-violet-300 mb-2 flex items-center gap-2"><Link /> LinkedIn Post</h3>
-                        <div className="prose prose-invert max-w-none bg-slate-800/50 p-4 rounded-lg border border-slate-700" dangerouslySetInnerHTML={{ __html: content.linkedInPost.replace(/\n/g, '<br/>') }}></div>
-                        <button onClick={() => handleCopy(content.linkedInPost, 'LinkedIn Post')} className="button-secondary mt-2">Copy</button>
+                <div className="grid grid-cols-1 gap-8 animate-fade-in">
+                    <AIContent 
+                        content={content.blogPost} 
+                        type="repurpose" 
+                        title="Blog Post Draft" 
+                    />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <AIContent 
+                            content={content.tweetThread.join('\n\n')} 
+                            type="repurpose" 
+                            title="Twitter Thread" 
+                        />
+                        <AIContent 
+                            content={content.linkedInPost} 
+                            type="repurpose" 
+                            title="LinkedIn Strategy" 
+                        />
                     </div>
                 </div>
             )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getKeywordAnalysis } from '../services/geminiService';
-import { KeywordAnalysis } from '../types';
+import { KeywordAnalysis, Platform } from '../types';
 import Spinner from './Spinner';
 import { Search, Lightbulb, TrendingUp, Youtube, TikTok } from './Icons';
 import * as Icons from './Icons';
@@ -49,7 +49,7 @@ const KeywordAnalysisSkeleton = () => (
 const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
     const { getKeywordUsage, logKeywordAnalysis } = useAuth();
     const [keyword, setKeyword] = useState('');
-    const [platform, setPlatform] = useState<'All' | 'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch'>('All');
+    const [platform, setPlatform] = useState<Platform | 'All'>('All');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<KeywordAnalysis | null>(null);
@@ -118,7 +118,7 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
                 <p className="text-center text-slate-400 mb-6">Analyze keywords to find your next video topic.</p>
                 <div className="mb-6">
                     <label className="font-semibold text-slate-300 mb-2 block">Platform</label>
-                    <div className="segmented-control overflow-x-auto">
+                    <div className="segmented-control overflow-x-auto pb-2">
                         <button onClick={() => setPlatform('All')} className={platform === 'All' ? 'active' : ''}>All</button>
                         <button onClick={() => setPlatform('YouTube')} className={platform === 'YouTube' ? 'active' : ''}>
                             <Youtube className="w-4 h-4"/> YouTube
@@ -134,6 +134,24 @@ const KeywordResearch: React.FC<KeywordResearchProps> = ({ initialInput }) => {
                         </button>
                         <button onClick={() => setPlatform('Twitch')} className={platform === 'Twitch' ? 'active' : ''}>
                             <Icons.Twitch className="w-4 h-4"/> Twitch
+                        </button>
+                        <button onClick={() => setPlatform('LinkedIn')} className={platform === 'LinkedIn' ? 'active' : ''}>
+                            <Icons.LinkedIn className="w-4 h-4"/> LinkedIn
+                        </button>
+                        <button onClick={() => setPlatform('X')} className={platform === 'X' ? 'active' : ''}>
+                            <Icons.Twitter className="w-4 h-4"/> X
+                        </button>
+                        <button onClick={() => setPlatform('Pinterest')} className={platform === 'Pinterest' ? 'active' : ''}>
+                            <Icons.Pinterest className="w-4 h-4"/> Pinterest
+                        </button>
+                        <button onClick={() => setPlatform('Snapchat')} className={platform === 'Snapchat' ? 'active' : ''}>
+                            <Icons.Snapchat className="w-4 h-4"/> Snapchat
+                        </button>
+                        <button onClick={() => setPlatform('Reddit')} className={platform === 'Reddit' ? 'active' : ''}>
+                            <Icons.Reddit className="w-4 h-4"/> Reddit
+                        </button>
+                        <button onClick={() => setPlatform('Threads')} className={platform === 'Threads' ? 'active' : ''}>
+                            <Icons.Threads className="w-4 h-4"/> Threads
                         </button>
                     </div>
                 </div>

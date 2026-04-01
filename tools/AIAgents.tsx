@@ -9,6 +9,8 @@ import AgentSettingsModal from '../components/AgentSettingsModal';
 import { sendMessageToAgent } from '../services/geminiService';
 import ErrorDisplay from '../components/ErrorDisplay';
 
+import { AIContent } from '../components/AIContent';
+
 interface AIAgentsProps {
   onNavigate: (toolId: ToolId, state?: any) => void;
 }
@@ -82,7 +84,11 @@ const ChatMessageContent: React.FC<{
 
     return (
         <>
-            <p>{currentContent}</p>
+            {message.role === 'model' ? (
+                <AIContent content={currentContent} minimal type="chat" animate={false} />
+            ) : (
+                <p>{currentContent}</p>
+            )}
             {actionButton}
         </>
     );
@@ -312,23 +318,15 @@ export const AIAgents: React.FC<AIAgentsProps> = ({ onNavigate }) => {
           <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6">
             {history.map((msg, index) => (
               <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''} ${msg.role === 'tool' ? 'justify-center' : ''}`}>
-                {msg.role === 'model' && (
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                    <activeAgent.icon className={`w-5 h-5 ${activeAgent.color}`} />
-                  </div>
-                )}
-                <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : msg.role === 'tool' ? 'w-auto' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
+                <div className={`${msg.role === 'user' ? 'bg-violet text-white rounded-2xl rounded-br-none px-4 py-3 max-w-xl' : msg.role === 'tool' ? 'w-auto' : 'w-full'}`}>
                   <ChatMessageContent message={msg} onAction={handleAction} onHandoff={handleHandoff} />
                 </div>
               </div>
             ))}
             {loading && (
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                  <activeAgent.icon className={`w-5 h-5 ${activeAgent.color}`} />
-                </div>
-                <div className="px-4 py-3 rounded-2xl bg-slate-700 rounded-bl-none">
-                  <TypingIndicator />
+                <div className="w-full">
+                  <AIContent content="" minimal type="chat" animate={true} />
                 </div>
               </div>
             )}

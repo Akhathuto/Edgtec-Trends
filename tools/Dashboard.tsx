@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ToolId, Channel } from '../types';
 import { generateDashboardTip, getChannelSnapshots } from '../services/geminiService';
-import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown, SearchCode, Image } from '../components/Icons';
+import { Lightbulb, Video, DollarSign, FileText, TrendingUp, Search, BarChart2, MessageSquare, Bot, Rocket, Briefcase, Sparkles, Youtube, TikTok, TrendingDown, SearchCode, Image, Plus, ChevronRight, Zap } from '../components/Icons';
 
 interface DashboardProps {
   onNavigate: (toolId: ToolId, state?: any) => void;
@@ -92,6 +92,8 @@ const ChannelSnapshotCard: React.FC<{ channel: Channel; onAnalyze: () => void; }
     );
 }
 
+import { AIContent } from '../components/AIContent';
+
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     const { user } = useAuth();
     const [tip, setTip] = useState('');
@@ -121,46 +123,119 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
     return (
         <div className="animate-slide-in-up space-y-12 pb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Welcome back, <span className="text-violet-400">{user?.name.split(' ')[0]}</span>!</h1>
-                    <p className="text-slate-400 text-lg">Here's your command center for content creation.</p>
+                    <div className="flex items-center gap-2 text-violet-400 font-bold text-xs uppercase tracking-[0.2em] mb-2">
+                        <Zap className="w-4 h-4" />
+                        <span>Command Center</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-2">Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">{user?.name.split(' ')[0]}</span>!</h1>
+                    <p className="text-slate-400 text-lg max-w-2xl">What's the goal for today? Choose a path below to start creating.</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                  <Sparkles className="w-4 h-4 text-violet-400" />
-                  <span>AI Engine Active</span>
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => onNavigate('media-generator')}
+                        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg shadow-violet-900/40 active:scale-95"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span>New Project</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Goal-Oriented Navigation */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="premium-card p-6 rounded-3xl border border-white/5 hover:border-violet-500/30 transition-all group">
+                    <div className="p-3 bg-amber-500/10 rounded-2xl w-fit mb-4">
+                        <Lightbulb className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">I want to Create</h3>
+                    <p className="text-sm text-slate-400 mb-6">Generate scripts, videos, and thumbnails with AI.</p>
+                    <div className="space-y-2">
+                        <button onClick={() => onNavigate('script-writer')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>Script Writer</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => onNavigate('media-generator')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>Media Generator</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="premium-card p-6 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group">
+                    <div className="p-3 bg-emerald-500/10 rounded-2xl w-fit mb-4">
+                        <TrendingUp className="w-6 h-6 text-emerald-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">I want to Grow</h3>
+                    <p className="text-sm text-slate-400 mb-6">Analyze trends, optimize SEO, and plan growth.</p>
+                    <div className="space-y-2">
+                        <button onClick={() => onNavigate('trends-keywords')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>Trends & SEO</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => onNavigate('growth-planner')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>Growth Planner</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="premium-card p-6 rounded-3xl border border-white/5 hover:border-sky-500/30 transition-all group">
+                    <div className="p-3 bg-sky-500/10 rounded-2xl w-fit mb-4">
+                        <Sparkles className="w-6 h-6 text-sky-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">I want AI Help</h3>
+                    <p className="text-sm text-slate-400 mb-6">Chat with Nolo or consult specialized AI agents.</p>
+                    <div className="space-y-2">
+                        <button onClick={() => onNavigate('nolo-ai')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>Chat with Nolo</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => onNavigate('ai-agents')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-semibold text-slate-300 transition-all">
+                            <span>AI Agents</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-10">
                     {/* AI Tip of the Day */}
-                    <div className="relative group overflow-hidden rounded-3xl p-8 transition-all duration-500 bg-slate-900/40 border border-violet-500/20 hover:border-violet-500/40">
-                        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-violet-600/10 blur-3xl rounded-full group-hover:bg-violet-600/20 transition-all duration-500" />
-                        <div className="relative flex items-start gap-6">
-                            <div className="p-4 bg-violet-600/10 rounded-2xl border border-violet-500/20">
-                              <Sparkles className="w-8 h-8 text-violet-400" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-white mb-2">AI Tip of the Day</h2>
-                                {tipLoading ? (
-                                  <div className="space-y-2 mt-3">
-                                    <div className="h-4 w-full bg-white/5 rounded animate-pulse"></div>
-                                    <div className="h-4 w-2/3 bg-white/5 rounded animate-pulse"></div>
-                                  </div>
-                                ) : (
-                                  <p className="text-slate-400 leading-relaxed">{tip}</p>
-                                )}
-                            </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between px-2">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                AI Insights
+                                <span className="px-2 py-0.5 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-bold text-violet-400 uppercase tracking-widest">Daily Strategy</span>
+                            </h2>
                         </div>
+                        
+                        {tipLoading ? (
+                            <div className="premium-card rounded-3xl p-8 animate-pulse">
+                                <div className="flex items-start gap-6">
+                                    <div className="p-4 bg-white/5 rounded-2xl w-16 h-16"></div>
+                                    <div className="flex-1 space-y-3">
+                                        <div className="h-4 w-1/4 bg-white/5 rounded"></div>
+                                        <div className="h-4 w-full bg-white/5 rounded"></div>
+                                        <div className="h-4 w-5/6 bg-white/5 rounded"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <AIContent content={tip} type="insight" className="w-full" />
+                        )}
                     </div>
 
                      {/* Your Channels */}
                     {user?.channels && user.channels.length > 0 && (
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                              <h2 className="text-2xl font-bold text-white">Your Channels</h2>
-                              <button onClick={() => onNavigate('analytics')} className="text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">View All</button>
+                            <div className="flex items-center justify-between px-2">
+                              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <BarChart2 className="w-6 h-6 text-violet-400" />
+                                Your Channels
+                              </h2>
+                              <button onClick={() => onNavigate('analytics')} className="text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest border-b border-transparent hover:border-white/20 pb-1">View All</button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {user.channels.map(channel => (
@@ -173,7 +248,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <div className="lg:col-span-1 space-y-8">
                     {/* Quick Create */}
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-white">Quick Create</h2>
+                        <h2 className="text-2xl font-bold text-white px-2">Quick Actions</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <QuickCreateButton icon={<Lightbulb className="w-8 h-8 text-amber-400" />} label="Idea" toolId="script-writer" onClick={onNavigate} />
                             <QuickCreateButton icon={<Video className="w-8 h-8 text-rose-400" />} label="Video" toolId="media-generator" onClick={onNavigate} />

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getRealtimeTrends, findTrends } from '../services/geminiService';
-import { ToolId, TrendingChannel, TrendingTopic, GroundingSource } from '../types';
+import { ToolId, TrendingChannel, TrendingTopic, GroundingSource, Platform } from '../types';
 import Spinner from '../components/Spinner';
 import { TrendingUp, Youtube, TikTok, Search, ExternalLink } from '../components/Icons';
 import * as Icons from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorDisplay from '../components/ErrorDisplay';
+
+import { AIContent } from '../components/AIContent';
 
 const categories = ['All', 'Gaming', 'Music', 'Comedy', 'Education', 'Beauty & Fashion', 'Tech', 'Food', 'Travel', 'Sports'];
 
@@ -22,7 +24,7 @@ export const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onNavigate }) =>
 
     // Search state
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchPlatform, setSearchPlatform] = useState<'YouTube' | 'TikTok' | 'Instagram' | 'Facebook' | 'Twitch' | 'All'>('YouTube');
+    const [searchPlatform, setSearchPlatform] = useState<Platform | 'All'>('YouTube');
     const [searchCategory, setSearchCategory] = useState<string>('All');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<{ text: string, sources: GroundingSource[] } | null>(null);
@@ -66,7 +68,7 @@ export const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onNavigate }) =>
                 <h2 className="text-2xl font-bold text-center mb-1 text-slate-100 text-glow flex items-center justify-center gap-2">
                     <TrendingUp className="w-6 h-6 text-violet-400" /> Trend Discovery
                 </h2>
-                <p className="text-center text-slate-400 mb-6">Find what's hot right now on YouTube, TikTok, Instagram, Facebook, and Twitch.</p>
+                <p className="text-center text-slate-400 mb-6">Find what's hot right now across all major social platforms.</p>
                 <ErrorDisplay message={error} />
             </div>
 
@@ -76,7 +78,28 @@ export const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onNavigate }) =>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 className="font-semibold mb-2">Trending Channels</h4>
-                            <div className="space-y-2">{realtime.channels.map((c, i) => <div key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded-md"> {c.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : c.platform === 'TikTok' ? <TikTok className="w-5 h-5" /> : c.platform === 'Facebook' ? <Icons.Facebook className="w-5 h-5 text-blue-500" /> : c.platform === 'Instagram' ? <Icons.Instagram className="w-5 h-5 text-pink-500" /> : <Icons.Twitch className="w-5 h-5 text-purple-500" />} <span className="font-semibold">{c.name}</span> <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-auto"><ExternalLink className="w-4 h-4"/></a> </div>)}</div>
+                            <div className="space-y-2">
+                                {realtime.channels.map((c, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-sm p-2 bg-slate-800/50 rounded-md">
+                                        {c.platform === 'YouTube' ? <Youtube className="w-5 h-5 text-red-500"/> : 
+                                         c.platform === 'TikTok' ? <TikTok className="w-5 h-5" /> : 
+                                         c.platform === 'Facebook' ? <Icons.Facebook className="w-5 h-5 text-blue-500" /> : 
+                                         c.platform === 'Instagram' ? <Icons.Instagram className="w-5 h-5 text-pink-500" /> : 
+                                         c.platform === 'Twitch' ? <Icons.Twitch className="w-5 h-5 text-purple-500" /> :
+                                         c.platform === 'LinkedIn' ? <Icons.LinkedIn className="w-5 h-5 text-blue-600" /> :
+                                         c.platform === 'X' ? <Icons.Twitter className="w-5 h-5" /> :
+                                         c.platform === 'Pinterest' ? <Icons.Pinterest className="w-5 h-5 text-red-600" /> :
+                                         c.platform === 'Snapchat' ? <Icons.Snapchat className="w-5 h-5 text-yellow-400" /> :
+                                         c.platform === 'Reddit' ? <Icons.Reddit className="w-5 h-5 text-orange-500" /> :
+                                         c.platform === 'Threads' ? <Icons.Threads className="w-5 h-5" /> :
+                                         <Icons.Globe className="w-5 h-5 text-slate-400" />} 
+                                        <span className="font-semibold">{c.name}</span> 
+                                        <a href={c.channel_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-auto">
+                                            <ExternalLink className="w-4 h-4"/>
+                                        </a> 
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div>
                             <h4 className="font-semibold mb-2">Trending Topics</h4>
@@ -107,7 +130,13 @@ export const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onNavigate }) =>
                         <option value="Instagram">Instagram</option>
                         <option value="Facebook">Facebook</option>
                         <option value="Twitch">Twitch</option>
-                        <option value="All">All</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="X">X (Twitter)</option>
+                        <option value="Pinterest">Pinterest</option>
+                        <option value="Snapchat">Snapchat</option>
+                        <option value="Reddit">Reddit</option>
+                        <option value="Threads">Threads</option>
+                        <option value="All">All Platforms</option>
                     </select>
                     <select 
                         value={searchCategory} 
@@ -126,12 +155,29 @@ export const TrendDiscovery: React.FC<TrendDiscoveryProps> = ({ onNavigate }) =>
                     </button>
                 </div>
                 {searchResult && (
-                    <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                        <p className="text-slate-300 whitespace-pre-wrap">{searchResult.text}</p>
+                    <div className="mt-6">
+                        <AIContent 
+                            content={searchResult.text} 
+                            type="insight" 
+                            className="w-full"
+                        />
                         {searchResult.sources.length > 0 && (
-                            <div className="mt-4 pt-3 border-t border-slate-700">
-                                <h5 className="text-xs font-semibold text-slate-400 mb-2">Sources:</h5>
-                                <div className="flex flex-wrap gap-2">{searchResult.sources.map((s, i) => <a key={i} href={s.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-slate-700 text-blue-300 px-2 py-1 rounded hover:bg-slate-600">{s.title || new URL(s.uri).hostname}</a>)}</div>
+                            <div className="mt-4 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                                <h5 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">Verified Sources:</h5>
+                                <div className="flex flex-wrap gap-2">
+                                    {searchResult.sources.map((s, i) => (
+                                        <a 
+                                            key={i} 
+                                            href={s.uri} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1.5"
+                                        >
+                                            <ExternalLink className="w-3 h-3" />
+                                            {s.title || new URL(s.uri).hostname}
+                                        </a>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

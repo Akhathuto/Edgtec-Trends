@@ -1,9 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { analyzeVideoUrl } from '../services/geminiService';
 import { ToolId, VideoAnalysis } from '../types';
 import Spinner from '../components/Spinner';
 import { Film, Link, CheckCircle } from '../components/Icons';
 import ErrorDisplay from '../components/ErrorDisplay';
+
+import { AIContent } from '../components/AIContent';
 
 interface VideoAnalyzerProps {
     onNavigate: (toolId: ToolId, state?: any) => void;
@@ -34,6 +36,23 @@ export const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ onNavigate }) => {
         }
     }, [url]);
 
+    const analysisMarkdown = useMemo(() => {
+        if (!analysis) return '';
+        return `
+### AI Summary
+${analysis.aiSummary}
+
+### Content Analysis
+${analysis.contentAnalysis}
+
+### Engagement Analysis
+${analysis.engagementAnalysis}
+
+### Improvement Suggestions
+${analysis.improvementSuggestions.map(s => `* ${s}`).join('\n')}
+        `.trim();
+    }, [analysis]);
+
     return (
         <div className="animate-slide-in-up space-y-8">
             <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
@@ -53,18 +72,20 @@ export const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ onNavigate }) => {
             )}
 
             {analysis && (
-                <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl animate-fade-in space-y-6">
-                    <h3 className="text-2xl font-bold text-white">{analysis.title}</h3>
-                    <div className="space-y-4">
-                        <div><h4 className="font-semibold text-violet-300">AI Summary</h4><p className="text-slate-300">{analysis.aiSummary}</p></div>
-                        <div><h4 className="font-semibold text-violet-300">Content Analysis</h4><p className="text-slate-300">{analysis.contentAnalysis}</p></div>
-                        <div><h4 className="font-semibold text-violet-300">Engagement Analysis</h4><p className="text-slate-300">{analysis.engagementAnalysis}</p></div>
-                        <div><h4 className="font-semibold text-violet-300">Improvement Suggestions</h4>
-                            <ul className="space-y-2 mt-2">
-                                {analysis.improvementSuggestions.map((s, i) => <li key={i} className="flex items-start"><CheckCircle className="w-4 h-4 text-green-400 mr-2 mt-1 flex-shrink-0"/>{s}</li>)}
-                            </ul>
+                <div className="space-y-6">
+                    <div className="bg-brand-glass border border-slate-700/50 rounded-xl p-6 shadow-xl backdrop-blur-xl">
+                        <h3 className="text-2xl font-bold text-white mb-2">{analysis.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                            <Link className="w-4 h-4" />
+                            <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 transition-colors truncate">{url}</a>
                         </div>
                     </div>
+                    
+                    <AIContent 
+                        content={analysisMarkdown} 
+                        type="insight" 
+                        className="w-full"
+                    />
                 </div>
             )}
         </div>

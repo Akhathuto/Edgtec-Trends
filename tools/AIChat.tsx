@@ -100,6 +100,8 @@ const GifPicker: React.FC<{ onSelect: (url: string) => void; }> = ({ onSelect })
 };
 
 
+import { AIContent } from '../components/AIContent';
+
 export const AIChat: React.FC<AIChatProps> = ({ onNavigate }) => {
   const { user, logActivity } = useAuth();
   const { showToast } = useToast();
@@ -416,15 +418,16 @@ export const AIChat: React.FC<AIChatProps> = ({ onNavigate }) => {
             )}
             {history.map((msg, index) => (
               <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                {msg.role === 'model' && (
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-violet-300" />
-                  </div>
-                )}
-                <div className={`prose prose-invert prose-p:my-0 prose-strong:text-white max-w-xl px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-violet text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                    {msg.content && <p>{msg.content}</p>}
-                    {msg.gifUrl && <img src={msg.gifUrl} alt="user selected gif" className="max-w-xs rounded-lg my-2" />}
-                    {msg.imageUrl && <img src={msg.imageUrl} alt="user upload" className="max-w-xs rounded-lg my-2" />}
+                <div className={`max-w-xl ${msg.role === 'user' ? 'bg-violet text-white rounded-2xl rounded-br-none px-4 py-3' : 'w-full'}`}>
+                    {msg.role === 'user' ? (
+                        <>
+                            {msg.content && <p>{msg.content}</p>}
+                            {msg.gifUrl && <img src={msg.gifUrl} alt="user selected gif" className="max-w-xs rounded-lg my-2" />}
+                            {msg.imageUrl && <img src={msg.imageUrl} alt="user upload" className="max-w-xs rounded-lg my-2" />}
+                        </>
+                    ) : (
+                        <AIContent content={msg.content} minimal type="chat" />
+                    )}
                 </div>
               </div>
             ))}
